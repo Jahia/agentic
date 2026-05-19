@@ -17,6 +17,7 @@ Read the user's request and classify it using the table below. A task can span m
 | Category | Keywords / intent | Skill |
 |----------|-------------------|-------|
 | **Module development** | create module, scaffold, content type, CND, view, React, TSX, page template, CSS, build, deploy, compile | `/jahia-dev` |
+| **Personalization / analytics** | jExperience, jCustomer, window.wem, visitor events, Kibana dashboard, personalization, DXP | `/jahia-dev-jexperience` |
 | **Content management** | create content, add article, populate, move, reorganize, publish, query what's in the CMS | `/jahia-content` |
 | **OSGi / back-office** | Java bundle, OSGi service, jcontent action, admin panel, toolbar button, Webpack, Module Federation | `/jahia-dev-osgi-module` or `/jahia-dev-ui-extension` |
 | **E2E testing** | Cypress, test spec, edit mode, component interaction, publish workflow | `/jahia-dev-cypress` |
@@ -114,6 +115,7 @@ Always print this at the end so the user can jump anywhere:
 /jahia-dev-debug                 Debug build/deploy/runtime errors end-to-end
 /jahia-dev-cypress               Write Cypress E2E tests for Jahia components
 /jahia-dev-import-from           Implement a component inspired by one on an external URL
+/jahia-dev-jexperience           jExperience + jCustomer: push events, Kibana dashboards, local DXP stack
 
 ### ⚙️ OSGi / Back-office extensions
 /jahia-dev-osgi-module           Build or configure an OSGi Java bundle module

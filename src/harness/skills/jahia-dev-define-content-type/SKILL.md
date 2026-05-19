@@ -300,6 +300,10 @@ In the view, use a `switch` on `props["j:linkType"]` (see `jahia-dev-create-view
 
 **Default to `i18n` on every user-facing field** — titles, subtitles, body text, button labels, alt text, captions, people names. Even on monolingual sites, adding `i18n` from the start avoids costly CND migrations later.
 
+> ⚠️ **Child nodes do not support `i18n`.** The content tree is shared across all languages. If you need locale-specific child content, use per-language **visibility conditions** in the Jahia editor (Advanced Editing → Visibility → Languages) instead.
+
+> Under the hood: non-i18n fields are stored directly on the node; i18n fields are stored as properties of auto-created `jnt:translation_<language>` child nodes. You don't manage these directly, but knowing this helps when debugging missing translated values.
+
 ### Common mixins to extend
 
 | Mixin | Adds |
