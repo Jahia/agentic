@@ -51,7 +51,7 @@ jobs:
       - name: Start Jahia
         run: docker compose up --wait --detach
         working-directory: crumbleco
-        timeout-minutes: 15
+        timeout-minutes: 20
 
       - name: Verify Jahia is reachable
         run: |
