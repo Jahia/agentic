@@ -43,6 +43,7 @@ jobs:
       # ── Set up crumbleco module ─────────────────────────────────────────────
       - name: Set up crumbleco module
         run: |
+          corepack enable
           cp -r benchmark/module-template crumbleco
           cd crumbleco && yarn install --no-immutable
 
