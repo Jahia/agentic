@@ -1,6 +1,7 @@
 ---
 name: jahia
 description: Top-level entry point for ALL Jahia tasks. Detects whether the request is about building a module (dev) or managing content (CMS), and delegates to the right skill or combination. Start here if unsure which Jahia skill to use.
+allowed-tools: Bash, Read
 ---
 
 # Jahia — Universal Entry Point
@@ -17,6 +18,8 @@ Read the user's request and classify it using the table below. A task can span m
 |----------|-------------------|-------|
 | **Module development** | create module, scaffold, content type, CND, view, React, TSX, page template, CSS, build, deploy, compile | `/jahia-dev` |
 | **Content management** | create content, add article, populate, move, reorganize, publish, query what's in the CMS | `/jahia-content` |
+| **OSGi / back-office** | Java bundle, OSGi service, jcontent action, admin panel, toolbar button, Webpack, Module Federation | `/jahia-osgi-module` or `/jahia-osgi-ui-extension` |
+| **E2E testing** | Cypress, test spec, edit mode, component interaction, publish workflow | `/jahia-dev-cypress` |
 | **Both** | build a component AND fill it with content, design a section AND add pages to it, set up a site end-to-end | Run `/jahia-dev` first, then `/jahia-content` |
 
 If the request is ambiguous, ask one clarifying question:
@@ -105,6 +108,11 @@ Always print this at the end so the user can jump anywhere:
 /jahia-dev-review                Code review: 8 critical checks, 9 warnings, 10 suggestions
 /jahia-dev-screenshot            Screenshot reference + local render for visual comparison
 /jahia-dev-debug                 Debug build/deploy/runtime errors end-to-end
+/jahia-dev-cypress               Write Cypress E2E tests for Jahia components
+
+### ⚙️ OSGi / Back-office extensions
+/jahia-osgi-module               Build or configure an OSGi Java bundle module
+/jahia-osgi-ui-extension         Extend jcontent back-office with React 18/Webpack actions or panels
 
 ### 📝 Content Management  (/jahia-content and sub-skills)
 /jahia-content                       Detect site state, route to content operations ← start here

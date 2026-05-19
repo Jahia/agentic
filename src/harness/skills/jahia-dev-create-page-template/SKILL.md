@@ -1,6 +1,7 @@
 ---
 name: jahia-dev-create-page-template
 description: Creates a Jahia page template with Areas and AbsoluteAreas. Use when asked to add a new page layout, create a page template, or set up a shared area like a header or footer.
+allowed-tools: Bash, Read, Write, Edit
 ---
 
 ## Overview
@@ -91,7 +92,7 @@ Then in the template:
 > ⚠️ **CSS gotcha — `Area` renders children directly, no wrapper div.** When wrapping an `<Area>` in a container div and styling children with `.container > div { display: grid }`, the grid won't apply because there is no intermediate `div` — the area's child components are rendered as direct children of `.container`. Always apply grid/flex layout **on the container itself** when its only content is an Area:
 > ```css
 > /* ✅ correct — grid on the container that wraps the Area */
-> .featuresSection .container { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1.5rem; }
+> .featuresSection .container { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 1.5rem; }
 > /* ❌ wrong — no div is inserted between container and the card articles */
 > .container > div { display: grid; }
 > ```
@@ -143,6 +144,7 @@ Some nodes are purely structural — they hold child nodes but shouldn't appear 
 Render it with `RenderChild`:
 
 ```tsx
+// src/components/Header/default.server.tsx
 import { jahiaComponent, RenderChild } from "@jahia/javascript-modules-library";
 
 jahiaComponent(
@@ -165,7 +167,7 @@ jahiaComponent(
   <modules jcr:primaryType="jnt:modules">
     <your-module-name>
 
-      <!-- Homepage — MUST use your actual template name -->
+      <!-- Homepage — MUST use your actual template name, not "basic" -->
       <home j:isHomePage="true" j:templateName="homepage" jcr:primaryType="jnt:page">
         <j:translation_en jcr:language="en" jcr:mixinTypes="mix:title"
           jcr:primaryType="jnt:translation" jcr:title="Home"/>
@@ -204,7 +206,8 @@ jahiaComponent(
 
 **Rules:**
 - `j:templateName` must match the `name:` in your `jahiaComponent` call — if it's wrong, editors get a blank page
-- Pre-create area nodes so editors don't face empty containers on first open
+- Pre-create area nodes (`jcr:primaryType="namespace:pageArea"`) so editors don't face empty containers on first open
+- Add a starter component in the hero area so the page isn't visually blank (optional but strongly recommended)
 - Content folders with `jmix:contributeMode` + `j:contributeTypes` restrict what editors can create in them
 - `jmix:systemNameReadonly` prevents editors from renaming or moving management pages; `jmix:nolive` prevents accidental publishing
 
@@ -216,7 +219,7 @@ jahiaComponent(
 yarn build && yarn jahia-deploy
 ```
 
-> ⚠️ **Do not use `yarn dev`** — it is a continuous file watcher that should only be started manually. For agentic workflows, always use `yarn build && yarn jahia-deploy`.
+> ⚠️ **Do not use `yarn dev`** — it is a continuous file watcher that should only be started manually when needed for rapid iteration. For agentic workflows, always use `yarn build && yarn jahia-deploy` for explicit, one-shot deploys.
 
 After deploying, the new template will appear in the **template selection** step when creating a new page (right-click on a page in the sidebar → **+ New Page**).
 
@@ -242,6 +245,22 @@ After deploying, the new template will appear in the **template selection** step
     <Area name="main" />
   </div>
 </Layout>
+```
+
+### Edit mode-aware rendering
+
+```tsx
+({ "jcr:title": title }, { renderContext }) => {
+  const isEdit = renderContext.isEditMode();
+  return (
+    <Layout title={title}>
+      <Area name="main" />
+      <nav style={{ flexDirection: isEdit ? "column" : "row" }}>
+        <AbsoluteArea name="footer" parent={renderContext.getSite()} />
+      </nav>
+    </Layout>
+  );
+}
 ```
 
 ---

@@ -1,6 +1,7 @@
 ---
 name: jahia-dev-query-content
 description: Writes JCR-SQL2 queries to list and filter Jahia content. Use when asked to list articles, display content from a folder, filter by date, or build a content listing.
+allowed-tools: Bash, Read, Write, Edit, WebFetch
 ---
 
 ## Overview
@@ -209,9 +210,103 @@ jahiaComponent(
 
 ---
 
-## Step 7 — Hierarchical content with nested folders
+## Step 7 — Language switcher with `getSiteLocales`
 
-Content folders can be nested to create sections. Use `ISDESCENDANTNODE` in queries to automatically include all levels — no query changes needed as you add sub-folders.
+For sites with multiple languages, build a language switcher by combining `getSiteLocales()` with `j:invalidLanguages` and `node.hasI18N()`. Filter out disabled or untranslated locales before generating URLs.
+
+```tsx
+import { getSiteLocales, buildNodeUrl, jahiaComponent } from "@jahia/javascript-modules-library";
+
+jahiaComponent(
+  { componentType: "view", nodeType: "ns:languageSwitcher" },
+  (_, { currentNode }) => {
+    const locales = getSiteLocales(); // Record<string, java.util.Locale>
+
+    // Read j:invalidLanguages (languages disabled on this node)
+    const invalidCodes = currentNode.hasProperty("j:invalidLanguages")
+      ? currentNode.getProperty("j:invalidLanguages").getValues().map((v: any) => v.getString())
+      : [];
+    const invalidSet = new Set(invalidCodes);
+
+    const links = Object.entries(locales)
+      .filter(([code, locale]) =>
+        !invalidSet.has(code) && currentNode.hasI18N(locale),
+      )
+      .map(([code]) => ({
+        code,
+        url: buildNodeUrl(currentNode, { language: code }),
+      }));
+
+    return (
+      <nav aria-label="Language switcher">
+        {links.map(({ code, url }) => (
+          <a key={code} href={url} lang={code} hrefLang={code}>
+            {code.toUpperCase()}
+          </a>
+        ))}
+      </nav>
+    );
+  },
+);
+```
+
+> `getSiteLocales()` returns all locales configured for the site — not just the active language. Always filter by `j:invalidLanguages` and `hasI18N()` before displaying.
+
+---
+
+## Step 7b — Query via GraphQL with `useGQLQuery`
+
+For complex queries that span multiple nodes or need field-level projection, `useGQLQuery` is more efficient than `useJCRQuery`. It runs synchronously on the server using the current user's session.
+
+```tsx
+import { useGQLQuery, jahiaComponent } from "@jahia/javascript-modules-library";
+import { gql } from "graphql-tag";
+
+const BLOG_QUERY = gql`
+  query LatestPosts($path: String!) {
+    jcr {
+      nodeByPath(path: $path) {
+        descendants(typesFilter: { types: ["namespace:blogPost"] }, fieldFilter: {
+          filters: [{ fieldName: "publicationDate", evaluation: NOT_EMPTY }]
+        }) {
+          nodes {
+            name
+            path
+            displayName
+            property(name: "publicationDate") { value }
+            property(name: "jcr:title") { value }
+          }
+        }
+      }
+    }
+  }
+`;
+
+jahiaComponent(
+  { componentType: "view", nodeType: "namespace:blogListing" },
+  (_, { renderContext }) => {
+    const siteKey = renderContext.getSite().getName();
+    const data = useGQLQuery(BLOG_QUERY, { path: `/sites/${siteKey}/contents/blog` });
+    const posts = data?.jcr?.nodeByPath?.descendants?.nodes ?? [];
+
+    return (
+      <ul>
+        {posts.map((post: any) => (
+          <li key={post.path}>
+            <a href={post.path}>{post.property?.value ?? post.displayName}</a>
+          </li>
+        ))}
+      </ul>
+    );
+  },
+);
+```
+
+---
+
+## Step 8 — Hierarchical content with nested folders
+
+Content folders can be nested to create sections (e.g. `tutorials/front-end/`, `tutorials/editors/`). Use `ISDESCENDANTNODE` in queries to automatically include all levels — no query changes needed as you add sub-folders.
 
 For **sidebar navigation** or **tree panels**, traverse the JCR hierarchy directly instead of querying:
 

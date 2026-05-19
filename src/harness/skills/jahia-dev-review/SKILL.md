@@ -1,6 +1,7 @@
 ---
 name: jahia-dev-review
 description: Reviews a Jahia JavaScript module for generic and Jahia-specific best practices. Scans CND definitions, TypeScript views, and page templates. Reports issues in order of importance with fix suggestions. Covers 8 critical checks, 9 warnings, and 10 suggestions.
+allowed-tools: Bash, Read
 ---
 
 # Skill: jahia-dev-review
@@ -26,6 +27,7 @@ find src/ -name "definition.cnd" | sort
 find src/ -name "*.server.tsx" | sort
 find src/ -name "*.client.tsx" | sort
 find src/ -name "types.ts" | sort
+find src/templates/ -name "*.server.tsx" | sort
 cat settings/definitions.cnd
 ```
 
@@ -47,7 +49,7 @@ Fix: change to `componentType: "view"`. The `src/templates/MainResource/default.
 
 **C3 — `j:linknode` or `j:url` explicitly declared in CND**
 Check: any CND type that explicitly declares `j:linknode` or `j:url` fields alongside `choicelist[linkTypeInitializer]`.
-Fix: remove those two fields from the CND. They are injected automatically by Jahia's mixins at runtime. Only declare `- j:linkType (string, choicelist[linkTypeInitializer])`.
+Fix: remove those two fields from the CND. They are injected automatically by Jahia's mixins at runtime. Only declare `- j:linkType (string, choicelist[linkTypeInitializer])`. The fields remain available in `types.ts` and in the view.
 
 **C4 — `j:linkType` used as a URL in a view**
 Check: any `.server.tsx` or `.client.tsx` file that uses `props["j:linkType"]` or `j:linkType` directly as an `href`.
@@ -66,7 +68,7 @@ Check: any `jahiaComponent` call with `properties: { "cache.expiration": "0" }`.
 Fix: never set expiration to 0. If truly fresh data is needed, use a small value like `"5"` (5 seconds) to still protect under load.
 
 **C8 — Generic area type used for every Area**
-Check: page templates where every `<Area>` uses the same generic area type (e.g. `nodeType="namespace:pageArea"` everywhere). This means editors see ALL `pageComponent` types as droppable options in every area.
+Check: page templates where every `<Area>` uses the same generic area type (e.g. `nodeType="namespace:pageArea"` everywhere). This means editors see ALL `pageComponent` types as droppable options in every area — a hero section will appear as an option in a feature card grid.
 Fix: create **one typed area node per section** in `settings/definitions.cnd`, each with a tight child constraint:
 ```cnd
 [namespace:heroArea] > jnt:content, jmix:list, jmix:hiddenType orderable
@@ -90,12 +92,12 @@ Check: CND types that have `jmix:mainResource` but no richtext body or no obviou
 Fix: only use `jmix:mainResource` for content that genuinely needs both a listing card AND a full-page detail view.
 
 **W3 — Structural container types missing `jmix:hiddenType`**
-Check: CND types that have no `namespacemix:component` mixin (so they can't be dropped as components) but also don't have `jmix:hiddenType`.
+Check: CND types that have no `namespacemix:component` mixin (so they can't be dropped as components) but also don't have `jmix:hiddenType` — editors would never see them but they don't show up with a clear "hidden" intent.
 Fix: add `jmix:hiddenType` to structural/container types. Do NOT use `jmix:studioOnly` — it can interfere with area rendering.
 
 **W4 — Props not typed as optional (`?:`) / not guarded in views**
 Check: (a) `types.ts` props typed as required (`title: string`) — all props must use `?:` because Jahia does not guarantee values are present at render time. (b) Views that use props without null/undefined guards, especially `buildNodeUrl(prop)` — passing `undefined` throws `"Expected a node in buildNodeUrl, received undefined"`.
-Fix: use `?:` for all props in `types.ts`. Add conditional rendering and guard node URLs.
+Fix: use `?:` for all props in `types.ts`. Add conditional rendering (`{prop && <span>{prop}</span>}`) and guard node URLs (`prop ? { backgroundImage: \`url(${buildNodeUrl(prop)})\` } : undefined`).
 
 **W5 — `weakreference multiple` not null-filtered before `.map()`**
 Check: views mapping over a `weakreference multiple` prop without `.filter(x => x !== null)`.
@@ -107,16 +109,16 @@ Fix: add `cache.expiration` to the `jahiaComponent` properties.
 
 **W7 — Missing `import.xml` or no homepage defined**
 Check: look for `import.xml` at the module root. If absent or if it doesn't contain `j:isHomePage="true"`, editors won't have a default homepage.
-Fix: add an `import.xml` with a homepage node (`j:isHomePage="true"`). Also add offline management pages with `jmix:systemNameReadonly` and `jmix:nolive` mixins. Add content folders with `jmix:contributeMode` restrictions where appropriate.
+Fix: add an `import.xml` with a homepage node (`j:isHomePage="true"`). Also add "Offline pages/Models", "Offline pages/Drafts", "Offline pages/Archive" folders with `jmix:systemNameReadonly` and `jmix:nolive` mixins. Add content folders with `jmix:contributeMode` restrictions where appropriate.
 
 **W8 — Node type extends something other than `jnt:content`**
 Check: CND types that extend anything other than `jnt:content`, `jnt:page`, `jmix:*`, or standard Jahia base types.
 Fix: extend only `jnt:content` (or `jnt:page` for page types). To add fields to a type you don't control, use a mixin with `extends=<targetType>`. Unusual inheritance chains break edition interfaces in unpredictable ways.
 
 **W9 — Hardcoded link URLs in views**
-Check: any `.server.tsx`, `.client.tsx`, or template file containing a literal `href="http`, `href="/"`, or `href="/en/`. Also flag any content data with `j:linkType: "external"` pointing to a path that looks like an internal Jahia URL (e.g. `/sites/`, `/cms/`, `/en/`).
+Check: any `.server.tsx`, `.client.tsx`, or template file containing a literal `href="http`, `href="/"`, or `href="/en/` (except in edit-mode chrome helpers). Also flag plain string `src="http` for non-bundled assets. Also flag any content data with `j:linkType: "external"` pointing to a path that looks like an internal Jahia URL (e.g. `/sites/`, `/cms/`, `/en/`).
 Fix: **All navigable URLs must come from contributed content.** Use `j:linkType`/`j:linknode`/`j:url` props for editorial links, `buildNodeUrl(node)` for JCR node links.
-🚫 **NEVER use `j:linkType: "external"` to link to an internal Jahia page** — use `"internal"` + `j:linknode`.
+🚫 **NEVER use `j:linkType: "external"` to link to an internal Jahia page** — use `"internal"` + `j:linknode`. An external URL pointing internally breaks on environment changes, language switches, live/preview workspace toggling, and vanity URL rewrites. If no target page exists yet, omit the link; do not substitute an external workaround.
 
 ---
 
@@ -143,24 +145,25 @@ Check: CND types that extend `mix:title` but whose `types.ts` doesn't include `"
 Fix: add `"jcr:title"?: string` to the Props type.
 
 **S6 — Missing `.properties` file entries or icon for new content types**
-Check: for each node type found in `definition.cnd` files, verify that `settings/resources/<module>.properties` has a label and a corresponding icon exists at `settings/content-types-icons/<cndNamespace>_<typeName>.png`. The prefix must be the CND namespace, **not** the module name with hyphens.
-Fix: add labels to the properties files. Rename any icons that use the module name with hyphens to use the CND namespace. Create a 32×32 PNG icon (free source: [flaticon.com](https://www.flaticon.com/)).
+Check: for each node type found in `definition.cnd` files, verify that `settings/resources/<module>.properties` has a label (`cndNamespace_typeName=...`) and a corresponding icon exists at `settings/content-types-icons/<cndNamespace>_<typeName>.png`. The prefix must be the CND namespace (e.g. `ns_heroSection.png`), **not** the module name with hyphens (e.g. `my-module_heroSection.png` is wrong — the archetype generates wrong names that must be manually corrected).
+Fix: add labels (and optionally `ui.tooltip` for fields) to the properties files. Rename any icons that use the module name with hyphens to use the CND namespace. Create a 32×32 PNG icon (free source: [flaticon.com](https://www.flaticon.com/)). Without these, editors see raw technical names and blank icon squares in the content picker.
 
 **S7 — Hardcoded user-visible strings in views**
 Check: `.server.tsx` / `.client.tsx` files with JSX string literals that are not coming from props or i18n functions (e.g. `<p>Learn more</p>`, `<button>Submit</button>`).
-Fix: move UI labels to i18n properties files and resolve them at render time, or make them configurable through CND properties. Hardcoded strings break multilingual sites.
+Fix: move UI labels to `settings/locales/en.json` and `fr.json` and resolve them with `useTranslation()`. Hardcoded strings break multilingual sites.
 
 **S8 — Content list queries not using `ISDESCENDANTNODE` (non-recursive)**
 Check: JCR-SQL2 queries using `jcr:path LIKE '/sites/.../content/%'` or a fixed path to limit results, instead of `ISDESCENDANTNODE(node, '/sites/.../content')`.
 Fix: use `ISDESCENDANTNODE` to ensure queries work correctly even if editors reorganize content into sub-folders.
 
 **S9 — No escape hatch when using a custom component mixin**
-Check: a custom section type that restricts children to a custom mixin but the module provides no "content stack" escape hatch type that itself accepts `jmix:droppableContent`.
+Check: a custom section type that restricts children to a custom mixin (e.g. `+ * (namespacemix:component)`) but the module provides no "content stack" escape hatch type that itself accepts `jmix:droppableContent`.
 Fix: add a `namespace:contentStack > jnt:content, namespacemix:component + * (jmix:droppableContent)` type so power editors can still add arbitrary content when needed.
 
 **S10 — Scaffold/boilerplate components still present**
 Check: components under `src/components/Hello/` (or any other archetype-generated boilerplate) that are no longer referenced in `settings/import.xml` and no longer used by any view or page template.
 ```bash
+# Check if Hello components are still referenced anywhere
 grep -r "helloWorld\|helloCard\|Hello/" src/templates/ settings/ --include="*.tsx" --include="*.xml" --include="*.cnd"
 ```
 Fix: once `import.xml` no longer provisions Hello World content and no template uses them, delete the entire `src/components/Hello/` directory, remove their entries from `.properties` files, and delete their icons from `settings/content-types-icons/`. Keeping dead components inflates the content picker and confuses editors.

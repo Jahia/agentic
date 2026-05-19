@@ -1,6 +1,7 @@
 ---
 name: jahia-dev-create-view
 description: Implements a React view for a Jahia content type. Use when asked to create or update the rendering of a component, add a new view, or add styling.
+allowed-tools: Bash, Read, Write, Edit
 ---
 
 ## Overview
@@ -118,14 +119,26 @@ import { buildNodeUrl } from "@jahia/javascript-modules-library";
 > <RenderChild name="background" />
 > ```
 
-### `RenderChildren` — render all child nodes
+### `RenderChildren` — render child nodes with optional pagination and filtering
 
 ```tsx
 import { RenderChildren } from "@jahia/javascript-modules-library";
 
-<div className={classes.list}>
-  <RenderChildren />
-</div>
+// All children
+<RenderChildren />
+
+// Offset-based pagination
+<RenderChildren pagination={{ count: 10, start: 0 }} />
+
+// Page-based pagination (for paginator UI)
+<RenderChildren pagination={{ count: 10, page: 0 }} />
+
+// Filter by node type — string (single type) or function
+<RenderChildren filter="ns:cardItem" />
+<RenderChildren filter={(node) => node.isNodeType("ns:highlight")} />
+
+// Combined
+<RenderChildren pagination={{ count: 6, page: 0 }} filter="ns:blogPost" />
 ```
 
 ### `RenderChild` — render a specific named child node
@@ -210,6 +223,22 @@ jahiaComponent(
 
 > Cache only applies in **live mode**. Edit and preview modes bypass the cache entirely.
 
+### `buildModuleFileUrl` — URL to a static module asset
+
+```tsx
+import { buildModuleFileUrl, AddResources } from "@jahia/javascript-modules-library";
+
+// Inject a vendor CSS file into the page head
+<AddResources type="css" url={buildModuleFileUrl("css/vendor.min.css")} />
+
+// Reference a bundled image
+<img src={buildModuleFileUrl("images/placeholder.svg")} alt="" />
+```
+
+Never hardcode `/modules/<name>/javascript/apps/...` paths — use `buildModuleFileUrl` so the path resolves correctly across environments.
+
+---
+
 ### `getChildNodes` — iterate over child nodes in code
 
 ```tsx
@@ -219,6 +248,7 @@ import type { JCRNodeWrapper } from "org.jahia.services.content";
 jahiaComponent(
   { componentType: "view", nodeType: "namespace:navBar" },
   (_, { renderContext }) => {
+    // Get all child pages of the site root
     const pages = getChildNodes(renderContext.getSite(), -1, 0,
       (node: JCRNodeWrapper) => node.isNodeType("jnt:page")
     );
@@ -239,17 +269,64 @@ jahiaComponent(
 
 `getChildNodes(node, limit, offset, filterFn)` — `limit: -1` means no limit.
 
-### `renderContext` — access rendering context (second argument)
+### `useServerContext` — access rendering context
+
+The second argument to `jahiaComponent` is the `ServerContext`. You can also call `useServerContext()` explicitly in helper functions outside the component signature.
 
 ```tsx
 jahiaComponent(
   { componentType: "view", nodeType: "ns:type" },
-  ({ title }: Props, { renderContext, currentNode, currentResource }) => {
+  ({ title }: Props, { renderContext, currentNode, mainNode, jcrSession, bundleKey }) => {
     const isEdit = renderContext.isEditMode();
+    const siteKey = renderContext.getSite().getName();
     return <div data-edit={isEdit}>{title}</div>;
   },
 );
 ```
+
+| Context field | Type | What it is |
+|---|---|---|
+| `renderContext` | `RenderContext` | Full rendering context (site, workspace, edit mode, user) |
+| `currentNode` | `JCRNodeWrapper` | The component's own JCR node |
+| `mainNode` | `JCRNodeWrapper` | The page's main resource node |
+| `currentResource` | `Resource` | The render resource |
+| `jcrSession` | `JCRSessionWrapper` | Current JCR session — do NOT hold across requests |
+| `bundleKey` | `string` | Module bundle key (e.g. `"my-module"`) |
+
+> Use `mainNode` to navigate to the page or site from within a sub-component. Use `jcrSession` for JCR reads that can't go through props (e.g. loading a node by path in a computed listing).
+
+---
+
+### `useGQLQuery` — server-side GraphQL
+
+Executes a GraphQL query **synchronously** using the current user's credentials. Returns the `data` portion of the response.
+
+```tsx
+import { useGQLQuery, jahiaComponent } from "@jahia/javascript-modules-library";
+import { gql } from "graphql-tag";
+
+const QUERY = gql`
+  query ListNodes($path: String!) {
+    jcr {
+      nodeByPath(path: $path) {
+        children { nodes { name displayName path } }
+      }
+    }
+  }
+`;
+
+jahiaComponent(
+  { componentType: "view", nodeType: "ns:listing" },
+  (_, { renderContext }) => {
+    const siteKey = renderContext.getSite().getName();
+    const data = useGQLQuery(QUERY, { path: `/sites/${siteKey}/contents` });
+    const nodes = data?.jcr?.nodeByPath?.children?.nodes ?? [];
+    return <ul>{nodes.map((n: any) => <li key={n.path}>{n.displayName}</li>)}</ul>;
+  },
+);
+```
+
+Use `useGQLQuery` when you need field-level projection, joins across nodes, or complex filtering. Use `useJCRQuery` for simple node listings where you'll call Java methods on the results.
 
 > **Edit mode pattern for interactive components**: Carousels, accordions, tabs, and sliders are hard for editors to work with in their interactive state. In edit mode, render them **flat** (all slides/tabs visible) and optionally show an editor hint:
 >
@@ -258,6 +335,7 @@ jahiaComponent(
 >   const isEdit = renderContext.isEditMode();
 >   return isEdit ? (
 >     <div className={classes.editStack}>
+>       {/* flat — all children visible for editing */}
 >       <RenderChildren />
 >       <p className={classes.hint}>🖊 Carousel — add or reorder slides here</p>
 >     </div>
@@ -276,6 +354,18 @@ Use `readOnly` when rendering a node that editors should not edit in-place (e.g.
 ```tsx
 <RenderChild name="footer" readOnly={true} />
 ```
+
+For `AbsoluteArea`, use `readOnly="children"` to allow editing only from the owning page:
+
+```tsx
+// Fully read-only — editors cannot edit the footer from any page
+<AbsoluteArea name="footer" parent={renderContext.getSite()} readOnly={true} />
+
+// Read-only everywhere EXCEPT the designated "footer management" page
+<AbsoluteArea name="footer" parent={renderContext.getSite()} readOnly="children" />
+```
+
+`readOnly="children"` is the recommended pattern: the footer is manageable from one page, but other page templates just include it without showing edit handles.
 
 ---
 
@@ -323,6 +413,7 @@ grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
 When only the title of a card is a link, make the entire card clickable using the CSS stretched-link technique:
 
 ```tsx
+// In the card view
 <article className={classes.card}>
   <h3 className={classes.cardTitle}>
     <a href={buildNodeUrl(currentNode)} className={classes.cardLink}>
@@ -334,16 +425,19 @@ When only the title of a card is a link, make the entire card clickable using th
 ```
 
 ```css
+/* In component.module.css */
 .card {
-  position: relative;
+  position: relative;  /* ← required for stretch to work */
 }
 
 .cardLink::after {
   content: "";
   position: absolute;
-  inset: 0;
+  inset: 0;  /* stretches to cover the entire card */
 }
 ```
+
+The `::after` pseudo-element on the link covers the entire `position: relative` card, making every pixel clickable while keeping the link semantically on the title.
 
 ---
 
@@ -357,7 +451,7 @@ jahiaComponent(
     componentType: "view",
     nodeType: "namespace:typeName",
     displayName: "Small View",
-    name: "small",
+    name: "small",      // ← this registers a named view
   },
   ({ title }: Props) => <span className={classes.small}>{title}</span>,
 );
@@ -425,19 +519,24 @@ jahiaComponent(
 );
 ```
 
+The `Island` component handles SSR + hydration automatically. The server view fetches the content from JCR; only serializable values flow into the client island.
+
 ### Step 3 — Browser-only rendering (skip SSR)
 
 If the component cannot run on the server (e.g. uses `window`, `document`, or a browser-only library), use `clientOnly`:
 
 ```tsx
 <Island component={MapWidget} props={{ lat, lng }} clientOnly>
-  <p>Loading map…</p>
+  <p>Loading map…</p>   {/* shown until the component hydrates */}
 </Island>
 ```
 
 ### Step 4 — Dynamic import for heavy/browser-only libraries
 
+For large libraries, import them dynamically inside `useEffect` to avoid SSR issues and reduce bundle size:
+
 ```tsx
+// Counter.client.tsx
 import { useEffect, useState } from "react";
 
 export default function Confetti() {
@@ -458,12 +557,64 @@ export default function Confetti() {
 Client components are hydrated even in Page Builder edit mode. If the interactive behaviour is disruptive in edit mode (e.g. a slider that auto-advances), guard it:
 
 ```tsx
+// Pass isEditMode from the server view as a prop
 <Island component={Slider} props={{ slides, isEditMode: renderContext.isEditMode() }} />
 ```
+
+Then in the client component, skip the interactive behaviour when `isEditMode` is true.
+
+---
+
+## Step 5c — Add front-end UI labels (locales)
+
+Any string that appears in the rendered HTML and is not a JCR property value must come from `settings/locales/`.
+Do not hardcode button text, section headings, alt text templates, error messages, or form labels.
+
+**File location:**
+```
+settings/locales/en.json   ← required
+settings/locales/fr.json   ← required minimum
+```
+
+These files are auto-discovered by `@jahia/vite-plugin` — no registration needed.
+
+**Usage in views:**
+
+```tsx
+import { useTranslation } from "react-i18next";
+
+// Works in both .server.tsx and .client.tsx
+const { t } = useTranslation();
+
+// Simple
+<button>{t("hero.cta.label")}</button>
+
+// With interpolation
+<img alt={t("alt.hero", { title })} />
+```
+
+**Add to both `en.json` and `fr.json` for every new string:**
+
+```json
+{
+    "hero": {
+        "cta": {
+            "label": "Discover more"
+        }
+    },
+    "alt": {
+        "hero": "Hero image for {{title}}"
+    }
+}
+```
+
+> Front-end UI labels (`locales/*.json`) are separate from CND editor labels (`settings/resources/*.properties`). Both are required — locales for rendered UI strings, properties for the Jahia content editor.
 
 ---
 
 ## Step 6 — Push to Jahia
+
+Build and deploy the module to push all changes (existing or new files):
 
 ```bash
 # Always use this — never use yarn dev from an agent (it's interactive-only)
@@ -480,7 +631,9 @@ yarn build && yarn jahia-deploy
 - [ ] Interactive UI (carousels, tabs) flattened in edit mode with editor hints
 - [ ] Structural/shared nodes rendered with `readOnly` prop
 - [ ] Semantic HTML used (`<article>`, `<section>`, `<nav>`, `<header>`, `<footer>`)
-- [ ] Images have meaningful `alt` text
+- [ ] Images have meaningful `alt` text (not empty `alt=""` unless decorative) — use `t("alt.key", {...})` for translated alt text
+- [ ] No hardcoded UI strings — all button labels, headings, messages use `t("key")` from `settings/locales/`
+- [ ] `settings/locales/en.json` and `fr.json` both updated with any new keys
 - [ ] CSS Module created and imported
 - [ ] **If client-side**: component is in `.client.tsx`, wrapped with `<Island>` in the server view
 - [ ] **If client-side**: all props passed to Island are serializable (no JCR objects)
@@ -493,5 +646,5 @@ yarn build && yarn jahia-deploy
 
 ## References
 
-- Preparing for i18n: https://academy.jahia.com/documentation/jahia-cms/jahia-8-2/developer/javascript-module-development/preparing-for-internationalization-i18n
 - JavaScript modules monorepo: https://github.com/Jahia/javascript-modules
+- Preparing for i18n: https://academy.jahia.com/documentation/jahia-cms/jahia-8-2/developer/javascript-module-development/preparing-for-internationalization-i18n

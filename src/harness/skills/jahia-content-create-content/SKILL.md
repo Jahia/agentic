@@ -321,6 +321,7 @@ curl -s -u root:root1234 \
 | `ConstraintViolationException: mandatory property` | A mandatory CND property was not provided | Provide all mandatory properties |
 | `ItemExistsException` | Node name already taken | Use `useAvailableNodeName: true` or choose a different name |
 | WEAKREFERENCE image constraint error | Uploaded file missing `jmix:image` mixin | Always include `mixins: ["jmix:image"]` in the `addNode` upload mutation |
+| `deletePropertiesBatch fails with missing required fields` | `language` is NON_NULL in `InputJCRDeletedProperty` — required even for non-i18n properties | Always provide `language: "en"` in every `deletePropertiesBatch` entry |
 
 ---
 
