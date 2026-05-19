@@ -47,6 +47,21 @@ jahiaComponent(
 );
 ```
 
+### When implementing a view from existing HTML
+
+When you have a source HTML fragment to translate (e.g. from `/jahia-dev-import-from`), apply only **mechanical transformations**:
+
+- `class=` → `className=`
+- Void elements: `<img>`, `<input>`, `<br>` → self-close with ` />`
+- `{placeholder}` text → `{propName}` matching `Props`
+
+**Never** remove, rearrange, or simplify elements. Every `data-*`, `aria-*`, `role`, `id`, `<noscript>`, and `<source>` must appear in the TSX output. Carousel and slider wrapper `id`s in particular must be preserved verbatim — JS libraries use them for initialization.
+
+**Self-check before finishing:** Count the attributes on 2–3 key elements in the source HTML. If the source `<div>` has 6 attributes and your TSX has 4, you dropped something — go back.
+
+**CSS class names:** Rename source HTML class names to CSS Module keys (`hero__title` → `classes.heroTitle`). If the component also imports a vendor CSS file as a static asset (see `jahia-dev-import-from`), those vendor classes stay as plain strings in the JSX — they are not processed by CSS Modules.
+```
+
 ---
 
 ## Step 2 — Import Props from types.ts

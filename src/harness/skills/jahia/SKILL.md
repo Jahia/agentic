@@ -109,6 +109,7 @@ Always print this at the end so the user can jump anywhere:
 /jahia-dev-screenshot            Screenshot reference + local render for visual comparison
 /jahia-dev-debug                 Debug build/deploy/runtime errors end-to-end
 /jahia-dev-cypress               Write Cypress E2E tests for Jahia components
+/jahia-dev-import-from           Implement a component inspired by one on an external URL
 
 ### ⚙️ OSGi / Back-office extensions
 /jahia-osgi-module               Build or configure an OSGi Java bundle module

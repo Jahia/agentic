@@ -66,6 +66,20 @@ yarn jahia-deploy
 sleep 15 && kill $LOG_PID 2>/dev/null
 ```
 
+### 3d — Verify component registration
+
+```bash
+docker logs <container-name> 2>&1 | grep "Registered Jahia component"
+```
+
+Expected: one line per view registered, e.g.:
+```
+Registered Jahia component: mymodule_view_ns:hero_default
+Registered Jahia component: mymodule_view_ns:hero_small
+```
+
+If a component you just deployed is **absent** from this list, its `jahiaComponent` call was never reached — usually a syntax/import error in the view file that prevented the module from fully loading.
+
 ---
 
 ## Step 4 — Find the first error
@@ -80,6 +94,7 @@ Scan the captured log output for the **first** error that appears **after** the 
 | `Cannot set property` / `TypeError` in JS stack | View runtime error |
 | `Module ... failed to start` | Any of the above |
 | `Unresolved requirement` | OSGi dependency not satisfied |
+| Missing `Registered Jahia component` for a specific type | View file has a syntax/import error, or `jahiaComponent` not reached |
 
 **Focus on the first error, not the last.** Later errors are often cascading failures caused by the first one.
 

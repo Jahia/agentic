@@ -318,6 +318,32 @@ In the view, use a `switch` on `props["j:linkType"]` (see `jahia-dev-create-view
 - `< jmix:image` — restricts a weakreference to image nodes only
 - `< namespace:typeName` — restricts child nodes to a specific type
 
+**Regex constraints** — validate a `string` field against a pattern:
+
+```cnd
+// Email address (or empty — regex starts with ^$ to allow clearing the field)
+- contactEmail (string) < '^$|[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}'
+
+// URL-safe slug — lowercase letters, digits, hyphens only
+- slug (string) < '^[a-z0-9-]+$'
+
+// Must start with http:// or https://
+- externalUrl (string) < '^https?://'
+```
+
+**Date-range constraints** — bound a `date` field to a window. Use `(` / `)` for exclusive bounds, `[` / `]` for inclusive. Leave either side empty for open-ended:
+
+```cnd
+// Any date after 2020-01-01 (exclusive lower bound, no upper bound)
+- eventDate (date, datepicker) < '(2020-01-01T00:00:00.000,)'
+
+// From 2020 onwards inclusive (events can't be backdated before the platform launched)
+- startDate (date, datepicker) < '[2020-01-01T00:00:00.000,]'
+
+// Bounded window — exclusive on both sides
+- campaignDate (date, datepicker) < '(2020-01-01T00:00:00.000,2030-12-31T00:00:00.000)'
+```
+
 ### Example — Hero Section with CTA (link pattern)
 
 ```cnd
