@@ -1,52 +1,132 @@
 name: Benchmark
 
 on:
-  workflow_dispatch:
   push:
-    branches:
-      - main
-    paths:
-      - 'src/harness/skills/**'
-      - 'benchmark/**'
-      - '!benchmark/results/**'
+    branches: [main]
+
+permissions:
+  contents: write
+  pages: write
+  id-token: write
 
 jobs:
   benchmark:
     runs-on: ubuntu-latest
     timeout-minutes: 90
-    permissions:
-      contents: read
 
     steps:
-      - uses: actions/checkout@v6
+      - name: Checkout
+        uses: actions/checkout@v4
 
-      - uses: jdx/mise-action@v4
-
-      - name: Install Claude CLI
-        run: npm install -g @anthropic-ai/claude-code
-
-      - name: Install benchmark dependencies
+      # ── Node.js via mise ────────────────────────────────────────────────────
+      - name: Install mise
         run: |
-          cd benchmark
-          npm install
-          npx playwright install chromium --with-deps
+          curl https://mise.run | sh
+          echo "$HOME/.local/bin" >> $GITHUB_PATH
 
+      - name: Install Node.js via mise
+        run: mise use --global node@22
+
+      # ── GitHub Copilot CLI ──────────────────────────────────────────────────
+      - name: Install GitHub Copilot CLI
+        run: npm install -g @github/copilot
+
+      # ── Benchmark dependencies (Playwright for screenshots) ─────────────────
+      - name: Install benchmark dependencies
+        run: npm install
+        working-directory: .github/benchmark
+
+      - name: Install Playwright Chromium
+        run: npx playwright install chromium --with-deps
+        working-directory: .github/benchmark
+
+      # ── Set up crumbleco module ─────────────────────────────────────────────
       - name: Set up crumbleco module
         run: |
           cp -r benchmark/module-template crumbleco
           cd crumbleco && yarn install --no-immutable
 
-      - name: Run benchmark
-        env:
-          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
-        run: |
-          chmod +x benchmark/run.sh
-          benchmark/run.sh "$(pwd)/crumbleco"
+      # ── Start Jahia ─────────────────────────────────────────────────────────
+      - name: Start Jahia
+        run: docker compose up --wait --detach
+        working-directory: crumbleco
+        timeout-minutes: 15
 
-      - name: Upload results
-        if: always()
+      - name: Verify Jahia is reachable
+        run: |
+          curl -sf http://localhost:8080/modules/graphql \
+            -H "Content-Type: application/json" \
+            -H "Origin: http://localhost:8080" \
+            -u root:root1234 \
+            -d '{"query":"{ jcr { nodeByPath(path:\"/sites\") { name } } }"}' \
+            | grep -q '"name"'
+          echo "Jahia GraphQL is up"
+
+      - name: Create crumbleco site
+        run: |
+          curl -s -u root:root1234 \
+            -H "Content-Type: application/json" \
+            -H "Origin: http://localhost:8080" \
+            -X POST http://localhost:8080/modules/graphql \
+            -d '{"query":"{ jcr { nodeByPath(path: \"/sites/crumbleco\") { name } } }"}' \
+            | grep -q '"name":"crumbleco"' || \
+          curl -s -u root:root1234 \
+            -H "Content-Type: application/json" \
+            -H "Origin: http://localhost:8080" \
+            -X POST http://localhost:8080/modules/graphql \
+            -d '{"query":"mutation { jcr { addNode(parentPathOrId: \"/sites\", name: \"crumbleco\", primaryNodeType: \"jnt:virtualsite\", properties: [{name:\"j:templatesSet\",value:\"crumbleco\"},{name:\"j:defaultLanguage\",value:\"en\"},{name:\"j:languages\",values:[\"en\"]},{name:\"j:mixLanguage\",value:\"false\"},{name:\"j:serverName\",value:\"localhost\"},{name:\"jcr:title\",value:\"CrumbleCo Biscuits\",language:\"en\"}]) { uuid } } }"}'
+
+      # ── Run the benchmark agent ─────────────────────────────────────────────
+      - name: Run benchmark agent
+        run: node .github/benchmark/prompt.js
+        env:
+          GH_TOKEN: ${{ secrets.COPILOT_TOKEN }}
+          GITHUB_SHA: ${{ github.sha }}
+          GITHUB_REF_NAME: ${{ github.ref_name }}
+
+      # ── Take screenshot ─────────────────────────────────────────────────────
+      - name: Take screenshot
+        id: screenshot
+        run: |
+          node .github/benchmark/screenshot.js 2>&1 | tee screenshot.log
+          SCREENSHOT_FILE=$(grep 'SCREENSHOT_FILE=' screenshot.log | cut -d= -f2 | tail -1)
+          echo "file=${SCREENSHOT_FILE}" >> $GITHUB_OUTPUT
+        env:
+          GITHUB_SHA: ${{ github.sha }}
+
+      # ── Upload screenshot as artifact ───────────────────────────────────────
+      - name: Upload screenshot artifact
         uses: actions/upload-artifact@v4
         with:
-          name: benchmark-${{ github.run_number }}-${{ github.sha }}
-          path: benchmark/results/
-          retention-days: 30
+          name: benchmark-screenshot-${{ github.sha }}
+          path: ${{ steps.screenshot.outputs.file }}
+          if-no-files-found: warn
+
+      # ── Publish to GitHub Pages ─────────────────────────────────────────────
+      - name: Checkout gh-pages branch
+        run: |
+          git config user.name  "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          if git ls-remote --exit-code origin gh-pages; then
+            git fetch origin gh-pages
+            git worktree add pages-out gh-pages
+          else
+            git worktree add --orphan -b gh-pages pages-out
+            cp .github/benchmark/index-template.html pages-out/index.html
+            mkdir -p pages-out/screenshots
+          fi
+
+      - name: Update gallery
+        run: node .github/benchmark/update-pages.js
+        env:
+          PAGES_DIR: pages-out
+          SCREENSHOT_FILE: ${{ steps.screenshot.outputs.file }}
+          REPO: ${{ github.repository }}
+
+      - name: Commit and push to gh-pages
+        run: |
+          cd pages-out
+          git add -A
+          git commit -m "Benchmark run — ${{ github.sha }}" \
+            --author="github-actions[bot] <github-actions[bot]@users.noreply.github.com>"
+          git push origin gh-pages

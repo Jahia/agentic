@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>CrumbleCo Benchmark — Homepage Gallery</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: system-ui, sans-serif; background: #f6f8fa; color: #24292f; min-height: 100vh; }
+    header { padding: 2rem 2rem 1rem; border-bottom: 1px solid #d0d7de; display: flex; align-items: flex-start; justify-content: space-between; gap: 1rem; flex-wrap: wrap; background: #fff; }
+    header h1 { font-size: 1.5rem; font-weight: 700; }
+    header h1 a { color: inherit; text-decoration: none; }
+    header h1 a:hover { text-decoration: underline; }
+    header p { margin-top: .4rem; color: #57606a; font-size: .875rem; }
+    .toggle-group { display: flex; gap: .4rem; flex-shrink: 0; margin-top: .25rem; }
+    .toggle-btn { background: #f6f8fa; border: 1px solid #d0d7de; color: #57606a; border-radius: 6px; padding: .35rem .6rem; cursor: pointer; font-size: 1rem; line-height: 1; transition: background .15s, color .15s; }
+    .toggle-btn:hover { background: #e9ecef; color: #24292f; }
+    .toggle-btn.active { background: #0969da; border-color: #0969da; color: #fff; }
+
+    .runs { padding: 1.5rem 2rem; display: grid; gap: 1.5rem; }
+    .run { background: #fff; border: 1px solid #d0d7de; border-radius: 8px; overflow: hidden; }
+    .run-header { display: flex; align-items: center; gap: 1rem; padding: .75rem 1rem; background: #f6f8fa; border-bottom: 1px solid #d0d7de; flex-wrap: wrap; }
+    .run-number { font-weight: 700; font-size: .875rem; color: #0969da; }
+    .run-date { color: #57606a; font-size: .8rem; }
+    .run-commit a { color: #0969da; font-size: .8rem; text-decoration: none; font-family: monospace; }
+    .run-commit a:hover { text-decoration: underline; }
+    .run-meta { margin-left: auto; display: flex; gap: 1.5rem; font-size: .8rem; color: #57606a; }
+    .run-meta span strong { color: #24292f; }
+    .run-screenshot img { width: 100%; display: block; }
+    .run-screenshot .no-screenshot { padding: 3rem; text-align: center; color: #57606a; background: #f6f8fa; }
+    .empty { padding: 4rem 2rem; text-align: center; color: #57606a; }
+
+    .runs.view-grid { grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 1rem; }
+    .runs.view-grid .run { border-radius: 6px; background: #1B1A4E; display: flex; flex-direction: column; }
+    .runs.view-grid .run-header { display: none; }
+    .runs.view-grid .run-screenshot a { display: block; }
+    .runs.view-grid .run-screenshot img { width: 100%; height: auto; display: block; transition: opacity .15s; }
+    .runs.view-grid .run-screenshot img:hover { opacity: .85; }
+    .run-caption { display: none; }
+    .runs.view-grid .run-caption { display: flex; align-items: center; gap: .4rem; background: #fff; border-bottom: 1px solid #d0d7de; color: #57606a; font-size: .72rem; padding: .4rem .6rem; order: -1; }
+    .runs.view-grid .run-caption a { color: #24292f; text-decoration: none; }
+    .runs.view-grid .run-caption a:hover { text-decoration: underline; }
+    .runs.view-grid .run-caption .run-num { font-weight: 700; color: #0969da; }
+    .runs.view-grid .run-caption .sep { color: #d0d7de; }
+  </style>
+</head>
+<body>
+  <header>
+    <div>
+      <h1><a href="https://github.com/Jahia/agentic/">CrumbleCo Benchmark</a></h1>
+      <p>Each run uses a fixed prompt to build the full CrumbleCo biscuit site on a fresh Jahia EE instance.</p>
+    </div>
+    <div class="toggle-group">
+      <button class="toggle-btn active" id="btn-grid" title="Grid view" onclick="setView('grid')">⊞</button>
+      <button class="toggle-btn" id="btn-list" title="Detail view" onclick="setView('list')">☰</button>
+    </div>
+  </header>
+  <div class="runs view-grid" id="runs">
+    <!-- RUNS_START -->
+    <div class="empty">No benchmark runs yet.</div>
+    <!-- RUNS_END -->
+  </div>
+  <script>
+    function setView(v) {
+      const runs = document.getElementById('runs');
+      runs.classList.toggle('view-grid', v === 'grid');
+      document.getElementById('btn-grid').classList.toggle('active', v === 'grid');
+      document.getElementById('btn-list').classList.toggle('active', v === 'list');
+      try { localStorage.setItem('benchmarkView', v); } catch(e) {}
+    }
+    try {
+      const saved = localStorage.getItem('benchmarkView');
+      if (saved === 'list') setView('list');
+    } catch(e) {}
+  </script>
+</body>
+</html>
