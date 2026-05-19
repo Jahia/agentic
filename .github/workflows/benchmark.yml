@@ -34,7 +34,7 @@ jobs:
       - name: Set up crumbleco module
         run: |
           cp -r benchmark/module-template crumbleco
-          cd crumbleco && yarn install
+          cd crumbleco && yarn install --no-immutable
 
       - name: Run benchmark
         env:
