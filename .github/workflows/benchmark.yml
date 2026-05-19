@@ -1,0 +1,52 @@
+name: Benchmark
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+    paths:
+      - 'src/harness/skills/**'
+      - 'benchmark/**'
+      - '!benchmark/results/**'
+
+jobs:
+  benchmark:
+    runs-on: ubuntu-slim
+    timeout-minutes: 90
+    permissions:
+      contents: read
+
+    steps:
+      - uses: actions/checkout@v6
+
+      - uses: jdx/mise-action@v4
+
+      - name: Install Claude CLI
+        run: npm install -g @anthropic-ai/claude-code
+
+      - name: Install benchmark dependencies
+        run: |
+          cd benchmark
+          npm install
+          npx playwright install chromium --with-deps
+
+      - name: Set up crumbleco module
+        run: |
+          cp -r benchmark/module-template crumbleco
+          cd crumbleco && yarn install
+
+      - name: Run benchmark
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+        run: |
+          chmod +x benchmark/run.sh
+          benchmark/run.sh "$(pwd)/crumbleco"
+
+      - name: Upload results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: benchmark-${{ github.run_number }}-${{ github.sha }}
+          path: benchmark/results/
+          retention-days: 30

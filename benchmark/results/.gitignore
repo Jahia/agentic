@@ -1,0 +1,6 @@
+output-*.log
+screenshots/
+latest.json
+runs.json
+
+!.gitkeep
