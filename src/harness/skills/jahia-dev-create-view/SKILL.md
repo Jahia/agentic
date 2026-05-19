@@ -312,6 +312,43 @@ jahiaComponent(
 
 ---
 
+### `Java.type()` — low-level Java interop
+
+For accessing Java classes directly from JS (use only for well-known, stable APIs):
+
+```js
+const LogManager = Java.type("org.apache.logging.log4j.LogManager");
+const logger = LogManager.getLogger("MyJSLogger");
+logger.info("Hello from JS!");
+```
+
+Only use `Java.type()` with classes from Jahia's documented core. Undocumented classes may change without notice. Prefer `useServerContext()` for officially supported objects.
+
+**Mixing JS and Java modules** is fully supported — content types and services from one type can be used by the other. What does NOT work:
+- JSP files inside a JS module
+- JSX views inside a Java module
+
+---
+
+### Render filters
+
+Register a render filter from a JS module's init script to transform rendered output:
+
+```js
+registry.add("render-filter", "myFilter", renderFilterRef, {
+  target: "render:50",           // phase + priority (lower = earlier)
+  applyOnNodeTypes: "jnt:bigText",
+  prepare: (renderContext, resource, chain) => { /* setup before render */ },
+  execute: (previousOut, renderContext, resource, chain) => {
+    return previousOut.replace("foo", "bar");
+  },
+});
+```
+
+The `target` string format is `"<phase>:<priority>"`. Filters with priority < 16 run on every request; priority > 16 only on cache miss.
+
+---
+
 ### `useGQLQuery` — server-side GraphQL
 
 Executes a GraphQL query **synchronously** using the current user's credentials. Returns the `data` portion of the response.
@@ -623,7 +660,50 @@ const { t } = useTranslation();
 }
 ```
 
+**Best practices:**
+- Use random/opaque keys (e.g. `"r3k2"`) or scoped semantic keys (e.g. `"hero.cta.label"`) — never bare English words as keys (`"read-more"`) which creates ambiguity across contexts and forces renaming.
+- Never concatenate: always use interpolation (`{{author}}`) for dynamic data.
+- For HTML inside translations, use the `<Trans>` component instead of `t()`:
+
+```tsx
+import { Trans } from "react-i18next";
+// key value: "Written by <a>{{author}}</a>"
+<Trans i18nKey="article.byline" values={{ author }} components={{ a: <a href={authorUrl} /> }} />
+```
+
 > Front-end UI labels (`locales/*.json`) are separate from CND editor labels (`settings/resources/*.properties`). Both are required — locales for rendered UI strings, properties for the Jahia content editor.
+
+---
+
+## Step 5d — Language switcher
+
+Use the following utilities from `@jahia/javascript-modules-library` to build a server-rendered language switcher:
+
+```tsx
+import { getSiteLocales, buildNodeUrl, jahiaComponent } from "@jahia/javascript-modules-library";
+
+jahiaComponent(
+  { componentType: "view", nodeType: "ns:languageSwitcher" },
+  (_, { renderContext, currentNode }) => {
+    const locales = getSiteLocales(renderContext.getSite());
+    const invalidLanguages: string[] = currentNode.getPropertyAsString("j:invalidLanguages")?.split(" ") ?? [];
+
+    return (
+      <ul>
+        {locales
+          .filter(locale => !invalidLanguages.includes(locale))
+          .map(locale => (
+            <li key={locale}>
+              <a href={buildNodeUrl(currentNode, { language: locale })}>{locale.toUpperCase()}</a>
+            </li>
+          ))}
+      </ul>
+    );
+  },
+);
+```
+
+`j:invalidLanguages` is a system property Jahia sets on nodes that haven't been translated to a given language. Filtering it out prevents dead links to untranslated pages.
 
 ---
 
@@ -658,6 +738,16 @@ yarn build && yarn jahia-deploy
 
 ## Troubleshooting
 > https://academy.jahia.com/tutorials-get-started/front-end-developer/making-a-hero-section
+
+### JSX vs HTML attribute differences
+
+| Feature | HTML | JSX |
+|---|---|---|
+| CSS class | `class="..."` | `className="..."` |
+| Inline style | `style="color:red"` | `style={{ color: 'red' }}` |
+| Event handler | `onclick="fn()"` | `onClick={fn}` |
+| Comments | `<!-- -->` | `{/* */}` |
+| Boolean attributes | `disabled` | `disabled={true}` or just `disabled` |
 
 ## References
 

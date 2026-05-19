@@ -18,8 +18,12 @@ Read the user's request and classify it using the table below. A task can span m
 |----------|-------------------|-------|
 | **Module development** | create module, scaffold, content type, CND, view, React, TSX, page template, CSS, build, deploy, compile | `/jahia-dev` |
 | **Content management** | create content, add article, populate, move, reorganize, publish, query what's in the CMS | `/jahia-content` |
-| **OSGi / back-office** | Java bundle, OSGi service, jcontent action, admin panel, toolbar button, Webpack, Module Federation | `/jahia-osgi-module` or `/jahia-osgi-ui-extension` |
+| **OSGi / back-office** | Java bundle, OSGi service, jcontent action, admin panel, toolbar button, Webpack, Module Federation | `/jahia-dev-osgi-module` or `/jahia-dev-ui-extension` |
 | **E2E testing** | Cypress, test spec, edit mode, component interaction, publish workflow | `/jahia-dev-cypress` |
+| **Java module reference** | OSGi DS, CND definitions, JSP rendering, Drools rules, JCR SQL2, Content Editor JSON, component registry | `/jahia-dev-java` |
+| **API reference** | GraphQL schema, JCR Java/REST API, OAuth/SAML auth, personal tokens, HTML filtering, CSP, security scopes | `/jahia-dev-apis` |
+| **Operations / DevOps** | Docker Compose, Kubernetes, health endpoints, logs, Karaf, provisioning YAML scripts | `/jahia-dev-ops` |
+| **Configuration reference** | jahia.properties keys, cluster setup, operating mode, auth settings, JCR/search tuning | `/jahia-dev-properties` |
 | **Both** | build a component AND fill it with content, design a section AND add pages to it, set up a site end-to-end | Run `/jahia-dev` first, then `/jahia-content` |
 
 If the request is ambiguous, ask one clarifying question:
@@ -112,8 +116,8 @@ Always print this at the end so the user can jump anywhere:
 /jahia-dev-import-from           Implement a component inspired by one on an external URL
 
 ### ⚙️ OSGi / Back-office extensions
-/jahia-osgi-module               Build or configure an OSGi Java bundle module
-/jahia-osgi-ui-extension         Extend jcontent back-office with React 18/Webpack actions or panels
+/jahia-dev-osgi-module           Build or configure an OSGi Java bundle module
+/jahia-dev-ui-extension     Extend jcontent back-office with React 18/Webpack actions or panels
 
 ### 📝 Content Management  (/jahia-content and sub-skills)
 /jahia-content                       Detect site state, route to content operations ← start here
@@ -121,5 +125,10 @@ Always print this at the end so the user can jump anywhere:
 /jahia-content-query-content         Query and audit content via GraphQL
 /jahia-content-create-content        Create nodes, folders, articles, bulk-populate
 /jahia-content-move-content          Restructure the content tree: move, rename, reorder
-/jahia-content-translate-content     Translate existing nodes to a new language and publish
+### 📚 Knowledge Reference
+/jahia-dev-java              OSGi DS, CND definitions, JSP rendering, Drools rules, Content Editor/jContent UI
+/jahia-dev-apis              GraphQL, JCR Java/REST API, OAuth/SAML, personal tokens, HTML filtering, CSP
+/jahia-dev-ops               Docker Compose, Kubernetes, health monitoring, Karaf, provisioning YAML API
+/jahia-dev-properties        jahia.properties and OSGi .cfg configuration keys reference
 ```
+

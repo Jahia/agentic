@@ -1,5 +1,6 @@
 ---
 name: jahia-content-explore-structure
+user-invocable: false
 description: Efficiently maps an unknown Jahia website's content structure before creating or editing content. Discovers available content types, their properties (i18n vs non-i18n), valid enum values, mixin requirements, and image assets — in the minimum number of API calls. Works on any Jahia instance including fresh installs with no reference site.
 ---
 

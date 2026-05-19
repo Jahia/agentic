@@ -7,6 +7,46 @@ description: Scaffolds a new Jahia JavaScript template set (React). Use this whe
 
 This skill only covers **JavaScript Modules** — React-based template sets for Jahia 8+. This is the recommended approach for all new Jahia projects.
 
+### JS modules vs Java modules vs Next.js
+
+| | Java Modules | JS Modules | Next.js (Headless) |
+|---|---|---|---|
+| Availability | All versions | 8.2+ | Depends on setup |
+| Separate runtime | No | No | Yes |
+| GraphQL required | No | No | Yes |
+| CMS navigation/cache/auth | Yes | Yes | No |
+| Packaging | Maven/jar | NPM/tgz | NPM/tgz |
+| Templating | JSP | JSX | JSX |
+| Module descriptor | pom.xml | package.json | Separate module |
+
+Jahia recommends JS or Java modules for most projects. Next.js should only be chosen when integrating with an existing Next.js codebase.
+
+### How JS modules run: GraalVM + GraalJS
+
+Jahia JS modules run inside **GraalJS** (part of GraalVM) — a fully ECMAScript-2019-compliant JS engine on the JVM. GraalVM Native Image is **not** used (incompatible with OSGi). Official Jahia Docker images ship with GraalVM pre-configured.
+
+**Build pipeline:** Yarn 4 + Vite. The `npx @jahia/create-module@latest` scaffolder generates `vite.config.mjs` handling TypeScript, CSS Modules, and client-side JS bundles.
+
+**tgz → OSGi transformation:** On install, Jahia converts the NPM tgz into an OSGi bundle. Key `package.json` → `MANIFEST.MF` mappings:
+
+| package.json field | MANIFEST.MF clause |
+|---|---|
+| `jahia.module-dependencies` | `Jahia-Depends` |
+| `jahia.server` | `Jahia-NPM-InitScript` |
+| `jahia.required-version` | `Jahia-Required-Version` |
+| `jahia.module-type` | `Jahia-Module-Type` |
+| `jahia.static-resources` | `Jahia-Static-Resources` |
+
+**Request flow:**
+1. Browser request → Jahia servlet
+2. `TemplateNodeFilter` resolves the template identifier
+3. `ViewsRegistrar` resolves the JS script for the template
+4. `GraalVMEngine` pulls a `ContextProvider` from its pool, renders via GraalJS
+5. `<Area>` / `<Render>` components may call `RenderService` to render child views
+6. Final HTML assembled and returned
+
+The engine maintains a pool of polyglot contexts (one per thread). Each context runs all init scripts (`dist/server/index.js`) on creation. A version counter invalidates stale contexts when modules are added or removed.
+
 ---
 
 ## Step 1 — Check prerequisites

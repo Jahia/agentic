@@ -1,5 +1,5 @@
 ---
-name: jahia-osgi-module
+name: jahia-dev-osgi-module
 description: Conventions and invariants for building any Jahia OSGi/Java bundle module (Jahia 8.2). Use when working on Maven bundle structure, OSGi Declarative Services, JCR integration, or Java package design.
 ---
 

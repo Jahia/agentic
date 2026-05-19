@@ -1,5 +1,5 @@
 ---
-name: jahia-osgi-ui-extension
+name: jahia-dev-ui-extension
 description: Conventions and patterns for building Jahia OSGi UI extensions — modules that extend the jcontent back-office (actions, panels, dialogs) using React 18, Webpack/Module Federation, and the @jahia/ui-extender registry. Distinct from JS template sets (React 19, Vite).
 ---
 

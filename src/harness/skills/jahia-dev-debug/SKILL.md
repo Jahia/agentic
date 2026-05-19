@@ -131,3 +131,46 @@ Every `jcr:mixinTypes` value in `import.xml` is scanned by the OSGi bundle resol
 
 ### View: module loads but page is blank
 Run `yarn dev` and check the Vite / SSR console for a React render error.
+
+---
+
+## GraalJS (server-side JS) debugging with Chrome DevTools
+
+Use this when you need to step through server-side view code running inside GraalVM.
+
+### Step 1 — Enable the inspector via GraphQL
+
+In Jahia's Developer Tools > GraphQL editor, run:
+
+```graphql
+mutation {
+  admin {
+    jahia {
+      configuration(pid: "org.jahia.modules.javascript.modules.engine.jsengine.GraalVMEngine") {
+        polyGlotInspect: value(name: "polyglot.inspect", value: "0.0.0.0:9229")
+        polyGlotInspectSuspend: value(name: "polyglot.inspect.Suspend", value: "false")
+        polyGlotInspectSecure: value(name: "polyglot.inspect.Secure", value: "false")
+      }
+    }
+  }
+}
+```
+
+### Step 2 — Map the port
+
+If running in Docker, ensure port `9229` is mapped in `docker-compose.yml`:
+
+```yaml
+ports:
+  - "9229:9229"
+```
+
+### Step 3 — Connect Chrome
+
+After the mutation, Jahia logs a `devtools://...` URL. Open it in Chrome (use latest; Chrome 117–118 had known debugger bugs).
+
+### Step 4 — Set a breakpoint and debug
+
+In Chrome DevTools Sources tab, open `<module>/dist/main.js`, set a breakpoint, then reload the page. The server-side render pauses at the breakpoint. Full scope inspection, step-over, and continue are supported.
+
+The config file `org.jahia.modules.javascript.modules.engine.jsengine.GraalVMEngine.cfg` accepts any `polyglot.*` key as an engine option — you can persist these settings there instead of using the GraphQL mutation.
