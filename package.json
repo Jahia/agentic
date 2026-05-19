@@ -1,0 +1,24 @@
+{
+  "name": "@jahia/agentic",
+  "version": "0.0.0",
+  "private": true,
+  "files": [
+    "dist"
+  ],
+  "type": "module",
+  "bin": "./dist/index.js",
+  "scripts": {
+    "build": "node src/build/index.ts",
+    "format": "oxfmt",
+    "lint": "tsc --noEmit && oxlint"
+  },
+  "devDependencies": {
+    "@chachalog/types": "^0.5.1",
+    "@clack/prompts": "^1.4.0",
+    "@types/node": "^25.9.0",
+    "oxfmt": "^0.51.0",
+    "oxlint": "^1.66.0",
+    "rolldown": "^1.0.1",
+    "typescript": "^6.0.3"
+  }
+}

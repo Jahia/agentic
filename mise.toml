@@ -1,0 +1,5 @@
+[tools]
+node = "lts"
+yarn = "4"
+copilot = "1"
+"github:microsoft/apm" = "latest"
