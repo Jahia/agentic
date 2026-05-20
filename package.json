@@ -8,6 +8,7 @@
   "type": "module",
   "bin": "./dist/index.js",
   "scripts": {
+    "benchmark": "node src/benchmark/index.ts",
     "build": "node src/build/index.ts",
     "format": "oxfmt",
     "lint": "tsc --noEmit && oxlint"
@@ -18,6 +19,7 @@
     "@types/node": "^25.9.0",
     "oxfmt": "^0.51.0",
     "oxlint": "^1.66.0",
+    "playwright": "^1.60.0",
     "rolldown": "^1.0.1",
     "typescript": "^6.0.3"
   }
