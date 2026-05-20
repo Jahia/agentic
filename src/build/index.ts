@@ -1,6 +1,9 @@
 import { spawnSync } from "node:child_process";
 import { mkdirSync, rmSync, writeFileSync } from "node:fs";
 import { join, resolve } from "node:path";
+import { build } from "rolldown";
+
+// #MARK: Harnesses
 
 const targets = ["claude", "copilot", "cursor", "codex", "gemini", "opencode", "windsurf"];
 const harness = resolve(import.meta.dirname, "..", "harness");
@@ -31,4 +34,13 @@ for (const target of targets) {
   rmSync(join(dist, target, "apm.lock.yaml"), { force: true });
 }
 
-export {};
+// #MARK: CLI
+
+await build({
+  platform: "node",
+  input: "cli/index.ts",
+  output: {
+    file: join(dist, "index.js"),
+  },
+  cwd: resolve(import.meta.dirname, ".."),
+});
