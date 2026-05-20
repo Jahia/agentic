@@ -81,7 +81,7 @@ jobs:
       - name: Run benchmark agent
         run: node .github/benchmark/prompt.js
         env:
-          GH_TOKEN: ${{ secrets.COPILOT_TOKEN }}
+          GH_TOKEN: ${{ secrets.COPILOT_TOKEN || github.token }}
           GITHUB_SHA: ${{ github.sha }}
           GITHUB_REF_NAME: ${{ github.ref_name }}
 
