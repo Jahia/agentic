@@ -11,28 +11,28 @@
     "pages": [
       {
         "url": "http://localhost:8080/cms/render/live/en/sites/forsure/home.html",
-        "title": "Home \u2014 For Sure Insurance",
+        "title": "Home — For Sure Insurance",
         "screenshot": "screenshot-0.png",
         "accessibilityScore": 0.4723665527410147,
         "seoScore": 0.82
       },
       {
         "url": "http://localhost:8080/cms/render/live/en/sites/forsure/home/car-insurance.html",
-        "title": "Car Insurance \u2014 For Sure Insurance",
+        "title": "Car Insurance — For Sure Insurance",
         "screenshot": "screenshot-1.png",
         "accessibilityScore": 0.6065306597126334,
         "seoScore": 0.91
       },
       {
         "url": "http://localhost:8080/cms/render/live/en/sites/forsure/home/health-insurance.html",
-        "title": "Health Insurance \u2014 For Sure Insurance",
+        "title": "Health Insurance — For Sure Insurance",
         "screenshot": "screenshot-2.png",
         "accessibilityScore": 0.6065306597126334,
         "seoScore": 0.91
       },
       {
         "url": "http://localhost:8080/cms/render/live/en/sites/forsure/home/home-insurance.html",
-        "title": "Home Insurance \u2014 For Sure Insurance",
+        "title": "Home Insurance — For Sure Insurance",
         "screenshot": "screenshot-3.png",
         "accessibilityScore": 0.6065306597126334,
         "seoScore": 0.91
@@ -77,6 +77,47 @@
         "screenshot": "screenshot-3.png",
         "accessibilityScore": 0.36787944117144233,
         "seoScore": 0.91
+      }
+    ]
+  },
+  {
+    "id": "run-2026-05-21T15-52-52",
+    "date": "2026-05-21T15:53:12.856Z",
+    "durationSeconds": 2029,
+    "tokens": {
+      "input": 13300000,
+      "output": 93500,
+      "cached": 13100000
+    },
+    "githubRunUrl": "https://github.com/Jahia/agentic/actions/runs/26235173454",
+    "pages": [
+      {
+        "url": "http://localhost:8080/cms/render/default/en/sites/forsure/home.html",
+        "title": "404 - Page not found",
+        "screenshot": "screenshot-0.png",
+        "accessibilityScore": 0.36787944117144233,
+        "seoScore": 0
+      },
+      {
+        "url": "http://localhost:8080/cms/render/default/en/sites/forsure/home/car-insurance.html",
+        "title": "404 - Page not found",
+        "screenshot": "screenshot-1.png",
+        "accessibilityScore": 0.36787944117144233,
+        "seoScore": 0
+      },
+      {
+        "url": "http://localhost:8080/cms/render/default/en/sites/forsure/home/health-insurance.html",
+        "title": "404 - Page not found",
+        "screenshot": "screenshot-2.png",
+        "accessibilityScore": 0.36787944117144233,
+        "seoScore": 0
+      },
+      {
+        "url": "http://localhost:8080/cms/render/default/en/sites/forsure/home/home-insurance.html",
+        "title": "404 - Page not found",
+        "screenshot": "screenshot-3.png",
+        "accessibilityScore": 0.36787944117144233,
+        "seoScore": 0
       }
     ]
   }
