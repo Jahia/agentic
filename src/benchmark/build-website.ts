@@ -226,7 +226,7 @@ function detailPage(run: BenchmarkRun): string {
   const tabs = run.pages
     .map(
       (p, i) =>
-        `<button class="browser-tab${i === 0 ? " active" : ""}" onclick="showTab(${i})">${escHtml(p.title)}</button>`,
+        `<button class="browser-tab${i === 0 ? " active" : ""}" onclick="showTab(${i})">${escHtml(p.title || "<untitled>")}</button>`,
     )
     .join("\n");
 

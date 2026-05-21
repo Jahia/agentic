@@ -79,6 +79,18 @@ Use the instructions from the `jahia-dev-create-view` skill to:
 
 ---
 
+## Step 5 â€” Accessibility check
+
+After the component is live, invoke `/jahia-dev-accessibility` to audit it:
+
+1. Run the axe-core audit against the page(s) containing the new component
+2. Fix any `critical` or `serious` violations before considering the component done
+3. Report remaining violations to the user
+
+A component is not complete until it has no critical or serious accessibility violations.
+
+---
+
 ## SDC structure summary
 
 After following this skill, the component should look like:
@@ -125,3 +137,4 @@ If the component has child nodes (e.g. a hero with CTA buttons), repeat Steps 2â
 - [ ] `component.module.css` applied and visible
 - [ ] Component appears in Page Builder content picker
 - [ ] Content can be created and renders on the page
+- [ ] No critical or serious accessibility violations (`/jahia-dev-accessibility`)

@@ -132,35 +132,49 @@ Fix: use semantic HTML for better accessibility and SEO.
 Check: `<img>` tags with `alt=""` or no `alt` attribute (unless there's a comment saying it's decorative).
 Fix: add descriptive alt text. Decorative images should have `alt=""` with a comment.
 
-**S3 — Types using `any`**
+**S3 — Accessibility violations (axe-core audit)**
+Check: run `/jahia-dev-accessibility` against all live pages. A clean module has zero `critical` or `serious` violations.
+Common issues in Jahia modules:
+- `color-contrast`: hardcoded colours with insufficient contrast ratio — check with https://webaim.org/resources/contrastchecker/
+- `image-alt`: `<img>` missing a meaningful `alt` prop sourced from CND
+- `button-name`: icon-only `<button>` or `<a>` without `aria-label`
+- `landmark-one-main`: page template missing a `<main>` wrapper
+- `page-has-heading-one`: no `<h1>` rendered on any page
+- `heading-order`: skipped heading levels between components (e.g. h1 → h3)
+- `html-has-lang`: template not setting `lang` via `useServerContext().currentLanguage`
+- `focus-visible` suppressed: global `* { outline: none }` in CSS kills keyboard navigation
+
+Fix: identify each violating component by matching the axe target selector to a `.server.tsx` file, apply the fix, rebuild, and re-run the audit.
+
+**S4 — Types using `any`**
 Check: `types.ts` files or view files using TypeScript `any`.
 Fix: use `JCRNodeWrapper` for node references, `string` / `number` / `boolean` for primitives.
 
-**S4 — Bare `<Area>` without a `nodeType`**
+**S5 — Bare `<Area>` without a `nodeType`**
 Check: page templates using `<Area name="..." />` without a `nodeType` prop.
 Fix: create a custom area type with `jmix:list`, `jmix:hiddenType`, and `orderable`, and reference it with `nodeType="namespace:areaType"`.
 
-**S5 — `mix:title` inherited but `jcr:title` not in `types.ts`**
+**S6 — `mix:title` inherited but `jcr:title` not in `types.ts`**
 Check: CND types that extend `mix:title` but whose `types.ts` doesn't include `"jcr:title": string`.
 Fix: add `"jcr:title"?: string` to the Props type.
 
-**S6 — Missing `.properties` file entries or icon for new content types**
+**S7 — Missing `.properties` file entries or icon for new content types**
 Check: for each node type found in `definition.cnd` files, verify that `settings/resources/<module>.properties` has a label (`cndNamespace_typeName=...`) and a corresponding icon exists at `settings/content-types-icons/<cndNamespace>_<typeName>.png`. The prefix must be the CND namespace (e.g. `ns_heroSection.png`), **not** the module name with hyphens (e.g. `my-module_heroSection.png` is wrong — the archetype generates wrong names that must be manually corrected).
 Fix: add labels (and optionally `ui.tooltip` for fields) to the properties files. Rename any icons that use the module name with hyphens to use the CND namespace. Create a 32×32 PNG icon (free source: [flaticon.com](https://www.flaticon.com/)). Without these, editors see raw technical names and blank icon squares in the content picker.
 
-**S7 — Hardcoded user-visible strings in views**
+**S8 — Hardcoded user-visible strings in views**
 Check: `.server.tsx` / `.client.tsx` files with JSX string literals that are not coming from props or i18n functions (e.g. `<p>Learn more</p>`, `<button>Submit</button>`).
 Fix: move UI labels to `settings/locales/en.json` and `fr.json` and resolve them with `useTranslation()`. Hardcoded strings break multilingual sites.
 
-**S8 — Content list queries not using `ISDESCENDANTNODE` (non-recursive)**
+**S9 — Content list queries not using `ISDESCENDANTNODE` (non-recursive)**
 Check: JCR-SQL2 queries using `jcr:path LIKE '/sites/.../content/%'` or a fixed path to limit results, instead of `ISDESCENDANTNODE(node, '/sites/.../content')`.
 Fix: use `ISDESCENDANTNODE` to ensure queries work correctly even if editors reorganize content into sub-folders.
 
-**S9 — No escape hatch when using a custom component mixin**
+**S10 — No escape hatch when using a custom component mixin**
 Check: a custom section type that restricts children to a custom mixin (e.g. `+ * (namespacemix:component)`) but the module provides no "content stack" escape hatch type that itself accepts `jmix:droppableContent`.
 Fix: add a `namespace:contentStack > jnt:content, namespacemix:component + * (jmix:droppableContent)` type so power editors can still add arbitrary content when needed.
 
-**S10 — Scaffold/boilerplate components still present**
+**S11 — Scaffold/boilerplate components still present**
 Check: components under `src/components/Hello/` (or any other archetype-generated boilerplate) that are no longer referenced in `settings/import.xml` and no longer used by any view or page template.
 ```bash
 # Check if Hello components are still referenced anywhere

@@ -1,6 +1,7 @@
 import { spawn, spawnSync } from "node:child_process";
 import { once } from "node:events";
 import {
+  appendFileSync,
   copyFileSync,
   existsSync,
   mkdirSync,
@@ -56,6 +57,10 @@ await once(child, "exit");
 
 const root = resolve(temp, "forsure");
 
+if (process.env["GITHUB_OUTPUT"]) {
+  appendFileSync(process.env["GITHUB_OUTPUT"], `project_dir=${root}\n`);
+}
+
 copyFileSync(resolve(import.meta.dirname, "prompt.md"), resolve(root, "prompt.md"));
 
 spawnSync("node", [resolve(import.meta.dirname, "..", "..", "dist"), "copilot"], {
@@ -69,7 +74,7 @@ const copilotProc = spawn(
   ["--autopilot", "--allow-all", "--prompt", "Read ./prompt.md and follow the instructions."],
   {
     cwd: root,
-    stdio: ["inherit", "pipe", "inherit"],
+    stdio: ["inherit", "pipe", "pipe"],
     env: { ...process.env, GH_TOKEN: process.env["COPILOT_TOKEN"] },
   },
 );
@@ -79,6 +84,11 @@ copilotProc.stdout.on("data", (chunk: Buffer) => {
   const text = chunk.toString();
   copilotOutput += text;
   process.stdout.write(text);
+});
+copilotProc.stderr.on("data", (chunk: Buffer) => {
+  const text = chunk.toString();
+  copilotOutput += text;
+  process.stderr.write(text);
 });
 
 await once(copilotProc, "exit");

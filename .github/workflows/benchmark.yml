@@ -28,11 +28,17 @@ jobs:
 
       - run: npx playwright install chromium --with-deps
 
-      - run: yarn benchmark
+      - id: benchmark
+        run: yarn benchmark
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           COPILOT_TOKEN: ${{ secrets.COPILOT_TOKEN }}
           GITHUB_RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+
+      - uses: actions/upload-artifact@v7
+        with:
+          name: benchmark-project
+          path: ${{ steps.benchmark.outputs.project_dir }}
 
       - run: yarn build:website
 

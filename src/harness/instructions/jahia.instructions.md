@@ -18,6 +18,7 @@ You are helping develop a **Jahia JavaScript Module** — a React-based template
 5. **Always verify before creating** — check that content types are deployed, site keys are correct, and area structures exist before attempting GraphQL mutations.
 6. **All props are optional at runtime** — even mandatory CND fields. Always guard against `undefined` in views.
 7. **Always include `-H "Origin: http://localhost:8080"` in every GraphQL curl** — omitting it returns `Permission denied` even with correct credentials.
+8. **Accessibility is mandatory** — every component must pass WCAG 2.1 AA. After building any component or completing a task, invoke `/jahia-dev-accessibility` to run an axe-core audit and fix all `critical` and `serious` violations before declaring work done.
 
 ## Skill Map
 
@@ -35,7 +36,8 @@ Start with `/jahia` if unsure where to begin.
 | `/jahia-dev-create-view` | Implement a React view (.server.tsx + CSS Module) |
 | `/jahia-dev-create-page-template` | Create a page template with Areas |
 | `/jahia-dev-query-content` | Write JCR-SQL2 queries and useJCRQuery |
-| `/jahia-dev-review` | Code review: 8 critical checks, 9 warnings, 10 suggestions |
+| `/jahia-dev-review` | Code review: 8 critical checks, 9 warnings, 11 suggestions |
+| `/jahia-dev-accessibility` | Audit live pages with axe-core, fix WCAG 2.1 AA violations |
 | `/jahia-dev-screenshot` | Screenshot reference + local render for visual comparison |
 | `/jahia-dev-debug` | Debug build/deploy/runtime errors end-to-end |
 
