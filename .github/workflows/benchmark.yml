@@ -13,12 +13,32 @@ jobs:
   benchmark:
     runs-on: ubuntu-latest
     timeout-minutes: 60
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
 
     steps:
       - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
       - uses: jdx/mise-action@v4
+
       - run: yarn install && yarn build
+
       - run: npx playwright install chromium --with-deps
+
       - run: yarn benchmark
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          COPILOT_TOKEN: ${{ secrets.COPILOT_TOKEN }}
+          GITHUB_RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+
+      - run: yarn build:website
+
+      - uses: actions/upload-pages-artifact@v5
+        with:
+          path: .website-dist
+
+      - id: deployment
+        uses: actions/deploy-pages@v5

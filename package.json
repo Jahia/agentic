@@ -10,13 +10,16 @@
   "scripts": {
     "benchmark": "node src/benchmark/index.ts",
     "build": "node src/build/index.ts",
+    "build:website": "node src/benchmark/build-website.ts",
     "format": "oxfmt",
     "lint": "tsc --noEmit && oxlint"
   },
   "devDependencies": {
+    "@axe-core/playwright": "^4.11.3",
     "@chachalog/types": "^0.5.1",
     "@clack/prompts": "^1.4.0",
-    "@types/node": "^25.9.0",
+    "@types/node": "^25.9.1",
+    "lighthouse": "^13.3.0",
     "oxfmt": "^0.51.0",
     "oxlint": "^1.66.0",
     "playwright": "^1.60.0",

@@ -1,13 +1,46 @@
 import { spawn, spawnSync } from "node:child_process";
 import { once } from "node:events";
-import { copyFileSync, existsSync, mkdtempSync, readFileSync } from "node:fs";
-import { resolve } from "node:path";
+import {
+  copyFileSync,
+  existsSync,
+  mkdirSync,
+  mkdtempSync,
+  readFileSync,
+  writeFileSync,
+} from "node:fs";
+import { join, resolve } from "node:path";
 import { setTimeout } from "node:timers/promises";
+import { chromium } from "playwright";
+import { AxeBuilder } from "@axe-core/playwright";
+import lighthouse from "lighthouse";
+import type { BenchmarkRun, PageResult } from "./types.ts";
+
+const repoRoot = resolve(import.meta.dirname, "..", "..");
+const resultsDir = join(repoRoot, "results");
+const resultsBranch = "results";
+
+// ─── Results worktree setup ──────────────────────────────────────────────────
+
+if (!existsSync(join(resultsDir, ".git"))) {
+  spawnSync("git", ["fetch", "origin", resultsBranch], { cwd: repoRoot, stdio: "inherit" });
+  spawnSync(
+    "git",
+    ["worktree", "add", "-b", resultsBranch, resultsDir, `origin/${resultsBranch}`],
+    { cwd: repoRoot, stdio: "inherit" },
+  );
+} else {
+  spawnSync("git", ["pull", "--rebase", "origin", resultsBranch], {
+    cwd: resultsDir,
+    stdio: "inherit",
+  });
+}
+
+// ─── Benchmark run ───────────────────────────────────────────────────────────
 
 const temp = mkdtempSync("agentic-benchmark-");
-console.log(`Running benchmarks in ${temp}`);
+console.log(`Running benchmark in ${temp}`);
 
-const child = spawn("npm", ["init", "@jahia/module@latest", "crumb"], {
+const child = spawn("npm", ["init", "@jahia/module@latest", "forsure"], {
   cwd: temp,
   stdio: ["pipe", "inherit", "inherit"],
 });
@@ -21,7 +54,7 @@ child.stdin.write("\x1B[B\r"); // Empty template set
 child.stdin.end();
 await once(child, "exit");
 
-const root = resolve(temp, "crumb");
+const root = resolve(temp, "forsure");
 
 copyFileSync(resolve(import.meta.dirname, "prompt.md"), resolve(root, "prompt.md"));
 
@@ -30,17 +63,148 @@ spawnSync("node", [resolve(import.meta.dirname, "..", "..", "dist"), "copilot"],
   stdio: "inherit",
 });
 
-spawnSync(
+// Run copilot, streaming stdout live while capturing it for stats parsing
+const copilotProc = spawn(
   "copilot",
   ["--autopilot", "--allow-all", "--prompt", "Read ./prompt.md and follow the instructions."],
   {
     cwd: root,
-    stdio: "inherit",
+    stdio: ["inherit", "pipe", "inherit"],
+    env: { ...process.env, GH_TOKEN: process.env["COPILOT_TOKEN"] },
   },
 );
 
-if (existsSync(resolve(root, "pages.json"))) {
-  console.log("Benchmark successful!");
-  const pages = readFileSync(resolve(root, "pages.json"), "utf-8");
-  console.log("Pages:", pages);
+let copilotOutput = "";
+copilotProc.stdout.on("data", (chunk: Buffer) => {
+  const text = chunk.toString();
+  copilotOutput += text;
+  process.stdout.write(text);
+});
+
+await once(copilotProc, "exit");
+
+const runId = `run-${new Date().toISOString().replace(/[:.]/g, "-").slice(0, 19)}`;
+const runDir = join(resultsDir, runId);
+mkdirSync(runDir, { recursive: true });
+
+if (!existsSync(resolve(root, "pages.json"))) {
+  console.error("Benchmark failed: pages.json not found");
+  process.exit(1);
+}
+
+const rawPages = readFileSync(resolve(root, "pages.json"), "utf-8");
+console.log("pages.json:", rawPages);
+
+const urls: string[] = JSON.parse(rawPages);
+
+const port = 1337;
+const browser = await chromium.launch({
+  args: ["--no-sandbox", "--disable-dev-shm-usage", `--remote-debugging-port=${port}`],
+});
+const context = await browser.newContext({ viewport: { width: 1440, height: 900 } });
+const page = await context.newPage();
+
+const pages: PageResult[] = [];
+
+const impacts = { minor: 0.1, moderate: 0.25, serious: 0.5, critical: 1 };
+
+for (const [i, rawUrl] of urls.entries()) {
+  const url = new URL(rawUrl, "http://localhost:8080");
+  console.log(`Navigating to ${url}...`);
+  await page.goto(url.toString(), { waitUntil: "networkidle", timeout: 30_000 });
+  const title = await page.title();
+  console.log(`Taking a screenshot of ${title}...`);
+  const screenshot = `screenshot-${i}.png`;
+  await page.screenshot({ fullPage: true, path: join(runDir, screenshot) });
+  console.log(`Analyzing accessibility of ${title}...`);
+  const axe = new AxeBuilder({ page });
+  const results = await axe.analyze();
+  const accessibilityScore = Math.exp(
+    -results.violations.reduce((t, { impact }) => t + (impact ? impacts[impact] : 0.01), 0),
+  );
+  console.log(`Running Lighthouse for ${title}...`);
+  const result = await lighthouse(url.toString(), {
+    port,
+    output: "json",
+    onlyCategories: ["seo"],
+  });
+  const seoScore = result?.lhr.categories.seo?.score ?? 0;
+  console.log(
+    `Results for ${title}: Accessibility Score = ${accessibilityScore.toFixed(2)}, SEO Score = ${seoScore.toFixed(2)}`,
+  );
+  pages.push({
+    url: url.toString(),
+    title,
+    screenshot,
+    accessibilityScore,
+    seoScore,
+  });
+}
+
+await browser.close();
+
+// Parse token usage and duration from copilot's stdout summary
+function parseStats(output: string): { durationSeconds: number; tokens: BenchmarkRun["tokens"] } {
+  const durationMatch = output.match(/\((\d+)m\s+(\d+)s\)/);
+  const durationSeconds = durationMatch
+    ? parseInt(durationMatch[1]!) * 60 + parseInt(durationMatch[2]!)
+    : 0;
+
+  function parseCount(s: string): number {
+    const n = parseFloat(s);
+    const suffix = s.slice(-1).toLowerCase();
+    if (suffix === "m") return Math.round(n * 1_000_000);
+    if (suffix === "k") return Math.round(n * 1_000);
+    return Math.round(n);
+  }
+
+  const tokensMatch = output.match(
+    /↑\s*([\d.]+[mk]?)\s*•\s*↓\s*([\d.]+[mk]?)\s*•\s*([\d.]+[mk]?)\s*\(cached\)/i,
+  );
+  const tokens = tokensMatch
+    ? {
+        input: parseCount(tokensMatch[1]!),
+        output: parseCount(tokensMatch[2]!),
+        cached: parseCount(tokensMatch[3]!),
+      }
+    : { input: 0, output: 0, cached: 0 };
+
+  return { durationSeconds, tokens };
+}
+
+const { durationSeconds, tokens } = parseStats(copilotOutput);
+
+const benchmarkPath = join(resultsDir, "benchmark.json");
+const existing: BenchmarkRun[] = existsSync(benchmarkPath)
+  ? (JSON.parse(readFileSync(benchmarkPath, "utf-8")) as BenchmarkRun[])
+  : [];
+
+const run: BenchmarkRun = {
+  id: runId,
+  date: new Date().toISOString(),
+  durationSeconds,
+  tokens,
+  githubRunUrl: process.env["GITHUB_RUN_URL"] || undefined,
+  pages,
+};
+
+existing.push(run);
+writeFileSync(benchmarkPath, JSON.stringify(existing, null, 2));
+console.log(`Run saved to results/${runId}`);
+
+// ─── Commit results to the worktree ─────────────────────────────────────────
+
+const gitOpts = { cwd: resultsDir, stdio: "inherit" } as const;
+const gitCI = [
+  "-c",
+  "user.name=GitHub Actions",
+  "-c",
+  "user.email=github-actions@github.com",
+] as const;
+
+spawnSync("git", ["add", "benchmark.json", runId], gitOpts);
+spawnSync("git", [...gitCI, "commit", "-m", `chore: benchmark run ${runId}`], gitOpts);
+
+if (process.env["GITHUB_ACTIONS"]) {
+  spawnSync("git", ["push", "origin", resultsBranch], { cwd: resultsDir, stdio: "inherit" });
 }
