@@ -11,28 +11,28 @@
     "pages": [
       {
         "url": "http://localhost:8080/cms/render/live/en/sites/forsure/home.html",
-        "title": "Home — For Sure Insurance",
+        "title": "Home \u2014 For Sure Insurance",
         "screenshot": "screenshot-0.png",
         "accessibilityScore": 0.4723665527410147,
         "seoScore": 0.82
       },
       {
         "url": "http://localhost:8080/cms/render/live/en/sites/forsure/home/car-insurance.html",
-        "title": "Car Insurance — For Sure Insurance",
+        "title": "Car Insurance \u2014 For Sure Insurance",
         "screenshot": "screenshot-1.png",
         "accessibilityScore": 0.6065306597126334,
         "seoScore": 0.91
       },
       {
         "url": "http://localhost:8080/cms/render/live/en/sites/forsure/home/health-insurance.html",
-        "title": "Health Insurance — For Sure Insurance",
+        "title": "Health Insurance \u2014 For Sure Insurance",
         "screenshot": "screenshot-2.png",
         "accessibilityScore": 0.6065306597126334,
         "seoScore": 0.91
       },
       {
         "url": "http://localhost:8080/cms/render/live/en/sites/forsure/home/home-insurance.html",
-        "title": "Home Insurance — For Sure Insurance",
+        "title": "Home Insurance \u2014 For Sure Insurance",
         "screenshot": "screenshot-3.png",
         "accessibilityScore": 0.6065306597126334,
         "seoScore": 0.91
@@ -42,11 +42,11 @@
   {
     "id": "run-2026-05-21T14-59-02",
     "date": "2026-05-21T14:59:30.056Z",
-    "durationSeconds": 0,
+    "durationSeconds": 2071,
     "tokens": {
-      "input": 0,
-      "output": 0,
-      "cached": 0
+      "input": 9900000,
+      "output": 96100,
+      "cached": 9700000
     },
     "githubRunUrl": "https://github.com/Jahia/agentic/actions/runs/26231695621",
     "pages": [
