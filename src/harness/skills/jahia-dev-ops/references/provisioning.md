@@ -45,12 +45,12 @@ curl -u root:changeme \
     - url: "mvn:org.jahia.modules/article/3.5.0"
     - url: "file:///var/jahia/modules/my-custom-module-1.0.jar"
 
-- createVirtualSite:
-    siteKey: mySite
-    title: "My Site"
-    locale: en
-    serverName: www.example.com
-    templateSet: my-template-set
+- createSite: ""
+  siteKey: mySite
+  title: "My Site"
+  defaultLanguage: en
+  serverName: localhost
+  templateSet: my-template-set
 
 - importSite:
     siteKey: mySite
@@ -97,23 +97,47 @@ curl -u root:changeme \
 
 ### Create a virtual site
 
-```yaml
-- createVirtualSite:
-    siteKey: acme
-    title: "ACME Corp"
-    locale: en
-    serverName: acme.example.com
-    templateSet: acme-template-set
-    installedModules:
-      - bootstrap4-core
-      - acme-components
+> ⚠️ **CRITICAL — Jahia 8.2 syntax**: use `- createSite: ""` with properties at the **same indentation level**. There are **two common mistakes that both silently return HTTP 200 but create nothing**:
+> - ❌ `- createSite:` with nested properties (missing `""`)
+> - ❌ `- createVirtualSite:` (old name, no longer valid)
+> 
+> **Always use a file-based approach** to avoid shell quoting issues:
+
+```bash
+cat > /tmp/create-site.yaml <<'EOF'
+- createSite: ""
+  siteKey: acme
+  title: "ACME Corp"
+  defaultLanguage: en
+  serverName: localhost
+  templateSet: acme-template-set
+EOF
+
+curl -u root:root1234 -X POST -H "Content-Type: application/yaml" \
+  --data-binary @/tmp/create-site.yaml \
+  http://localhost:8080/modules/api/provisioning
 ```
+
+The API returns `HTTP 200` with an empty body. **Always verify** the site was created — HTTP 200 is not sufficient confirmation:
+
+```bash
+curl -s -u root:root1234 \
+  -H "Content-Type: application/json" -H "Origin: http://localhost:8080" \
+  -X POST http://localhost:8080/modules/graphql \
+  -d '{"query":"{ jcr { nodeByPath(path: \"/sites/acme\") { name } } }"}'
+```
+
+If the response contains `"name": "acme"`, the site exists. If it returns `null`, the site was not created — recheck the YAML format.
 
 ### Delete a virtual site
 
-```yaml
-- deleteSite:
-    siteKey: acme
+```bash
+curl -u root:root1234 \
+     -X POST \
+     -H "Content-Type: application/yaml" \
+     --data-binary '- deleteSite: ""
+  siteKey: acme' \
+     http://localhost:8080/modules/api/provisioning
 ```
 
 ### Import a site export ZIP

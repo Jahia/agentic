@@ -33,4 +33,8 @@ Keep track of your work here:
 
 ---
 
-When done, publish all the pages and create a new `pages.json` file as an array of public URLs: `["http://localhost:8080/path/to/homepage", ...]`
+When done:
+
+- [ ] Publish all the pages
+- [ ] Check that they are accessible without authentication
+- [ ] Create a new `pages.json` file as an array of public URLs: `["http://localhost:8080/path/to/homepage", ...]`

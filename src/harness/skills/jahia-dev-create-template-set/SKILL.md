@@ -107,28 +107,78 @@ To run the module locally, use the `/jahia-dev-start-local` skill next.
 
 ---
 
-## Step 4 — Read and summarize the README
+## Step 4 — Build and deploy the module
 
-After scaffolding, read the generated `README.md`:
+Once Jahia is running at `http://localhost:8080`, build and deploy the module:
 
 ```bash
-cat <project-name>/README.md
+yarn build && yarn jahia-deploy
 ```
 
-Summarize its contents for the user — key commands, how to start Jahia, how to deploy — and tell them: **"Make sure to read the full README.md in your module — it has everything you need to get started."**
+`yarn jahia-deploy` (from `@jahia/vite-plugin` 1.2.0+) always uses curl and defaults to `http://localhost:8080` / `root:root1234` — no `.env` configuration is required for standard local development.
+
+Verify the module is installed:
+
+```bash
+curl -s -u root:root1234 -H "Origin: http://localhost:8080" \
+  -X POST http://localhost:8080/modules/graphql \
+  -H "Content-Type: application/json" \
+  -d '{"query":"{ jcr { nodeByPath(path:\"/modules/<module-name>\") { name } } }"}'
+```
+
+Replace `<module-name>` with the `name` from `package.json`. The response should contain `"name": "<module-name>"`.
 
 ---
 
 ## Step 5 — Create a new site in Jahia
 
-After the module is deployed (via `yarn dev` or `yarn build && yarn jahia-deploy`), create a site:
+After the module is deployed, create the site via the Provisioning API — **do not use the UI**.
 
-1. Open [localhost:8080](http://localhost:8080) and login with `root` / `root1234`
-2. Click **My projects** → **Create New** → **Create**
-3. Fill the form (site name, server name, default language)
-4. Select the template set you just deployed
-5. Click **Next** and **Save**
-6. Open **Page Builder** to start building
+> ⚠️ **CRITICAL: syntax is `- createSite: ""`** — the empty string `""` after the colon is **mandatory**. Without it, Jahia returns HTTP 200 but silently creates nothing. Using `- createSite:` with nested properties is **wrong and will fail silently**.
+
+```bash
+MODULE_NAME=<module-name>   # value of "name" in package.json
+
+curl -u root:root1234 \
+     -X POST \
+     -H "Content-Type: application/yaml" \
+     --data-binary "- createSite: \"\"
+  siteKey: ${MODULE_NAME}
+  title: \"My Site\"
+  defaultLanguage: en
+  serverName: localhost
+  templateSet: ${MODULE_NAME}" \
+     http://localhost:8080/modules/api/provisioning
+```
+
+Or write the script to a file and POST it:
+
+```bash
+MODULE_NAME=<module-name>
+
+cat > /tmp/create-site.yaml <<EOF
+- createSite: ""
+  siteKey: ${MODULE_NAME}
+  title: "My Site"
+  defaultLanguage: en
+  serverName: localhost
+  templateSet: ${MODULE_NAME}
+EOF
+
+curl -u root:root1234 -X POST -H "Content-Type: application/yaml" \
+  --data-binary @/tmp/create-site.yaml \
+  http://localhost:8080/modules/api/provisioning
+```
+
+Verify the site was created:
+```bash
+curl -s -u root:root1234 \
+  -H "Content-Type: application/json" -H "Origin: http://localhost:8080" \
+  -X POST http://localhost:8080/modules/graphql \
+  -d "{\"query\":\"{ jcr { nodeByPath(path:\\\"/sites/${MODULE_NAME}\\\") { name } } }\"}"
+```
+
+The response must contain `"name": "<module-name>"`. If the path returns `null`, the site was not created — check that `templateSet` exactly matches the deployed module name.
 
 ---
 
@@ -178,4 +228,5 @@ If anything goes wrong during setup or scaffolding, refer to the official Jahia 
 - [ ] `yarn --version` reports 4.9+ (via Corepack)
 - [ ] Module directory created with expected structure
 - [ ] `yarn install` completes without errors
-- [ ] README.md summarized for the user
+- [ ] `yarn build && yarn jahia-deploy` succeeds — module appears at `/modules/<name>` in JCR
+- [ ] Site created with `createSite: ""` — JCR confirms `/sites/<name>` exists

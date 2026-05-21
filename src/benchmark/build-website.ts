@@ -102,18 +102,17 @@ a:hover { text-decoration: underline; }
 /* ── Fake browser ── */
 .browser { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; box-shadow: 0 2px 8px rgba(31,35,40,0.06); }
 .browser-chrome { background: #eaeef2; padding: 10px 14px; display: flex; align-items: center; gap: 10px; border-bottom: 1px solid var(--border); }
-.browser-dots { display: flex; gap: 6px; }
+.browser-dots { display: flex; gap: 6px; flex-shrink: 0; }
 .browser-dot { width: 12px; height: 12px; border-radius: 50%; }
 .browser-dot.red    { background: #ff5f57; }
 .browser-dot.yellow { background: #ffbd2e; }
 .browser-dot.green  { background: #28c840; }
-.browser-url { flex: 1; background: #fff; border: 1px solid var(--border); border-radius: 20px; padding: 4px 12px; font-size: 0.8rem; color: var(--text-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.browser-url { flex: 1; background: #fff; border: 1px solid var(--border); border-radius: 20px; padding: 4px 12px; font-size: 0.8rem; color: var(--text-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0; }
+.browser-chrome-badges { display: flex; gap: 6px; flex-shrink: 0; }
 .browser-tabs { display: flex; background: #eaeef2; border-bottom: 1px solid var(--border); overflow-x: auto; }
 .browser-tab { padding: 10px 18px; font-size: 0.82rem; color: var(--text-muted); cursor: pointer; border: none; background: transparent; white-space: nowrap; border-bottom: 2px solid transparent; transition: color 0.12s, border-color 0.12s; }
 .browser-tab:hover { color: var(--text); }
 .browser-tab.active { color: var(--accent); border-bottom-color: var(--accent); background: var(--surface); }
-.browser-infobar { display: flex; align-items: center; gap: 10px; padding: 8px 14px; background: var(--bg); border-bottom: 1px solid var(--border); flex-wrap: wrap; }
-.browser-page-url { font-size: 0.78rem; color: var(--text-muted); flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .browser-content { background: #fff; }
 .tab-panel { display: none; }
 .tab-panel.active { display: block; }
@@ -236,21 +235,16 @@ function detailPage(run: BenchmarkRun): string {
         ? `<img src="${p.screenshot}" alt="${escHtml(p.title)}">`
         : `<div class="no-screenshot">No screenshot available for this run</div>`;
 
-      const infobar = `
-<div class="browser-infobar">
-  <span class="browser-page-url">${escHtml(p.url)}</span>
-  ${scoreBadge("A11y", p.accessibilityScore)}
-  ${scoreBadge("SEO", p.seoScore)}
-</div>`;
-
       return `<div class="tab-panel${i === 0 ? " active" : ""}" id="tab-${i}">
-  ${infobar}
   <div class="browser-content">${imgHtml}</div>
 </div>`;
     })
     .join("\n");
 
   const urlBarDefault = firstPage ? escHtml(firstPage.url) : "";
+  const firstPageBadges = firstPage
+    ? scoreBadge("A11y", firstPage.accessibilityScore) + scoreBadge("SEO", firstPage.seoScore)
+    : "";
 
   const body = `
 <header class="header">
@@ -273,17 +267,30 @@ function detailPage(run: BenchmarkRun): string {
         <span class="browser-dot green"></span>
       </div>
       <div class="browser-url" id="url-bar">${urlBarDefault}</div>
+      <div class="browser-chrome-badges" id="score-badges">${firstPageBadges}</div>
     </div>
     <div class="browser-tabs">${tabs}</div>
     ${panels}
   </div>
 </main>
 <script>
+const pageData = ${JSON.stringify(run.pages.map((p) => ({ url: p.url, a11y: p.accessibilityScore, seo: p.seoScore })))};
+function scoreColor(s) {
+  if (s === null) return '#6e7681';
+  const pct = s * 100;
+  return pct >= 100 ? '#3fb950' : pct >= 75 ? '#d29922' : '#f85149';
+}
+function badge(label, score) {
+  const color = scoreColor(score);
+  const text = score === null ? 'N/A' : Math.round(score * 100) + '%';
+  return '<span class="badge" style="background:' + color + '">' + label + ': ' + text + '</span>';
+}
 function showTab(idx) {
   document.querySelectorAll('.browser-tab').forEach((t, i) => t.classList.toggle('active', i === idx));
   document.querySelectorAll('.tab-panel').forEach((p, i) => p.classList.toggle('active', i === idx));
-  const urls = ${JSON.stringify(run.pages.map((p) => p.url))};
-  document.getElementById('url-bar').textContent = urls[idx] ?? '';
+  const d = pageData[idx];
+  document.getElementById('url-bar').textContent = d?.url ?? '';
+  document.getElementById('score-badges').innerHTML = d ? badge('A11y', d.a11y) + badge('SEO', d.seo) : '';
 }
 </script>`;
 

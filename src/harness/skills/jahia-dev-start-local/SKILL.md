@@ -51,6 +51,14 @@ This watches for file changes and pushes the compiled template set to the runnin
 
 > **Agent note:** `yarn dev` is for interactive human development only. When building features programmatically, always use `yarn build && yarn jahia-deploy` for explicit one-shot deploys — never start `yarn dev` from an agent.
 
+After `docker compose up --wait`, deploy the module immediately:
+
+```bash
+yarn build && yarn jahia-deploy
+```
+
+`yarn jahia-deploy` (from `@jahia/vite-plugin` 1.2.0+) always uses curl to `http://localhost:8080` with credentials `root:root1234` — no `.env` changes needed for standard local development.
+
 ---
 
 ## Step 3 — Bare metal fallback (no Docker)
@@ -71,16 +79,38 @@ Follow the instructions on that page for the user's platform, then return here t
 
 ## Step 4 — Create a new site in Jahia
 
-Once the initial deploy has pushed the template set to Jahia, guide the user through creating their first site:
+Once the module is deployed to Jahia, create the site via the Provisioning API — **do not use the UI**.
 
-1. Open **http://localhost:8080** and log in with `root` / `root1234`
-2. Click **My projects** → **Create New** → **Create**
-3. Fill in the site creation form (site name, server name, default language)
-4. Select the template set created in the previous step
-5. Click **Next** then **Save**
-6. Open **Page Builder** — the Hello World page should be visible ✨
+> ⚠️ **CRITICAL: syntax is `- createSite: ""`** — the empty string `""` after the colon is **mandatory**. Without it, Jahia returns HTTP 200 but silently creates nothing. Using `- createSite:` with nested properties is **wrong and will fail silently**.
 
-Tell the user: **"Your site is ready! Open Page Builder to start editing your pages."**
+```bash
+MODULE_NAME=<module-name>   # value of "name" in package.json
+
+cat > /tmp/create-site.yaml <<EOF
+- createSite: ""
+  siteKey: ${MODULE_NAME}
+  title: "My Site"
+  defaultLanguage: en
+  serverName: localhost
+  templateSet: ${MODULE_NAME}
+EOF
+
+curl -u root:root1234 -X POST -H "Content-Type: application/yaml" \
+  --data-binary @/tmp/create-site.yaml \
+  http://localhost:8080/modules/api/provisioning
+```
+
+Verify the site exists:
+```bash
+curl -s -u root:root1234 \
+  -H "Content-Type: application/json" -H "Origin: http://localhost:8080" \
+  -X POST http://localhost:8080/modules/graphql \
+  -d "{\"query\":\"{ jcr { nodeByPath(path:\\\"/sites/${MODULE_NAME}\\\") { name } } }\"}"
+```
+
+The response must contain `"name": "<module-name>"`. If it returns `null`, the site was not created — check that `templateSet` exactly matches the deployed module name.
+
+Then open **Page Builder** at http://localhost:8080/jahia/page-builder to start building.
 
 ---
 
@@ -89,8 +119,8 @@ Tell the user: **"Your site is ready! Open Page Builder to start editing your pa
 - [ ] `docker compose up --wait` completes without errors (Docker path)
 - [ ] Jahia UI is reachable at http://localhost:8080
 - [ ] Module deployed to Jahia (`yarn build && yarn jahia-deploy` run; or `yarn dev` in user terminal for interactive development)
-- [ ] User has created a new site using the template set
-- [ ] Page Builder opens and shows the Hello World page
+- [ ] Site created via Provisioning API (`createSite: ""` with correct templateSet)
+- [ ] GraphQL confirms `/sites/<site-key>` node exists
 
 ## Troubleshooting
 
