@@ -1,3 +1,4 @@
+#!/usr/bin/env node
 import { argv } from "node:process";
 import * as p from "@clack/prompts";
 import { styleText } from "node:util";
