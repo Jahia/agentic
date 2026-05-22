@@ -71,7 +71,7 @@ spawnSync("node", [resolve(import.meta.dirname, "..", "..", "dist"), "copilot"],
 // Run copilot, streaming stdout live while capturing it for stats parsing
 const copilotProc = spawn(
   "copilot",
-  ["--autopilot", "--allow-all", "--prompt", "Read ./prompt.md and follow the instructions."],
+  ["--autopilot", "--allow-all", "--model", "claude-sonnet-4.6", "--prompt", "Read ./prompt.md and follow the instructions."],
   {
     cwd: root,
     stdio: ["inherit", "pipe", "pipe"],

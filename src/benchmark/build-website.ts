@@ -34,6 +34,24 @@ function formatCount(n: number): string {
   return `${n}`;
 }
 
+// Pricing for Claude Sonnet 4.6
+const PRICE_INPUT_PER_M = 3.0;
+const PRICE_CACHED_PER_M = 0.3;
+const PRICE_OUTPUT_PER_M = 15.0;
+
+function estimateCost(tokens: { input: number; output: number; cached: number }): number {
+  return (
+    (tokens.input * PRICE_INPUT_PER_M +
+      tokens.cached * PRICE_CACHED_PER_M +
+      tokens.output * PRICE_OUTPUT_PER_M) /
+    1_000_000
+  );
+}
+
+function formatCost(usd: number): string {
+  return `$${usd.toFixed(2)}`;
+}
+
 function formatDate(iso: string): string {
   return new Date(iso).toLocaleString("en-US", {
     year: "numeric",
@@ -180,6 +198,7 @@ function runCard(run: BenchmarkRun): string {
       : "";
 
   const totalTokens = run.tokens.input + run.tokens.output;
+  const cost = estimateCost(run.tokens);
 
   return `<a class="card" href="run/${run.id}/">
   <div class="card-screenshot">${screenshotHtml}</div>
@@ -188,7 +207,7 @@ function runCard(run: BenchmarkRun): string {
       <span class="card-date">${formatDate(run.date)}</span>
       <span class="card-duration">· ${formatDuration(run.durationSeconds)}</span>
     </div>
-    <div class="card-tokens">↑${formatCount(run.tokens.input)} ↓${formatCount(run.tokens.output)} · ${formatCount(totalTokens)} total tokens</div>
+    <div class="card-tokens">↑${formatCount(run.tokens.input)} ↓${formatCount(run.tokens.output)} · ${formatCount(totalTokens)} total tokens · ${formatCost(cost)}</div>
     <div class="card-scores">${scores}</div>
   </div>
 </a>`;
@@ -196,6 +215,7 @@ function runCard(run: BenchmarkRun): string {
 
 function detailPage(run: BenchmarkRun): string {
   const totalTokens = run.tokens.input + run.tokens.output;
+  const cost = estimateCost(run.tokens);
   const firstPage = run.pages[0];
   const githubLink = run.githubRunUrl
     ? `<a class="run-meta-link" href="${run.githubRunUrl}" target="_blank" rel="noopener">View run logs ↗</a>`
@@ -218,6 +238,10 @@ function detailPage(run: BenchmarkRun): string {
   <div class="run-meta-item">
     <span class="run-meta-label">Total</span>
     <span class="run-meta-value">${formatCount(totalTokens)} tokens</span>
+  </div>
+  <div class="run-meta-item">
+    <span class="run-meta-label">Est. Cost</span>
+    <span class="run-meta-value">${formatCost(cost)}</span>
   </div>
   ${githubLink ? `<div class="run-meta-item">${githubLink}</div>` : ""}
 </div>`;
