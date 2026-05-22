@@ -78,6 +78,64 @@ When you have a source HTML fragment to translate (e.g. from `/jahia-dev-import-
 
 ---
 
+## Step 1b — Accessibility and SEO rules (apply to every view)
+
+Build these requirements in from the start — retrofitting them later is more expensive.
+
+### Semantic HTML structure
+
+| Element | Rule |
+|---|---|
+| `<section>`, `<article>` | Wrap every self-contained block of content |
+| `<header>` / `<footer>` | Use for the page header and footer in page templates |
+| `<nav>` | Wrap navigation menus; add `aria-label` when there are multiple navs |
+| `<main>` | Exactly one per page, wrapping all page body content (already enforced by the Layout component for page templates) |
+| Headings | Each page must have exactly one `<h1>`; section headings use `<h2>`; sub-section headings use `<h3>`. Never skip levels. |
+
+### Images
+
+Every `<img>` must have an `alt` attribute. Decorative images use `alt=""`. Informational images use a descriptive string from a CND property:
+
+```tsx
+// ❌ Missing alt
+<img src={buildNodeUrl(props.image)} />
+
+// ✅ Descriptive alt from content
+<img src={buildNodeUrl(props.image)} alt={props.imageAlt ?? ""} />
+```
+
+Add `- imageAlt (string) i18n` to the CND and `imageAlt?: string` to `types.ts` for any type with an image field.
+
+### Colour contrast
+
+Use colours with a contrast ratio ≥ 4.5:1 for body text and ≥ 3:1 for large text (18px+ or bold 14px+) against the background. Avoid light grey on white. When in doubt, use near-black (`#333333` or `#1a1a1a`) for body text.
+
+### Link and button names
+
+Every `<a>` and `<button>` must have an accessible name — either visible text or `aria-label`. Icon-only buttons must have `aria-label`:
+
+```tsx
+// ❌ No accessible name
+<button><svg>…</svg></button>
+
+// ✅ Accessible name via aria-label
+<button aria-label="Close menu"><svg aria-hidden="true">…</svg></button>
+```
+
+### Focus styles
+
+Never suppress focus indicators globally. Use `:focus-visible` to style keyboard focus:
+
+```css
+/* ❌ Never do this */
+* { outline: none; }
+
+/* ✅ Style keyboard focus without affecting mouse users */
+:focus-visible { outline: 2px solid #0969da; outline-offset: 2px; }
+```
+
+---
+
 ## Step 2 — Import Props from types.ts
 
 Always import `Props` from `./types.js` (not `./types.ts` — use `.js` extension at import time):

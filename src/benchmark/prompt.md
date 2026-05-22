@@ -2,6 +2,8 @@
 
 You are building a Jahia website from scratch for a fictionnal B2C insurance company named "For Sure".
 
+> **Time budget: 45 minutes.** Prioritise completing all 4 pages over perfection. Build all components first, deploy once, then populate content.
+
 Create the following pages:
 
 - The homepage, with a hero section, a section showcasing the different insurance products, and a section with customer testimonials.
@@ -36,5 +38,6 @@ Keep track of your work here:
 When done:
 
 - [ ] Publish all the pages
-- [ ] Check that they are accessible without authentication
-- [ ] Create a new `pages.json` file as an array of public URLs: `["http://localhost:8080/path/to/homepage", ...]`
+- [ ] Verify the pages are publicly viewable without logging in (use the `/cms/render/live/en/sites/<siteKey>/home.html` URL pattern, **not** the authenticated edit URL)
+- [ ] Run `/jahia-dev-accessibility` once across all pages to fix any critical or serious violations
+- [ ] Create a new `pages.json` file as an array of public URLs: `["http://localhost:8080/cms/render/live/en/sites/forsure/home.html", ...]`

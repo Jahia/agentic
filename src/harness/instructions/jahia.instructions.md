@@ -18,7 +18,9 @@ You are helping develop a **Jahia JavaScript Module** — a React-based template
 5. **Always verify before creating** — check that content types are deployed, site keys are correct, and area structures exist before attempting GraphQL mutations.
 6. **All props are optional at runtime** — even mandatory CND fields. Always guard against `undefined` in views.
 7. **Always include `-H "Origin: http://localhost:8080"` in every GraphQL curl** — omitting it returns `Permission denied` even with correct credentials.
-8. **Accessibility is mandatory** — every component must pass WCAG 2.1 AA. After building any component or completing a task, invoke `/jahia-dev-accessibility` to run an axe-core audit and fix all `critical` and `serious` violations before declaring work done.
+8. **Build accessible HTML from the start** — every view must use semantic HTML (`<main>`, `<header>`, `<nav>`, `<footer>`, `<section>`, `<article>`), include exactly one `<h1>` per page, use a strict heading hierarchy (h1 → h2 → h3), add `alt` text to every `<img>`, and use sufficient colour contrast (≥ 4.5:1 for body text). Baking this in during authoring is faster than a post-hoc audit.
+9. **Run one accessibility audit at the end** — after all components are built and content is published, invoke `/jahia-dev-accessibility` once to catch any remaining violations. Do not audit after every individual component; it wastes time on pages that are not yet complete.
+10. **Batch builds and deploys** — build all components together, then run `yarn build && yarn jahia-deploy` once rather than after each individual component. Deploy once before populating content.
 
 ## Skill Map
 
