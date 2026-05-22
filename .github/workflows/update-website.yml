@@ -1,0 +1,36 @@
+name: Update Website
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+jobs:
+  update-website:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - uses: jdx/mise-action@v4
+
+      - run: yarn install
+
+      - run: git fetch origin results && git worktree add results results
+
+      - run: yarn build:website
+
+      - uses: actions/upload-pages-artifact@v5
+        with:
+          path: .website-dist
+
+      - id: deployment
+        uses: actions/deploy-pages@v5
