@@ -2,6 +2,10 @@
   "name": "@jahia/agentic",
   "version": "0.1.1",
   "description": "A CLI to bootstrap an agentic harness for Jahia",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Jahia/agentic.git"
+  },
   "license": "MIT",
   "type": "module",
   "bin": "./dist/index.js",
