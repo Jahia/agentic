@@ -1,12 +1,70 @@
+import { spawnSync } from "node:child_process";
 import { copyFileSync, existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { join, resolve } from "node:path";
-import type { BenchmarkRun } from "./types.ts";
+import remarkGfm from "remark-gfm";
+import remarkGithub from "remark-github";
+import remarkHtml from "remark-html";
+import { remark } from "remark";
+import type { BenchmarkRun } from "./types.js";
 
 const ROOT = resolve(import.meta.dirname, "..", "..");
 const RESULTS_DIR = join(ROOT, "results");
 const OUT_DIR = join(ROOT, ".website-dist");
+const REPO = "Jahia/agentic";
 
-// ─── Helpers ────────────────────────────────────────────────────────────────
+// ─── Releases ────────────────────────────────────────────────────────────────
+
+interface Release {
+  version: string;
+  date: string; // ISO 8601
+  notesHtml: string;
+}
+
+function parseChangelog(md: string): Array<{ version: string; notesMd: string }> {
+  const releases: Array<{ version: string; notesMd: string }> = [];
+  const sections = md.split(/^## /m).slice(1);
+  for (const section of sections) {
+    const newline = section.indexOf("\n");
+    const version = section.slice(0, newline).trim();
+    const notesMd = section.slice(newline + 1).trim();
+    if (version) releases.push({ version, notesMd });
+  }
+  return releases;
+}
+
+async function renderNotes(notesMd: string): Promise<string> {
+  const file = await remark()
+    .use(remarkGfm)
+    .use(remarkGithub, { repository: REPO })
+    .use(remarkHtml, { sanitize: false })
+    .process(notesMd);
+  return String(file);
+}
+
+function getTagDate(version: string): string | null {
+  const tag = `@jahia/agentic@${version}`;
+  const result = spawnSync("git", ["log", tag, "-1", "--format=%aI"], {
+    cwd: ROOT,
+    encoding: "utf-8",
+  });
+  const date = result.stdout?.trim();
+  return date || null;
+}
+
+async function loadReleases(): Promise<Release[]> {
+  const changelogPath = join(ROOT, "CHANGELOG.md");
+  if (!existsSync(changelogPath)) return [];
+  const md = readFileSync(changelogPath, "utf-8");
+  const parsed = parseChangelog(md);
+  const releases: Release[] = [];
+  for (const { version, notesMd } of parsed) {
+    const date = getTagDate(version);
+    if (!date) continue;
+    const notesHtml = await renderNotes(notesMd);
+    releases.push({ version, date, notesHtml });
+  }
+  return releases;
+}
 
 function scoreColor(score: number | null): string {
   if (score === null) return "#6e7681";
@@ -136,6 +194,16 @@ a:hover { text-decoration: underline; }
 .tab-panel.active { display: block; }
 .tab-panel img { width: 100%; display: block; }
 .tab-panel .no-screenshot { padding: 60px; text-align: center; color: #57606a; font-size: 0.9rem; background: #f6f8fa; }
+
+/* ── Release banner ── */
+.release-banner { grid-column: 1 / -1; display: flex; align-items: baseline; gap: 16px; padding: 12px 0; border-top: 1px solid var(--border); }
+.release-banner + .release-banner { border-top: none; padding-top: 0; }
+.release-tag { font-size: 0.8rem; font-weight: 700; color: var(--accent); background: #dbeafe; border: 1px solid #93c5fd; border-radius: 20px; padding: 2px 10px; white-space: nowrap; flex-shrink: 0; }
+.release-notes { font-size: 0.82rem; color: var(--text-muted); line-height: 1.5; }
+.release-notes ul { margin: 0; padding-left: 1.2em; }
+.release-notes li { margin: 0; }
+.release-notes p { margin: 0; }
+.release-notes code { background: #f0f0f0; border-radius: 3px; padding: 1px 4px; font-size: 0.8em; }
 `;
 
 // ─── Templates ──────────────────────────────────────────────────────────────
@@ -156,11 +224,59 @@ ${body}
 </html>`;
 }
 
-function homepage(runs: BenchmarkRun[]): string {
-  const sorted = [...runs].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+function releaseBanner(release: Release): string {
+  return `<div class="release-banner">
+  <span class="release-tag">🏷 v${escHtml(release.version)}</span>
+  <div class="release-notes">${release.notesHtml}</div>
+</div>`;
+}
 
-  const cards = sorted.length
-    ? sorted.map((run) => runCard(run)).join("\n")
+function homepage(runs: BenchmarkRun[], releases: Release[]): string {
+  const sorted = [...runs].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+  const sortedReleases = [...releases].sort(
+    (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime(),
+  );
+
+  const items: string[] = [];
+
+  let releaseIdx = 0;
+  for (let i = 0; i < sorted.length; i++) {
+    const runTime = new Date(sorted[i]!.date).getTime();
+    const nextRunTime = i + 1 < sorted.length ? new Date(sorted[i + 1]!.date).getTime() : -Infinity;
+
+    // Inject releases that fall before this run (newer) — only before the first run
+    if (i === 0) {
+      while (
+        releaseIdx < sortedReleases.length &&
+        new Date(sortedReleases[releaseIdx]!.date).getTime() > runTime
+      ) {
+        items.push(releaseBanner(sortedReleases[releaseIdx]!));
+        releaseIdx++;
+      }
+    }
+
+    items.push(runCard(sorted[i]!));
+
+    // Inject releases that fall between this run and the next
+    while (releaseIdx < sortedReleases.length) {
+      const releaseTime = new Date(sortedReleases[releaseIdx]!.date).getTime();
+      if (releaseTime <= runTime && releaseTime > nextRunTime) {
+        items.push(releaseBanner(sortedReleases[releaseIdx]!));
+        releaseIdx++;
+      } else {
+        break;
+      }
+    }
+  }
+
+  // Any remaining releases older than all runs
+  while (releaseIdx < sortedReleases.length) {
+    items.push(releaseBanner(sortedReleases[releaseIdx]!));
+    releaseIdx++;
+  }
+
+  const gridContent = sorted.length
+    ? items.join("\n")
     : `<p class="empty">No benchmark runs yet.</p>`;
 
   return page(
@@ -177,7 +293,7 @@ function homepage(runs: BenchmarkRun[]): string {
 </header>
 <main class="container">
   <div class="grid">
-    ${cards}
+    ${gridContent}
   </div>
 </main>`,
   );
@@ -338,10 +454,12 @@ if (!existsSync(benchmarkPath)) {
 }
 
 const runs: BenchmarkRun[] = JSON.parse(readFileSync(benchmarkPath, "utf-8")) as BenchmarkRun[];
+const releases = await loadReleases();
+console.log(`Loaded ${releases.length} release(s) from CHANGELOG.md`);
 
 mkdirSync(OUT_DIR, { recursive: true });
 writeFileSync(join(OUT_DIR, "styles.css"), CSS);
-writeFileSync(join(OUT_DIR, "index.html"), homepage(runs));
+writeFileSync(join(OUT_DIR, "index.html"), homepage(runs, releases));
 
 for (const run of runs) {
   const runOutDir = join(OUT_DIR, "run", run.id);
