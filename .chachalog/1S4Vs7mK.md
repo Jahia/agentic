@@ -1,6 +1,6 @@
 ---
 # Allowed version bumps: patch, minor, major
-"@jahia/agentic": patch
+"@jahia/agentic": minor
 ---
 
-Add Java reviewer and Jahia-specific skills with concurrency pattern (#4)
+Added Java reviewer and Jahia-specific skills with concurrency pattern. (#4)
