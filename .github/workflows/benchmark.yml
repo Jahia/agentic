@@ -36,10 +36,8 @@ jobs:
           COPILOT_TOKEN: ${{ secrets.COPILOT_TOKEN }}
           GITHUB_RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
 
-      - run: >
-          # Cleanup and prepare the benchmark project for upload
-          cd ${{ steps.benchmark.outputs.project_dir }}
-          git init && git clean -Xdf && rm -rf .git
+      - name: Cleanup and prepare the benchmark project for upload
+        run: cd ${{ steps.benchmark.outputs.project_dir }} && git init && git clean -Xdf && rm -rf .git
 
       - uses: actions/upload-artifact@v7
         with:
