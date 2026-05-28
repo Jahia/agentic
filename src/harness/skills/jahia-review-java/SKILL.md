@@ -71,6 +71,7 @@ Walk the implementation. Look for:
 Cross-reference with `/jahia-java-jcr` for JCR session, locking, mixin, and SNS pitfalls.
 Cross-reference with `/jahia-java-osgi` for OSGi component lifecycle, reference, and export-package pitfalls.
 Cross-reference with `/jahia-java-persistence` for persistence-layer anti-patterns.
+Cross-reference with `/jahia-java-concurrency` for thread safety — `volatile`, locking, atomics, static fields, JCR session threading.
 
 ### Pass 3 — Build, packaging, dependencies
 

@@ -8,6 +8,8 @@ allowed-tools: Read
 
 This skill covers how to write OSGi components correctly in a Jahia Java module. Each section states the correct approach first, then the pitfall to avoid. Both developers and reviewers use this skill.
 
+For broader Java concurrency patterns (atomic variables, locking, thread-safe collections, `ThreadLocal`, JCR session threading) that apply beyond OSGi components, load `/jahia-java-concurrency`.
+
 For a comprehensive OSGi reference (bundle lifecycle, Blueprint XML, Karaf tooling, service registry), load the `jahia-dev-java` skill and read `references/osgi.md`.
 
 ---

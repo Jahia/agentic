@@ -27,6 +27,7 @@ allowed-tools: Read
 | OSGi `@Component` state, `@Reference`, lifecycle side effects, Export-Package — **correct patterns and pitfalls** | `/jahia-java-osgi` skill |
 | Securing HTTP-reachable surfaces (servlets, GraphQL, filters) — Security Filter, CSRF Guard, ACLs | `/jahia-java-security` skill |
 | Relational persistence alongside JCR — N+1, timestamp consistency, entity model, transactional asymmetry | `/jahia-java-persistence` skill |
+| Thread safety in a multi-threaded webapp — `volatile`, locking, atomic variables, thread-safe collections, JCR session threading | `/jahia-java-concurrency` skill |
 
 ## Key Concepts Glossary
 
