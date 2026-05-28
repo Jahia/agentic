@@ -15,14 +15,18 @@ allowed-tools: Read
 
 ## When to load which reference
 
-| Task | Reference file |
-|------|---------------|
+| Task | Reference |
+|------|-----------|
 | Creating a new module, Maven pom.xml, deployment, Java 11/17, static assets, deploy-free coding, troubleshooting bundle errors | `references/modules.md` |
 | Writing CND definitions, content type hierarchy, property types, choicelist initializers, modifying existing definitions | `references/content-types.md` |
 | JSP views, view selection, `@cache` tag, caching configuration, navigation menus, rendering filters, AMP | `references/rendering.md` |
 | Drools rules (DRL), JCR event listeners, JCR SQL2 queries, external data provider, permissions and roles | `references/backend.md` |
 | OSGi bundle lifecycle, Declarative Services, Blueprint XML, package Import/Export, service registry, Karaf tooling | `references/osgi.md` |
 | Content Editor JSON overrides, jContent UI extension points, component registry, custom selectors, settings pages, CKEditor | `references/ui-extensions.md` |
+| JCR session lifecycle, workspace, node names, SNS, mixins, locks, versioning — **correct patterns and pitfalls** | `/jahia-java-jcr` skill |
+| OSGi `@Component` state, `@Reference`, lifecycle side effects, Export-Package — **correct patterns and pitfalls** | `/jahia-java-osgi` skill |
+| Securing HTTP-reachable surfaces (servlets, GraphQL, filters) — Security Filter, CSRF Guard, ACLs | `/jahia-java-security` skill |
+| Relational persistence alongside JCR — N+1, timestamp consistency, entity model, transactional asymmetry | `/jahia-java-persistence` skill |
 
 ## Key Concepts Glossary
 
