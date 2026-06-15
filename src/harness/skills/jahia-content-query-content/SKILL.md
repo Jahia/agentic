@@ -1,29 +1,20 @@
 ---
 name: jahia-content-query-content
-description: Queries JCR content from a running Jahia instance via the GraphQL API. Use when asked to list, inspect, or retrieve content nodes, check what content exists, or audit a site's content.
+description: Queries JCR content from a running Jahia instance via MCP tools. Use when asked to list, inspect, or retrieve content nodes, check what content exists, or audit a site's content.
 ---
 
 # Skill: jahia-content-query-content
 
-Retrieves JCR content from a running Jahia instance using the GraphQL JCR query API.
+Retrieves JCR content from a running Jahia instance using MCP tools (via the `my-jahia` MCP server).
+
+> **Never call Jahia's GraphQL API directly.** Use only MCP tools. If a capability is missing, report it — do not work around with curl/GraphQL.
 
 ---
 
 ## Prerequisites
 
-- Jahia running at `http://localhost:8080`
-- Credentials: `root` / `root1234` (default)
-- GraphQL endpoint: `http://localhost:8080/modules/graphql`
-
-**Auth pattern — always use both flags:**
-```bash
-curl -u root:root1234 \
-     -H "Content-Type: application/json" \
-     -H "Origin: http://localhost:8080" \
-     ...
-```
-
-> ⚠️ The `Origin: http://localhost:8080` header is **required**. Requests without it return `Permission denied` even with correct credentials.
+- MCP server `my-jahia` connected with a valid API token
+- Know the target **siteKey** (call `site.list` if unsure)
 
 ---
 
@@ -31,99 +22,145 @@ curl -u root:root1234 \
 
 ### 1 — Get a node by path
 
-```bash
-curl -s -u root:root1234 \
-  -H "Content-Type: application/json" \
-  -H "Origin: http://localhost:8080" \
-  -X POST http://localhost:8080/modules/graphql \
-  -d '{
-    "query": "{ jcr { nodeByPath(path: \"/sites/mySite/contents/articles\") { children { nodes { name path primaryNodeType { name } } } } } }"
-  }'
+```
+tool: content.get
+args: { "path": "/sites/mySite/home/about/main/intro-text" }
 ```
 
-### 2 — Query by node type (JCR-SQL2)
+Returns all readable properties, mixins, and metadata. Also accepts `uuid`.
 
-```bash
-curl -s -u root:root1234 \
-  -H "Content-Type: application/json" \
-  -H "Origin: http://localhost:8080" \
-  -X POST http://localhost:8080/modules/graphql \
-  -d '{
-    "query": "{ jcr { nodesByQuery(query: \"SELECT * FROM [namespace:typeName] WHERE ISDESCENDANTNODE(\u0027/sites/mySite\u0027) ORDER BY [jcr:created] DESC\", queryLanguage: SQL2) { nodes { name path uuid } } } }"
-  }'
+### 2 — List children of a node
+
+```
+tool: content.list
+args: {
+  "parentPath": "/sites/mySite/home/about/main",
+  "limit": 50
+}
 ```
 
-### 3 — Read node properties (including i18n)
+Optional: `childNodeType` to filter, `projectProperties` to include specific properties.
 
-```bash
-curl -s -u root:root1234 \
-  -H "Content-Type: application/json" \
-  -H "Origin: http://localhost:8080" \
-  -X POST http://localhost:8080/modules/graphql \
-  -d '{
-    "query": "{ jcr { nodeByPath(path: \"/sites/mySite/contents/articles/my-article\") { name uuid properties(language: \"en\") { name value } } } }"
-  }'
+### 3 — Search by node type
+
+```
+tool: content.search
+args: {
+  "siteKey": "mySite",
+  "nodeType": "mymodule:article",
+  "locale": "en",
+  "sortBy": "jcr:created",
+  "order": "desc",
+  "limit": 10
+}
 ```
 
-> ⚠️ **i18n properties require `language:` in the `properties()` call.** Without it, i18n properties are returned empty.
+### 4 — Full-text search
 
-### 4 — Filter by property value
-
-```bash
-curl -s -u root:root1234 \
-  -H "Content-Type: application/json" \
-  -H "Origin: http://localhost:8080" \
-  -X POST http://localhost:8080/modules/graphql \
-  -d '{
-    "query": "{ jcr { nodesByQuery(query: \"SELECT * FROM [namespace:article] WHERE [product] = \u0027jahia\u0027 AND ISDESCENDANTNODE(\u0027/sites/mySite\u0027)\", queryLanguage: SQL2) { nodes { name path } } } }"
-  }'
+```
+tool: content.search
+args: {
+  "siteKey": "mySite",
+  "nodeType": "jmix:droppableContent",
+  "locale": "en",
+  "fullText": "insurance",
+  "sortBy": "_score",
+  "order": "desc"
+}
 ```
 
-### 5 — List all sites
+### 5 — Filter by property value
 
-```bash
-curl -s -u root:root1234 \
-  -H "Content-Type: application/json" \
-  -H "Origin: http://localhost:8080" \
-  -X POST http://localhost:8080/modules/graphql \
-  -d '{
-    "query": "{ jcr { nodesByQuery(query: \"SELECT * FROM [jnt:virtualsite] WHERE ISCHILDNODE(\u0027/sites\u0027)\", queryLanguage: SQL2) { nodes { name path } } } }"
-  }'
+```
+tool: content.search
+args: {
+  "siteKey": "mySite",
+  "nodeType": "mymodule:article",
+  "locale": "en",
+  "properties": [
+    { "name": "jcr:createdBy", "op": "eq", "value": "root" }
+  ]
+}
 ```
 
-### 6 — Check publication status
+Operators: `eq`, `like`, `gt`, `gte`, `lt`, `lte`, `isNull`, `isNotNull`
 
-```bash
-curl -s -u root:root1234 \
-  -H "Content-Type: application/json" \
-  -H "Origin: http://localhost:8080" \
-  -X POST http://localhost:8080/modules/graphql \
-  -d '{
-    "query": "{ jcr { nodeByPath(path: \"/sites/mySite/contents/articles/my-article\") { name aggregatedPublicationInfo(language: \"en\") { publicationStatus } } } }"
-  }'
+### 6 — List all sites
+
+```
+tool: site.list
 ```
 
-Publication status values: `PUBLISHED`, `MODIFIED`, `NOT_PUBLISHED`, `UNPUBLISHED`, `MARKED_FOR_DELETION`
+### 7 — List all pages
+
+```
+tool: page.list
+args: { "siteKey": "mySite" }
+```
+
+Supports: `templateName`, `titleContains`, `createdAfter`, `modifiedAfter`, `sortBy`, `order`.
+
+### 8 — Check publication status
+
+```
+tool: publication.status
+args: {
+  "path": "/sites/mySite/home/about",
+  "language": "en",
+  "subNodes": true
+}
+```
+
+Returns publication status, lock/WIP flags, and permission info.
 
 ---
 
-## JCR-SQL2 quick reference
+## content.search parameter reference
 
-```sql
--- All nodes of a type under a path
-SELECT * FROM [ns:typeName] WHERE ISDESCENDANTNODE('/sites/mySite')
+**Required:**
+- `siteKey` — scopes search under `/sites/<siteKey>`
+- `nodeType` — JCR type (e.g. `jnt:page`, `jnt:file`, `jmix:droppableContent`)
 
--- Direct children only
-SELECT * FROM [ns:typeName] WHERE ISCHILDNODE('/sites/mySite/contents/articles')
+**Optional:**
+- `locale` — locale for i18n property resolution (e.g. `"en"`)
+- `fullText` — full-text expression (phrase `"..."`, OR, exclusion `-term`)
+- `fullTextField` — scope full-text to one property
+- `basePath` — restrict to a subtree
+- `properties` — array of property filters (AND-combined)
+- `projectProperties` — properties to include in results
+- `sortBy` — property name (default: `"jcr:lastModified"`) or `"_score"` with fullText
+- `order` — `"asc"` or `"desc"` (default: `"desc"`)
+- `offset` — skip N results (default: 0)
+- `limit` — max results 1–100 (default: 20)
 
--- Filter by property
-SELECT * FROM [ns:typeName] WHERE [propName] = 'value'
+---
 
--- Order by date (newest first)
-SELECT * FROM [ns:typeName] WHERE ISDESCENDANTNODE('/sites/mySite') ORDER BY [jcr:created] DESC
+## Common search patterns
 
--- Limit results (pass limit/offset as query params)
--- nodesByQuery(query: "...", queryLanguage: SQL2, limit: 10, offset: 0)
+Last 5 created contents:
+```
+tool: content.search
+args: {
+  "siteKey": "mySite",
+  "nodeType": "jmix:droppableContent",
+  "locale": "en",
+  "sortBy": "jcr:created",
+  "order": "desc",
+  "limit": 5
+}
+```
+
+Recently modified pages:
+```
+tool: content.search
+args: {
+  "siteKey": "mySite",
+  "nodeType": "jnt:page",
+  "locale": "en",
+  "sortBy": "jcr:lastModified",
+  "order": "desc",
+  "limit": 10
+}
 ```
 
 ---
@@ -132,13 +169,6 @@ SELECT * FROM [ns:typeName] WHERE ISDESCENDANTNODE('/sites/mySite') ORDER BY [jc
 
 | Error | Cause | Fix |
 |-------|-------|-----|
-| `Permission denied` | Missing `Origin` header | Add `-H "Origin: http://localhost:8080"` |
-| i18n properties returned empty | `language:` not specified | Add `language: "en"` to `properties()` call |
-| Node not found | Wrong path or node doesn't exist | Verify path with `nodeByPath(path: "/sites")` first |
-
----
-
-## References
-
-- Jahia GraphQL API: `http://localhost:8080/modules/graphql` (open in browser for interactive playground)
-- JCR-SQL2 language spec: https://docs.adobe.com/content/docs/en/spec/jcr/2.0/6_Query.html
+| `PATH_NOT_FOUND` | Node doesn't exist at given path | Verify path with `content.list` on parent |
+| No results returned | Wrong `nodeType` or `siteKey` | Check available types with `site.types` |
+| Missing i18n properties | `locale` not passed | Always include `locale` for i18n content |

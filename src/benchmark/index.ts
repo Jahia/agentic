@@ -1,4 +1,4 @@
-import { spawn, spawnSync } from "node:child_process";
+import { spawn, spawnSync, execSync } from "node:child_process";
 import { once } from "node:events";
 import {
   appendFileSync,
@@ -15,6 +15,10 @@ import { chromium } from "playwright";
 import { AxeBuilder } from "@axe-core/playwright";
 import lighthouse from "lighthouse";
 import type { BenchmarkRun, PageResult } from "./types.ts";
+
+const JAHIA_URL = "http://localhost:8080";
+const JAHIA_USER = "root";
+const JAHIA_PASSWORD = "root1234";
 
 const repoRoot = resolve(import.meta.dirname, "..", "..");
 const resultsDir = join(repoRoot, "results");
@@ -63,10 +67,121 @@ if (process.env["GITHUB_OUTPUT"]) {
 
 copyFileSync(resolve(import.meta.dirname, "prompt.md"), resolve(root, "prompt.md"));
 
+// ─── Start Jahia ─────────────────────────────────────────────────────────────
+
+console.log("Starting Jahia via docker compose...");
+spawnSync("docker", ["compose", "up", "--wait"], {
+  cwd: root,
+  stdio: "inherit",
+  timeout: 5 * 60 * 1000, // 5 min max for Jahia startup
+});
+
+// Wait for Jahia to be fully ready (tools API available)
+console.log("Waiting for Jahia to be ready...");
+for (let attempt = 0; attempt < 60; attempt++) {
+  try {
+    const status = execSync(
+      `curl -s -o /dev/null -w "%{http_code}" -u ${JAHIA_USER}:${JAHIA_PASSWORD} ${JAHIA_URL}/cms/login`,
+      { encoding: "utf-8", timeout: 5000 },
+    ).trim();
+    if (status === "200") {
+      console.log("Jahia is ready.");
+      break;
+    }
+  } catch {
+    // not ready yet
+  }
+  if (attempt === 59) {
+    console.error("Jahia did not become ready within 5 minutes");
+    process.exit(1);
+  }
+  await setTimeout(5000);
+}
+
+// ─── Provision mcp-servlet ───────────────────────────────────────────────────
+
+console.log("Provisioning mcp-servlet...");
+const provisionYaml = `- installBundle:\n    - 'mvn:org.jahia.modules/mcp-servlet'\n`;
+const provisionResult = spawnSync(
+  "curl",
+  [
+    "-s", "-w", "%{http_code}",
+    "-u", `${JAHIA_USER}:${JAHIA_PASSWORD}`,
+    "-X", "POST",
+    "-H", "Content-Type: application/yaml",
+    "--data-binary", provisionYaml,
+    `${JAHIA_URL}/modules/api/provisioning`,
+  ],
+  { encoding: "utf-8", timeout: 120_000 },
+);
+console.log("Provisioning response:", provisionResult.stdout);
+
+// Wait for mcp-servlet to register (the MCP endpoint becomes available)
+console.log("Waiting for MCP endpoint...");
+for (let attempt = 0; attempt < 30; attempt++) {
+  try {
+    const resp = execSync(
+      `curl -s -o /dev/null -w "%{http_code}" -u ${JAHIA_USER}:${JAHIA_PASSWORD} -X POST -H "Content-Type: application/json" -d '{"jsonrpc":"2.0","id":1,"method":"tools/list"}' ${JAHIA_URL}/modules/mcp`,
+      { encoding: "utf-8", timeout: 5000 },
+    ).trim();
+    if (resp === "200") {
+      console.log("MCP endpoint is ready.");
+      break;
+    }
+  } catch {
+    // not ready yet
+  }
+  if (attempt === 29) {
+    console.error("MCP endpoint did not become available");
+    process.exit(1);
+  }
+  await setTimeout(3000);
+}
+
+// ─── Create API token ────────────────────────────────────────────────────────
+
+console.log("Creating personal API token...");
+const tokenMutation = JSON.stringify({
+  query: `mutation { admin { personalApiTokens { createToken(name: "agentic-benchmark", state: ACTIVE) } } }`,
+});
+const tokenResponse = execSync(
+  `curl -s -u ${JAHIA_USER}:${JAHIA_PASSWORD} -H "Content-Type: application/json" -H "Origin: ${JAHIA_URL}" -X POST ${JAHIA_URL}/modules/graphql -d '${tokenMutation.replace(/'/g, "'\\''")}'`,
+  { encoding: "utf-8", timeout: 15000 },
+);
+const tokenData = JSON.parse(tokenResponse);
+const apiToken: string = tokenData?.data?.admin?.personalApiTokens?.createToken;
+if (!apiToken) {
+  console.error("Failed to create API token:", tokenResponse);
+  process.exit(1);
+}
+console.log("API token created successfully.");
+
+// ─── Write MCP config ────────────────────────────────────────────────────────
+
+const mcpConfigDir = join(root, ".github", "copilot");
+mkdirSync(mcpConfigDir, { recursive: true });
+const mcpConfig = {
+  servers: {
+    "my-jahia": {
+      type: "http",
+      url: `${JAHIA_URL}/modules/mcp`,
+      headers: {
+        Authorization: `APIToken ${apiToken}`,
+      },
+    },
+  },
+};
+writeFileSync(join(mcpConfigDir, "mcp.json"), JSON.stringify(mcpConfig, null, 2));
+console.log("MCP config written to .github/copilot/mcp.json");
+
+// ─── Install harness ─────────────────────────────────────────────────────────
+
 spawnSync("node", [resolve(import.meta.dirname, "..", "..", "dist"), "copilot"], {
   cwd: root,
   stdio: "inherit",
 });
+
+// ─── Run copilot ─────────────────────────────────────────────────────────────
 
 // Run copilot, streaming stdout live while capturing it for stats parsing
 const copilotProc = spawn(
@@ -152,6 +267,15 @@ for (const [i, rawUrl] of urls.entries()) {
 }
 
 await browser.close();
+
+// ─── Stop Jahia ──────────────────────────────────────────────────────────────
+
+console.log("Stopping Jahia...");
+spawnSync("docker", ["compose", "down", "--volumes"], {
+  cwd: root,
+  stdio: "inherit",
+  timeout: 60_000,
+});
 
 // Parse token usage and duration from copilot's stdout summary
 function parseStats(output: string): { durationSeconds: number; tokens: BenchmarkRun["tokens"] } {

@@ -1,164 +1,208 @@
 ---
 name: jahia-content-explore-structure
 user-invocable: false
-description: Efficiently maps an unknown Jahia website's content structure before creating or editing content. Discovers available content types, their properties (i18n vs non-i18n), valid enum values, mixin requirements, and image assets — in the minimum number of API calls. Works on any Jahia instance including fresh installs with no reference site.
+description: Efficiently maps an unknown Jahia website's content structure before creating or editing content. Discovers sites, pages, content areas, available content types, and their properties using MCP tools. Works on any Jahia instance including fresh installs with no reference site.
 ---
 
 # Skill: jahia-content-explore-structure
 
-Use this skill **before** creating content on an unfamiliar Jahia site. It produces a reusable property map so that `/jahia-content-create-content` can work without trial-and-error mutations.
+Use this skill **before** creating content on an unfamiliar Jahia site. It produces a complete picture of the site's structure so that `/jahia-content-create-content` can work without trial-and-error.
 
-**No reference site required.** All content type definitions, property names, i18n flags, and enum constraints are retrieved directly from the GraphQL API via the `nodeTypeByName` and `nodeTypes` queries.
+> **Never call Jahia's GraphQL API directly.** Use only MCP tools. If a capability is missing, report it — do not work around with curl/GraphQL.
 
 ---
 
 ## Prerequisites
 
-- Jahia running at `http://localhost:8080`
-- Credentials: `root` / `root1234`
-- Always include `-H "Origin: http://localhost:8080"` — omitting it causes `Permission denied`
+- MCP server `my-jahia` connected with a valid API token
+- Know the target **siteKey** (or call `site.list` to discover it)
 
 ---
 
-## Step 1 — Batch site exploration (ONE call)
+## Step 1 — Discover available sites
 
-Use GraphQL aliases to retrieve everything you need in a **single HTTP request**: site metadata, page structure, file assets, and available content types.
-
-First, find the site key:
-```bash
-curl -s -u root:root1234 -H "Content-Type: application/json" -H "Origin: http://localhost:8080" \
-  -X POST http://localhost:8080/modules/graphql \
-  -d '{"query":"{ jcr { nodeByPath(path: \"/sites\") { children { nodes { name } } } } }"}'
+```
+tool: site.list
 ```
 
-Then run the full batch query (replace `SITE_KEY` and `TEMPLATE_MODULE`):
-```bash
-curl -s -u root:root1234 \
-  -H "Content-Type: application/json" -H "Origin: http://localhost:8080" \
-  -X POST http://localhost:8080/modules/graphql \
-  -d '{"query":"{ jcr { site: nodeByPath(path: \"/sites/SITE_KEY\") { properties(names: [\"j:templatesSet\",\"j:defaultLanguage\"]) { name value } } home: nodeByPath(path: \"/sites/SITE_KEY/home\") { children { nodes { name primaryNodeType { name } children { nodes { name primaryNodeType { name } } } } } } files: nodeByPath(path: \"/sites/SITE_KEY/files\") { children { nodes { name uuid } } } contentTypes: nodeTypes(filter: {siteKey: \"SITE_KEY\", includeMixins: false, includeAbstract: false}) { nodes { name systemId } } } }"}'
-```
-
-From the response:
-- `site.properties` → `j:templatesSet` (the template module name) and `j:defaultLanguage`
-- `home.children` → page area structure; look for area nodes and check their children to see which content types are in use
-- `files.children` → existing file folders and UUIDs
-- `contentTypes.nodes` → all deployed types; filter by `systemId` matching `j:templatesSet` to find the site's own types
+Returns all sites with `siteKey`, `title`, `languages`, `defaultLanguage`.
+The `siteKey` is needed for almost every other tool call.
 
 ---
 
-## Step 2 — Get ALL type definitions for the template module (ONE call)
+## Step 2 — Get site details
 
-Once you know `j:templatesSet` (e.g. `mymodule`) from Step 1, fetch **every type with all its properties** in a single call:
-
-```bash
-curl -s -u root:root1234 \
-  -H "Content-Type: application/json" -H "Origin: http://localhost:8080" \
-  -X POST http://localhost:8080/modules/graphql \
-  -d '{
-    "query": "{ jcr { nodeTypes(filter: {modules: [\"TEMPLATE_MODULE\"], includeMixins: false, includeAbstract: false}) { nodes { name mixin supertypes { name } properties { name requiredType internationalized mandatory multiple constraints } nodes { name mandatory requiredPrimaryType { name } } } } } }"
-  }'
+```
+tool: site.get
+args: { "siteKey": "SITE_KEY" }
 ```
 
-> ✅ **This is the only type-definition call you need.** The `properties` array already includes **all inherited properties from supertypes and mixins** — the Jahia GraphQL API resolves inheritance automatically. Do **NOT** query supertypes separately, do **NOT** call `nodeTypeByName` for individual types, do **NOT** query mixin definitions.
-
-If you also need properties from standard Jahia types (e.g. `jnt:bigText`, `jnt:text`), add them with `nodeTypesByNames`:
-
-```bash
-curl -s -u root:root1234 \
-  -H "Content-Type: application/json" -H "Origin: http://localhost:8080" \
-  -X POST http://localhost:8080/modules/graphql \
-  -d '{"query":"{ jcr { nodeTypesByNames(names: [\"jnt:bigText\", \"jnt:text\"]) { name properties { name requiredType internationalized mandatory constraints } } } }"}'
-```
+Returns detailed metadata: languages, server names, homepage path, template set, and raw JCR properties.
 
 ---
 
-## Step 3 — Identify image assets
+## Step 3 — List existing pages
 
-File assets are already returned by the Step 1 batch query under `files.children`. No additional call needed unless you need UUIDs of files inside sub-folders:
-
-```bash
-curl -s -u root:root1234 \
-  -H "Content-Type: application/json" -H "Origin: http://localhost:8080" \
-  -X POST http://localhost:8080/modules/graphql \
-  -d '{"query":"{ jcr { nodeByPath(path: \"/sites/SITE_KEY/files/SUBFOLDER\") { children { nodes { name uuid } } } } }"}'
+```
+tool: page.list
+args: { "siteKey": "SITE_KEY" }
 ```
 
-> `image` properties have `requiredType: WEAKREFERENCE`. Set them with `type: WEAKREFERENCE` and the file node UUID. The file must have `jmix:image` mixin — always include `mixins: [\"jmix:image\"]` when uploading (see `/jahia-content-create-content`).
+Returns paginated pages with path, title, template, last modified.
+Supports filtering:
+- `templateName` — filter by template (e.g. `"landing"`)
+- `titleContains` — case-insensitive title search
+- `createdAfter` / `modifiedAfter` — date filters
+- `sortBy` — `lastModified`, `created`, `title`, `path`
 
 ---
 
-## Step 4 — Build the property map
+## Step 4 — Discover page structure (content areas)
 
-After Step 2, summarise the data before creating content:
+For any page, discover its content containers and what's already there:
 
 ```
-Content type: NAMESPACE:typeName
-Supertypes: [from API response — no need to query separately]
-Required mixins (must be in addNode mixins[]): jmix:renderable, jmix:internalLink, etc.
-
-Mandatory non-i18n properties (set in addNode, no language needed):
-  image          WEAKREF   UUID of jmix:image file
-
-i18n properties (set with language: "en" in mutation):
-  jcr:title      STRING    from mix:title
-  body           STRING    rich HTML text
-
-Optional non-i18n:
-  [name]         STRING    value1 | value2  (from constraints array)
-
-Mixin properties (set AFTER addNode in a separate mutation):
-  j:view         STRING    (from jmix:renderable)
-  j:linknode     WEAKREF   i18n  (from jmix:internalLink)
-  j:url          STRING    i18n  (from jmix:externalLink — set with language: "en")
+tool: page.structure
+args: { "path": "/sites/SITE_KEY/home/about" }
 ```
+
+Returns:
+- **Areas** with their JCR paths (e.g. `/sites/.../about/main`)
+- **Allowed node types** per area
+- **Current children** with type, title, kind classification
+
+This is the key tool for understanding where content can go and what constraints apply.
 
 ---
 
-## Critical gotchas
+## Step 5 — Browse the content tree
 
-### 1. `j:view` cannot be set in `addNode` — set it after
+Navigate level by level:
 
-```graphql
-# Step 1: create node with mixin declared
-addNode(... mixins: ["jmix:renderable"] ...)
-
-# Step 2: set j:view in a separate mutation
-mutateNode(...) { mutateProperty(name: "j:view") { setValue(value: "cover") } }
+```
+tool: content.list
+args: {
+  "parentPath": "/sites/SITE_KEY/home/about/main",
+  "limit": 50
+}
 ```
 
-### 2. `j:url` (from `jmix:externalLink`) requires `language: "en"` — it is an i18n property
+Returns direct children with path, type, kind (page/content/area/file), title, and child count.
 
-```graphql
-addNode(
-  mixins: ["jmix:externalLink"]
-  properties: [
-    {name: "j:url", type: STRING, value: "https://example.com", language: "en"}
-  ]
-)
+Optional filters:
+- `childNodeType` — filter by type (e.g. `"jnt:bigText"`)
+- `projectProperties` — include specific properties in output
+
+---
+
+## Step 6 — Read a specific node
+
+```
+tool: content.get
+args: { "path": "/sites/SITE_KEY/home/about/main/intro-text" }
 ```
 
-### 3. GraphQL `properties()` without `language:` hides i18n property values at query time
+Returns all readable properties, mixins, metadata for one node.
+Also accepts `uuid` instead of `path`.
 
-When **reading** existing nodes: use `properties(language: "en")`. When **writing** i18n properties: add `language: "en"` to the `setValue` call.
+---
+
+## Step 7 — Search across content
+
+```
+tool: content.search
+args: {
+  "siteKey": "SITE_KEY",
+  "nodeType": "jnt:bigText",
+  "locale": "en",
+  "fullText": "welcome",
+  "limit": 10
+}
+```
+
+**Required parameters:**
+- `siteKey` — scopes search under `/sites/<siteKey>`
+- `nodeType` — JCR type selector (e.g. `jnt:page`, `jnt:file`, `jmix:droppableContent`)
+
+**Optional parameters:**
+- `locale` — locale for i18n property resolution
+- `fullText` — full-text expression (phrase `"..."`, OR, exclusion `-term`, wildcards)
+- `fullTextField` — scope full-text to one property (e.g. `"jcr:title"`)
+- `basePath` — restrict to a subtree
+- `properties` — array of property filters (see below)
+- `projectProperties` — array of property names to include in results
+- `sortBy` — property name for ordering (default: `"jcr:lastModified"`) or `"_score"` when using fullText
+- `order` — `"asc"` or `"desc"` (default: `"desc"`)
+- `offset` — skip N results (default: 0)
+- `limit` — max results 1–100 (default: 20)
+
+**Property filters** combine with AND:
+```json
+"properties": [
+  { "name": "jcr:createdBy", "op": "eq", "value": "john" },
+  { "name": "jcr:created", "op": "gt", "value": "2026-01-01T00:00:00.000Z" }
+]
+```
+Operators: `eq`, `like`, `gt`, `gte`, `lt`, `lte`, `isNull`, `isNotNull`
+
+---
+
+## Step 8 — Discover content types
+
+### All types available on the site:
+
+```
+tool: site.types
+args: { "siteKey": "SITE_KEY" }
+```
+
+### Full definition of a specific type:
+
+```
+tool: content.type
+args: { "name": "mymodule:heroSection" }
+```
+
+Returns all properties (inherited + own), their types, i18n flags, mandatory markers, and constraints.
+
+### What types are allowed in a specific area:
+
+```
+tool: content.list_definitions
+args: {
+  "siteKey": "SITE_KEY",
+  "nodePath": "/sites/SITE_KEY/home/my-page/main"
+}
+```
+
+Returns allowed content types grouped by category, with mandatory/optional properties, types, choicelist values, and i18n flags.
+
+---
+
+## Step 9 — Build the property map
+
+After discovering types, summarize before creating content:
+
+```
+Content type: mymodule:heroSection
+Properties:
+  jcr:title        STRING    i18n    mandatory
+  subtitle         STRING    i18n    optional
+  image            WEAKREF   -       optional   → UUID of a file node
+  backgroundColor  STRING    -       optional   → choicelist: light|dark
+
+Area types where droppable: pagecontent (from list_definitions)
+```
 
 ---
 
 ## Next step — Create content with the property map
 
-Once you have the property map from Step 4, hand it off to **`/jahia-content-create-content`**:
+Once you have the property map, hand it off to **`/jahia-content-create-content`**:
 
-- Use the mandatory properties list to populate `addNode` / `addChild` mutations correctly the first time
-- Use the i18n flags to know which properties need `language: "en"`
-- Use the enum constraints to pass only valid values
-- Use nested `addChild` calls to create an entire content tree in one mutation (see the `⚡ Minimum-call workflow` section in `/jahia-content-create-content`)
+- Use the mandatory properties list to populate `content.create` calls correctly the first time
+- Use the i18n flags to set the right `locale`
+- Use the enum constraints to pass only valid choicelist values
+- Use `children` in `content.create` for atomic tree creation
 
-> Skipping this skill and guessing property names leads to `ConstraintViolationException` and `Couldn't find definition for property` errors. Always explore first.
-
----
-
-## References
-
-- GraphQL API playground: `http://localhost:8080/modules/graphql`
-- GraphQL schema introspection for node type fields: `{ __type(name: "JCRNodeType") { fields { name } } }`
-- GraphQL schema introspection for property definition fields: `{ __type(name: "JCRPropertyDefinition") { fields { name } } }`
+> Skipping this skill and guessing property names leads to validation errors. Always explore first.
