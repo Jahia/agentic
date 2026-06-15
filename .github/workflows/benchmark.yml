@@ -4,6 +4,7 @@ on:
   push:
     branches: [main]
     paths: [src/benchmark/**, src/harness/**]
+  workflow_dispatch: {}
 
 permissions:
   contents: write
@@ -13,7 +14,7 @@ permissions:
 jobs:
   benchmark:
     runs-on: ubuntu-latest
-    timeout-minutes: 60
+    timeout-minutes: 90
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
@@ -46,10 +47,13 @@ jobs:
           include-hidden-files: true
 
       - run: yarn build:website
+        if: github.ref == 'refs/heads/main'
 
       - uses: actions/upload-pages-artifact@v5
+        if: github.ref == 'refs/heads/main'
         with:
           path: .website-dist
 
       - id: deployment
+        if: github.ref == 'refs/heads/main'
         uses: actions/deploy-pages@v5
