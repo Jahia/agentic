@@ -46,3 +46,31 @@ On harness changes, we task an agent to complete a long Jahia task end-to-end, a
 - SEO score
 
 There's room for improvement on these axes, but once perfected we will introduce a more complex prompt and assess the quality of the code and the edition experience produced.
+
+### Running a benchmark from a branch
+
+Trigger the benchmark workflow on any branch:
+
+```bash
+gh workflow run benchmark.yml --ref feat/my-branch
+```
+
+Monitor the run:
+
+```bash
+gh run list --workflow=benchmark.yml
+gh run watch          # live tail of the latest run
+```
+
+### Checking results
+
+Results are pushed to the `results` branch after each run. Fetch and inspect:
+
+```bash
+git fetch origin results
+git show origin/results:benchmark.json | jq '.[-1]'
+```
+
+This shows the latest result with pages, scores, duration, and token usage. Screenshots are stored alongside the JSON on the same branch.
+
+The aggregated dashboard for the `main` branch is published at [jahia.github.io/agentic](https://jahia.github.io/agentic/).
