@@ -101,7 +101,13 @@ for (let attempt = 0; attempt < 60; attempt++) {
 // ─── Provision mcp-servlet ───────────────────────────────────────────────────
 
 console.log("Provisioning mcp-servlet...");
-const provisionYaml = `- installBundle:\n    - 'mvn:org.jahia.modules/mcp-servlet'\n`;
+const provisionYaml = [
+  "- addMavenRepository: 'https://store.jahia.com/nexus/content/repositories/jahia-public-app-store@id=JahiaStore'",
+  "- addMavenRepository: 'https://devtools.jahia.com/nexus/content/groups/public/@snapshots@noreleases@id=JahiaSnapshot'",
+  "- installBundle:",
+  "    - 'mvn:org.jahia.modules/mcp-servlet'",
+  "",
+].join("\n");
 const provisionResult = spawnSync(
   "curl",
   [
@@ -121,15 +127,22 @@ console.log("Waiting for MCP endpoint...");
 for (let attempt = 0; attempt < 30; attempt++) {
   try {
     const resp = execSync(
-      `curl -s -o /dev/null -w "%{http_code}" -u ${JAHIA_USER}:${JAHIA_PASSWORD} -X POST -H "Content-Type: application/json" -d '{"jsonrpc":"2.0","id":1,"method":"tools/list"}' ${JAHIA_URL}/modules/mcp`,
-      { encoding: "utf-8", timeout: 5000 },
-    ).trim();
-    if (resp === "200") {
+      `curl -s -w "\n%{http_code}" -u ${JAHIA_USER}:${JAHIA_PASSWORD} -X POST -H "Content-Type: application/json" -d '{"jsonrpc":"2.0","id":1,"method":"tools/list"}' ${JAHIA_URL}/modules/mcp`,
+      { encoding: "utf-8", timeout: 10000 },
+    );
+    const lines = resp.trim().split("\n");
+    const statusCode = lines[lines.length - 1];
+    if (attempt % 5 === 0) {
+      console.log(`  attempt ${attempt + 1}/30: HTTP ${statusCode}`);
+    }
+    if (statusCode === "200") {
       console.log("MCP endpoint is ready.");
       break;
     }
   } catch {
-    // not ready yet
+    if (attempt % 5 === 0) {
+      console.log(`  attempt ${attempt + 1}/30: connection failed`);
+    }
   }
   if (attempt === 29) {
     console.error("MCP endpoint did not become available");
