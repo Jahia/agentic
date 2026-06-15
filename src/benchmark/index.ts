@@ -10,6 +10,7 @@ import {
   writeFileSync,
 } from "node:fs";
 import { join, resolve } from "node:path";
+import { homedir } from "node:os";
 import { setTimeout } from "node:timers/promises";
 import { chromium } from "playwright";
 import { AxeBuilder } from "@axe-core/playwright";
@@ -173,8 +174,10 @@ console.log("API token created successfully.");
 
 // ─── Write MCP config ────────────────────────────────────────────────────────
 
-const mcpConfigDir = join(root, ".github");
-mkdirSync(mcpConfigDir, { recursive: true });
+// Write to user-level config (~/.copilot/mcp-config.json) — this is the path
+// Copilot CLI reliably reads for MCP server discovery.
+const userCopilotDir = join(homedir(), ".copilot");
+mkdirSync(userCopilotDir, { recursive: true });
 const mcpConfig = {
   mcpServers: {
     "my-jahia": {
@@ -187,8 +190,8 @@ const mcpConfig = {
     },
   },
 };
-writeFileSync(join(mcpConfigDir, "mcp.json"), JSON.stringify(mcpConfig, null, 2));
-console.log("MCP config written to .github/mcp.json");
+writeFileSync(join(userCopilotDir, "mcp-config.json"), JSON.stringify(mcpConfig, null, 2));
+console.log("MCP config written to ~/.copilot/mcp-config.json");
 
 // ─── Install harness ─────────────────────────────────────────────────────────
 
