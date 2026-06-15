@@ -173,7 +173,7 @@ console.log("API token created successfully.");
 
 // ─── Write MCP config ────────────────────────────────────────────────────────
 
-const mcpConfigDir = join(root, ".github", "copilot");
+const mcpConfigDir = join(root, ".github");
 mkdirSync(mcpConfigDir, { recursive: true });
 const mcpConfig = {
   servers: {
@@ -187,7 +187,7 @@ const mcpConfig = {
   },
 };
 writeFileSync(join(mcpConfigDir, "mcp.json"), JSON.stringify(mcpConfig, null, 2));
-console.log("MCP config written to .github/copilot/mcp.json");
+console.log("MCP config written to .github/mcp.json");
 
 // ─── Install harness ─────────────────────────────────────────────────────────
 
