@@ -297,6 +297,8 @@ spawnSync("docker", ["compose", "down", "--volumes"], {
 });
 
 // Parse token usage and duration from copilot's stdout summary
+// Format: "Tokens     ↑ 15.0m (14.6m cached, 328.8k written) • ↓ 83.6k (10.4k reasoning)"
+//         "AI Credits 688 (23m 50s)"
 function parseStats(output: string): { durationSeconds: number; tokens: BenchmarkRun["tokens"] } {
   const durationMatch = output.match(/\((\d+)m\s+(\d+)s\)/);
   const durationSeconds = durationMatch
@@ -311,16 +313,16 @@ function parseStats(output: string): { durationSeconds: number; tokens: Benchmar
     return Math.round(n);
   }
 
-  const tokensMatch = output.match(
-    /↑\s*([\d.]+[mk]?)\s*•\s*↓\s*([\d.]+[mk]?)\s*•\s*([\d.]+[mk]?)\s*\(cached\)/i,
-  );
-  const tokens = tokensMatch
-    ? {
-        input: parseCount(tokensMatch[1]!),
-        output: parseCount(tokensMatch[2]!),
-        cached: parseCount(tokensMatch[3]!),
-      }
-    : { input: 0, output: 0, cached: 0 };
+  // Parse: ↑ 15.0m (14.6m cached, 328.8k written) • ↓ 83.6k (10.4k reasoning)
+  const inputMatch = output.match(/↑\s*([\d.]+[mk]?)\s*\(/i);
+  const cachedMatch = output.match(/\(([\d.]+[mk]?)\s*cached/i);
+  const outputMatch = output.match(/↓\s*([\d.]+[mk]?)/i);
+
+  const tokens = {
+    input: inputMatch ? parseCount(inputMatch[1]!) : 0,
+    output: outputMatch ? parseCount(outputMatch[1]!) : 0,
+    cached: cachedMatch ? parseCount(cachedMatch[1]!) : 0,
+  };
 
   return { durationSeconds, tokens };
 }
