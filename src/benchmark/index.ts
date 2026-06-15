@@ -106,6 +106,8 @@ const provisionYaml = [
   "- addMavenRepository: 'https://devtools.jahia.com/nexus/content/groups/public/@snapshots@noreleases@id=JahiaSnapshot'",
   "- installBundle:",
   "    - 'mvn:org.jahia.modules/mcp-servlet'",
+  "  autoStart: true",
+  "  uninstallPreviousVersion: true",
   "",
 ].join("\n");
 const provisionResult = spawnSync(
