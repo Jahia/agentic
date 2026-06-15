@@ -5,7 +5,7 @@ description: Creates Jahia sites, pages, and content nodes via MCP tools. Use wh
 
 # Skill: jahia-content-create-content
 
-Creates sites, pages, and content in a running Jahia instance using MCP tools via the `my-jahia` MCP server.
+Creates sites, pages, and content in a running Jahia instance using MCP tools via the `jahia` MCP server.
 
 > **Never call Jahia's GraphQL API directly.** Use only MCP tools. If a capability is missing, report it — do not work around with curl/GraphQL.
 
@@ -13,7 +13,7 @@ Creates sites, pages, and content in a running Jahia instance using MCP tools vi
 
 ## Prerequisites
 
-- MCP server `my-jahia` connected with a valid API token
+- MCP server `jahia` connected with a valid API token
 - Know the target `siteKey` if the site already exists (call `site.list` if unsure)
 - Know the content `locale` (for example `en` or `fr`)
 

@@ -5,7 +5,7 @@ description: Uploads images, documents, and other files to Jahia via MCP tools. 
 
 # Skill: jahia-content-media-upload
 
-Uploads media into Jahia using MCP tools via the `my-jahia` MCP server.
+Uploads media into Jahia using MCP tools via the `jahia` MCP server.
 Uploaded files land under `/sites/<siteKey>/files/` and can then be referenced from content.
 
 > **Never call Jahia's GraphQL API directly.** Use only MCP tools. If a capability is missing, report it — do not work around with curl/GraphQL.

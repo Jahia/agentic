@@ -5,7 +5,7 @@ description: Moves, copies, renames, reorders, and deletes Jahia content via MCP
 
 # Skill: jahia-content-organize
 
-Covers structural content-tree operations using MCP tools via the `my-jahia` MCP server.
+Covers structural content-tree operations using MCP tools via the `jahia` MCP server.
 
 > **Never call Jahia's GraphQL API directly.** Use only MCP tools. If a capability is missing, report it — do not work around with curl/GraphQL.
 

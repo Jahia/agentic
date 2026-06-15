@@ -7,13 +7,13 @@ description: Entry point for creating sites, authoring pages, querying content, 
 
 You are the entry point for content work on a live Jahia instance. Understand the request, assess the site state, and route to the right content skill.
 
-> **Never call Jahia's GraphQL API directly for content operations.** Use only MCP tools via the `my-jahia` MCP server. If a capability is missing, report it — do not work around with curl/GraphQL.
+> **Never call Jahia's GraphQL API directly for content operations.** Use only MCP tools via the `jahia` MCP server. If a capability is missing, report it — do not work around with curl/GraphQL.
 
 ---
 
 ## Step 1 — Verify the MCP connection
 
-Confirm the `my-jahia` MCP server is available:
+Confirm the `jahia` MCP server is available:
 
 ```
 tool: site.list

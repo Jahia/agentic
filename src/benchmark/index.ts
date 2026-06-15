@@ -193,7 +193,7 @@ const userCopilotDir = join(homedir(), ".copilot");
 mkdirSync(userCopilotDir, { recursive: true });
 const mcpConfig = {
   mcpServers: {
-    "my-jahia": {
+    "jahia": {
       type: "http",
       url: `${JAHIA_URL}/modules/mcp`,
       headers: {

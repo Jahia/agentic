@@ -5,7 +5,7 @@ description: Adds site languages and translates existing Jahia content using MCP
 
 # Skill: jahia-content-translate-content
 
-Translates existing content and manages multi-language support using MCP tools via the `my-jahia` MCP server.
+Translates existing content and manages multi-language support using MCP tools via the `jahia` MCP server.
 
 > **Never call Jahia's GraphQL API directly.** Use only MCP tools. If a capability is missing, report it — do not work around with curl/GraphQL.
 
@@ -13,7 +13,7 @@ Translates existing content and manages multi-language support using MCP tools v
 
 ## Prerequisites
 
-- MCP server `my-jahia` connected with a valid API token
+- MCP server `jahia` connected with a valid API token
 - Know the target `siteKey` (call `site.list` if unsure)
 - Content already exists in a source locale
 

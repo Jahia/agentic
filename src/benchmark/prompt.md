@@ -4,7 +4,7 @@ You are building a Jahia website from scratch for a fictionnal B2C insurance com
 
 > **Time budget: 45 minutes.** Prioritise completing all 4 pages over perfection. Build all components first, deploy once, then populate content.
 
-> **Important: Use MCP tools for all content operations.** The `my-jahia` MCP server is pre-configured with tools for site discovery, page creation, content authoring, and media upload. Never call the Jahia GraphQL API directly for content operations — use only MCP tools so we can validate the MCP tool surface coverage. If a tool is missing or doesn't work as expected, note it in your work log below.
+> **Important: Use MCP tools for all content operations.** The `jahia` MCP server is pre-configured with tools for site discovery, page creation, content authoring, and media upload. Never call the Jahia GraphQL API directly for content operations — use only MCP tools so we can validate the MCP tool surface coverage. If a tool is missing or doesn't work as expected, note it in your work log below.
 
 Create the following pages:
 

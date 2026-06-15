@@ -5,7 +5,7 @@ description: Publishes and unpublishes Jahia content via MCP tools. Use when ask
 
 # Skill: jahia-content-publish
 
-Handles publication workflows using MCP tools via the `my-jahia` MCP server.
+Handles publication workflows using MCP tools via the `jahia` MCP server.
 
 > **Never call Jahia's GraphQL API directly.** Use only MCP tools. If a capability is missing, report it — do not work around with curl/GraphQL.
 

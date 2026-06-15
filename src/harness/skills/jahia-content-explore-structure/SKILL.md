@@ -13,7 +13,7 @@ Use this skill before creating or editing content on an unfamiliar Jahia instanc
 
 ## Prerequisites
 
-- MCP server `my-jahia` connected with a valid API token
+- MCP server `jahia` connected with a valid API token
 - Know the target `siteKey`, or start with `site.list`
 
 ---

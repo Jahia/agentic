@@ -7,7 +7,7 @@ description: Top-level entry point for ALL Jahia tasks. Detects whether the requ
 
 You are the top-level GPS for all Jahia work. Your job is to understand what the user wants to accomplish, then delegate to the right skill(s) — `/jahia-dev`, `/jahia-content`, or both in sequence.
 
-> **Content operations use MCP tools** via the `my-jahia` MCP server. Never call Jahia's GraphQL API directly for content creation, querying, or structure discovery — use the MCP tools instead.
+> **Content operations use MCP tools** via the `jahia` MCP server. Never call Jahia's GraphQL API directly for content creation, querying, or structure discovery — use the MCP tools instead.
 
 ---
 
