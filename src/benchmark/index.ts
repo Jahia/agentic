@@ -103,8 +103,8 @@ for (let attempt = 0; attempt < 60; attempt++) {
 
 console.log("Provisioning mcp-servlet...");
 const provisionYaml = [
-  "- addMavenRepository: 'https://store.jahia.com/nexus/content/repositories/jahia-public-app-store@id=JahiaStore'",
-  "- addMavenRepository: 'https://devtools.jahia.com/nexus/content/groups/public/@snapshots@noreleases@id=JahiaSnapshot'",
+  "- addMavenRepository: 'https://store.jahia.com/nexus/content/repositories/jahia-public-app-store@id=JahiaStore@update=always'",
+  "- addMavenRepository: 'https://devtools.jahia.com/nexus/content/groups/public/@snapshots@noreleases@id=JahiaSnapshot@update=always'",
   "- installBundle:",
   "    - 'mvn:org.jahia.modules/mcp-servlet'",
   "  autoStart: true",
