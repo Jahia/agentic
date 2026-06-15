@@ -65,7 +65,7 @@ Key skills:
 | `jahia-dev-create-view` | Implements a React view (`.server.tsx` + CSS Module) |
 | `jahia-dev-create-page-template` | Creates a page template with Areas |
 | `jahia-dev-accessibility` | WCAG 2.1 AA audit with axe-core + fixes |
-| `jahia-content-create-content` | Creates and publishes JCR content via GraphQL |
+| `jahia-content-create-content` | Creates Jahia sites, pages, and content via MCP tools |
 
 ---
 

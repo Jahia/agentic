@@ -1,12 +1,11 @@
 ---
 name: jahia-content-explore-structure
-user-invocable: false
-description: Efficiently maps an unknown Jahia website's content structure before creating or editing content. Discovers sites, pages, content areas, available content types, and their properties using MCP tools. Works on any Jahia instance including fresh installs with no reference site.
+description: Efficiently maps an unknown Jahia website's sites, template sets, pages, areas, content trees, and type definitions using MCP tools before authoring or restructuring content.
 ---
 
 # Skill: jahia-content-explore-structure
 
-Use this skill **before** creating content on an unfamiliar Jahia site. It produces a complete picture of the site's structure so that `/jahia-content-create-content` can work without trial-and-error.
+Use this skill before creating or editing content on an unfamiliar Jahia instance. It produces a reliable map of the CMS so that `/jahia-content-create-content` and `/jahia-content-organize` can work without guesswork.
 
 > **Never call Jahia's GraphQL API directly.** Use only MCP tools. If a capability is missing, report it — do not work around with curl/GraphQL.
 
@@ -15,51 +14,55 @@ Use this skill **before** creating content on an unfamiliar Jahia site. It produ
 ## Prerequisites
 
 - MCP server `my-jahia` connected with a valid API token
-- Know the target **siteKey** (or call `site.list` to discover it)
+- Know the target `siteKey`, or start with `site.list`
 
 ---
 
-## Step 1 — Discover available sites
+## Discovery workflow
+
+### Level 1 — What sites exist?
 
 ```
 tool: site.list
 ```
 
-Returns all sites with `siteKey`, `title`, `languages`, `defaultLanguage`.
-The `siteKey` is needed for almost every other tool call.
+Returns all sites with `siteKey`, `title`, `languages`, and `defaultLanguage`.
 
----
+### Level 2 — What template sets are installed for site creation?
 
-## Step 2 — Get site details
+```
+tool: site.templateSets
+args: {}
+```
+
+Use this between `site.list` and `site.get` when you need to understand what template sets are available for creating a new site. This is especially useful on fresh instances where a user may ask for a site that does not exist yet.
+
+### Level 3 — Site details
 
 ```
 tool: site.get
 args: { "siteKey": "SITE_KEY" }
 ```
 
-Returns detailed metadata: languages, server names, homepage path, template set, and raw JCR properties.
+Returns detailed metadata such as languages, server names, homepage path, template set, and raw JCR properties.
 
----
-
-## Step 3 — List existing pages
+### Level 4 — What pages exist?
 
 ```
 tool: page.list
 args: { "siteKey": "SITE_KEY" }
 ```
 
-Returns paginated pages with path, title, template, last modified.
-Supports filtering:
-- `templateName` — filter by template (e.g. `"landing"`)
-- `titleContains` — case-insensitive title search
-- `createdAfter` / `modifiedAfter` — date filters
-- `sortBy` — `lastModified`, `created`, `title`, `path`
+Returns paginated pages with path, title, template, and last modified date.
 
----
+Useful filters:
+- `templateName`
+- `titleContains`
+- `createdAfter`
+- `modifiedAfter`
+- `sortBy`: `lastModified`, `created`, `title`, `path`
 
-## Step 4 — Discover page structure (content areas)
-
-For any page, discover its content containers and what's already there:
+### Level 5 — Page structure and content areas
 
 ```
 tool: page.structure
@@ -67,17 +70,13 @@ args: { "path": "/sites/SITE_KEY/home/about" }
 ```
 
 Returns:
-- **Areas** with their JCR paths (e.g. `/sites/.../about/main`)
-- **Allowed node types** per area
-- **Current children** with type, title, kind classification
+- area paths
+- allowed node types per area
+- current children with type, title, and kind classification
 
-This is the key tool for understanding where content can go and what constraints apply.
+This is the authoring contract for a page.
 
----
-
-## Step 5 — Browse the content tree
-
-Navigate level by level:
+### Level 6 — Content tree navigation
 
 ```
 tool: content.list
@@ -87,27 +86,22 @@ args: {
 }
 ```
 
-Returns direct children with path, type, kind (page/content/area/file), title, and child count.
+Returns direct children with path, type, kind, title, and child count.
 
 Optional filters:
-- `childNodeType` — filter by type (e.g. `"jnt:bigText"`)
-- `projectProperties` — include specific properties in output
+- `childNodeType`
+- `projectProperties`
 
----
-
-## Step 6 — Read a specific node
+### Level 7 — Read a specific node
 
 ```
 tool: content.get
 args: { "path": "/sites/SITE_KEY/home/about/main/intro-text" }
 ```
 
-Returns all readable properties, mixins, metadata for one node.
-Also accepts `uuid` instead of `path`.
+Returns all readable properties, mixins, and metadata. You can also pass `uuid` instead of `path`.
 
----
-
-## Step 7 — Search across content
+### Level 8 — Search across content
 
 ```
 tool: content.search
@@ -120,52 +114,50 @@ args: {
 }
 ```
 
-**Required parameters:**
-- `siteKey` — scopes search under `/sites/<siteKey>`
-- `nodeType` — JCR type selector (e.g. `jnt:page`, `jnt:file`, `jmix:droppableContent`)
+Required parameters:
+- `siteKey`
+- `nodeType`
 
-**Optional parameters:**
-- `locale` — locale for i18n property resolution
-- `fullText` — full-text expression (phrase `"..."`, OR, exclusion `-term`, wildcards)
-- `fullTextField` — scope full-text to one property (e.g. `"jcr:title"`)
-- `basePath` — restrict to a subtree
-- `properties` — array of property filters (see below)
-- `projectProperties` — array of property names to include in results
-- `sortBy` — property name for ordering (default: `"jcr:lastModified"`) or `"_score"` when using fullText
-- `order` — `"asc"` or `"desc"` (default: `"desc"`)
-- `offset` — skip N results (default: 0)
-- `limit` — max results 1–100 (default: 20)
+Optional parameters:
+- `locale`
+- `fullText`
+- `fullTextField`
+- `basePath`
+- `properties`
+- `projectProperties`
+- `sortBy`
+- `order`
+- `offset`
+- `limit`
 
-**Property filters** combine with AND:
+Property filters combine with AND:
+
 ```json
 "properties": [
-  { "name": "jcr:createdBy", "op": "eq", "value": "john" },
-  { "name": "jcr:created", "op": "gt", "value": "2026-01-01T00:00:00.000Z" }
+  { "name": "jcr:createdBy", "op": "eq", "value": "editor1" },
+  { "name": "jcr:created", "op": "gt", "value": "2026-06-01T00:00:00.000Z" }
 ]
 ```
+
 Operators: `eq`, `like`, `gt`, `gte`, `lt`, `lte`, `isNull`, `isNotNull`
 
----
+### Level 9 — Type discovery
 
-## Step 8 — Discover content types
-
-### All types available on the site:
+All types available on the site:
 
 ```
 tool: site.types
 args: { "siteKey": "SITE_KEY" }
 ```
 
-### Full definition of a specific type:
+Full definition of one type:
 
 ```
 tool: content.type
 args: { "name": "mymodule:heroSection" }
 ```
 
-Returns all properties (inherited + own), their types, i18n flags, mandatory markers, and constraints.
-
-### What types are allowed in a specific area:
+Allowed types in one specific area:
 
 ```
 tool: content.list_definitions
@@ -175,13 +167,58 @@ args: {
 }
 ```
 
-Returns allowed content types grouped by category, with mandatory/optional properties, types, choicelist values, and i18n flags.
+---
+
+## Exploration patterns
+
+### Show me everything about this instance
+
+1. `site.list`
+2. `site.templateSets`
+3. `site.get` for the relevant site
+4. `page.list`
+5. `page.structure` on a representative page
+6. `site.types`
+
+### What content is on this page?
+
+1. `page.structure`
+2. `content.get` for any interesting child nodes
+3. `page.preview` if you need rendered output
+
+### Find all articles mentioning a phrase
+
+```
+tool: content.search
+args: {
+  "siteKey": "SITE_KEY",
+  "nodeType": "jnt:page",
+  "locale": "en",
+  "fullText": ""annual report"",
+  "sortBy": "_score",
+  "order": "desc"
+}
+```
+
+### What custom types does this site use?
+
+```
+tool: site.types
+args: { "siteKey": "SITE_KEY", "includeSubTypes": true }
+```
+
+Then inspect any interesting type:
+
+```
+tool: content.type
+args: { "name": "luxe:blogPost", "includeSubTypes": false }
+```
 
 ---
 
-## Step 9 — Build the property map
+## Build a property map before creating content
 
-After discovering types, summarize before creating content:
+Summarize each target type before authoring:
 
 ```
 Content type: mymodule:heroSection
@@ -191,18 +228,28 @@ Properties:
   image            WEAKREF   -       optional   → UUID of a file node
   backgroundColor  STRING    -       optional   → choicelist: light|dark
 
-Area types where droppable: pagecontent (from list_definitions)
+Allowed in area: pagecontent
 ```
+
+That property map is what `/jahia-content-create-content` needs to avoid validation errors.
 
 ---
 
-## Next step — Create content with the property map
+## Key principles
 
-Once you have the property map, hand it off to **`/jahia-content-create-content`**:
+| Principle | Detail |
+|-----------|--------|
+| Explore before acting | Discover structure before creating, moving, or deleting content |
+| Use `page.structure` for pages | It reveals areas, allowed types, and constraints |
+| Use `content.list_definitions` for areas | It shows exactly what is droppable there and what properties are required |
+| Use `site.templateSets` when the site may not exist yet | It tells you what template sets can be used with `site.create` |
+| Navigate top-down | `site.list` → `site.get` / `site.templateSets` → `page.list` → `page.structure` → `content.list` → `content.get` |
 
-- Use the mandatory properties list to populate `content.create` calls correctly the first time
-- Use the i18n flags to set the right `locale`
-- Use the enum constraints to pass only valid choicelist values
-- Use `children` in `content.create` for atomic tree creation
+---
 
-> Skipping this skill and guessing property names leads to validation errors. Always explore first.
+## Related skills
+
+- `/jahia-content-create-content` — create sites, pages, and content after exploring
+- `/jahia-content-organize` — move, copy, rename, reorder, or delete after understanding structure
+- `/jahia-content-query-content` — inspect and search content once you know where to look
+

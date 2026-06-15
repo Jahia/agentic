@@ -1,11 +1,11 @@
 ---
 name: jahia-content-translate-content
-description: Adds language support to a Jahia site and translates existing content nodes using MCP tools. Use when asked to add a new language, fill in missing translations, or audit which content lacks i18n values.
+description: Adds site languages and translates existing Jahia content using MCP tools. Use when asked to enable a locale, fill in missing translations, or publish translated pages and content.
 ---
 
 # Skill: jahia-content-translate-content
 
-Translates existing content and manages multi-language support using MCP tools (via the `my-jahia` MCP server).
+Translates existing content and manages multi-language support using MCP tools via the `my-jahia` MCP server.
 
 > **Never call Jahia's GraphQL API directly.** Use only MCP tools. If a capability is missing, report it — do not work around with curl/GraphQL.
 
@@ -14,7 +14,8 @@ Translates existing content and manages multi-language support using MCP tools (
 ## Prerequisites
 
 - MCP server `my-jahia` connected with a valid API token
-- Know the target **siteKey** (call `site.list` if unsure)
+- Know the target `siteKey` (call `site.list` if unsure)
+- Content already exists in a source locale
 
 ---
 
@@ -25,22 +26,26 @@ tool: site.get
 args: { "siteKey": "SITE_KEY" }
 ```
 
-Check the `languages` array and `defaultLanguage`. If the target language is not in `languages`, it must be added via the Jahia admin before translations can be created.
+Check `languages` and `defaultLanguage`.
+
+- If the target locale is already present, continue.
+- If the target locale is missing, add it to the site first before writing translations.
 
 ---
 
-## Step 2 — Read existing content in the source locale
-
-Get the content you want to translate:
+## Step 2 — Read the source content
 
 ```
 tool: content.get
-args: { "path": "/sites/SITE_KEY/home/about/main/intro-text" }
+args: {
+  "path": "/sites/SITE_KEY/home/about/main/intro-text",
+  "locale": "en"
+}
 ```
 
-This returns all properties in the default locale. Note the i18n properties that need translation (typically `jcr:title`, `text`, `body`, etc.).
+Note the properties that actually contain human-readable text.
 
-To find all content of a type:
+To find a batch of nodes to translate:
 
 ```
 tool: content.search
@@ -54,9 +59,34 @@ args: {
 
 ---
 
-## Step 3 — Set translated properties
+## Step 3 — Identify which properties are i18n
 
-Use `content.update` with the target `locale` to set translated values:
+```
+tool: content.type
+args: { "name": "jnt:bigText" }
+```
+
+Translate only properties marked as internationalized.
+
+Common i18n properties:
+- `jcr:title`
+- `text`
+- `body`
+- `description`
+- `subtitle`
+
+Common non-i18n properties:
+- `j:view`
+- `j:templateName`
+- `jcr:primaryType`
+- references such as `j:node`
+- numeric or technical settings
+
+---
+
+## Step 4 — Write translated properties
+
+Use `content.update` with the target locale:
 
 ```
 tool: content.update
@@ -70,22 +100,17 @@ args: {
 }
 ```
 
-### Key rules for translations:
-
-- **Always set all mandatory i18n properties in one call.** Partial updates may trigger constraint violations.
-- **Only i18n properties need translation.** Non-i18n properties (like `image` references, `j:view`) are locale-independent.
-- **Use `content.type` to check which properties are i18n:**
-  ```
-  tool: content.type
-  args: { "name": "jnt:bigText" }
-  ```
-  Look for `internationalized: true` in the property definitions.
+Key rules:
+- Set all mandatory i18n properties in the same call.
+- Translate only i18n properties.
+- Preserve the HTML structure for rich text.
+- Do not translate technical choicelist values.
 
 ---
 
-## Step 4 — Translate page titles
+## Step 5 — Translate page titles
 
-Pages also have i18n titles:
+Page titles are also i18n:
 
 ```
 tool: content.update
@@ -100,9 +125,19 @@ args: {
 
 ---
 
-## Step 5 — Verify translations
+## Step 6 — Verify translations
 
-Check that translated content is set correctly:
+Check the translated locale directly:
+
+```
+tool: content.get
+args: {
+  "path": "/sites/SITE_KEY/home/about/main/intro-text",
+  "locale": "fr"
+}
+```
+
+Or search in the target locale:
 
 ```
 tool: content.search
@@ -115,28 +150,21 @@ args: {
 }
 ```
 
-Or preview the page in the target locale (if page.preview supports locale):
-
-```
-tool: page.preview
-args: { "path": "/sites/SITE_KEY/home/about" }
-```
-
 ---
 
-## Step 6 — Publish translations
+## Step 7 — Publish the translated locale
 
-After translating, publish the affected pages with the new language:
+Publish the page or subtree in the target language:
 
-```bash
-curl -s -u root:root1234 \
-  -H "Content-Type: application/json" \
-  -H "Origin: http://localhost:8080" \
-  -X POST http://localhost:8080/modules/graphql \
-  -d '{"query":"mutation { jcr { mutateNode(pathOrId: \"/sites/SITE_KEY/home/about\") { publish(languages: [\"en\", \"fr\"]) } } }"}'
+```
+tool: publication.publish
+args: {
+  "path": "/sites/SITE_KEY/home/about",
+  "languages": ["fr"]
+}
 ```
 
-> Include **both** the original and new language in the `languages` array to ensure all translations are published.
+If the translation touches both a page and child content, publish the page path so the subtree is included.
 
 ---
 
@@ -144,27 +172,38 @@ curl -s -u root:root1234 \
 
 ### Translate all content under a page
 
-1. List all content in the page:
+1. Discover the page structure:
    ```
    tool: page.structure
    args: { "path": "/sites/SITE_KEY/home/about" }
    ```
-
-2. For each content node, read its source locale properties:
+2. Read each child node in the source locale:
    ```
    tool: content.get
-   args: { "path": "<node-path>" }
+   args: { "path": "CHILD_PATH", "locale": "en" }
    ```
-
-3. Translate and update each node:
+3. Write translated values to the target locale:
    ```
    tool: content.update
    args: {
-     "path": "<node-path>",
+     "path": "CHILD_PATH",
      "locale": "fr",
      "properties": { "jcr:title": "...", "text": "..." }
    }
    ```
+4. Publish the page in the new language.
+
+### Audit whether a page is publish-ready in the new locale
+
+```
+tool: publication.status
+args: {
+  "path": "/sites/SITE_KEY/home/about",
+  "language": "fr",
+  "subNodes": true,
+  "references": true
+}
+```
 
 ---
 
@@ -172,6 +211,16 @@ curl -s -u root:root1234 \
 
 | Error | Cause | Fix |
 |-------|-------|-----|
-| `MANDATORY_PROPERTY_MISSING` | Not all mandatory i18n props set | Set all mandatory i18n properties in one `content.update` call |
-| Language not available | Language not enabled on the site | Enable it via Jahia admin first |
-| Properties appear empty | Wrong `locale` passed | Verify with `site.get` which locales are configured |
+| `MANDATORY_PROPERTY_MISSING` | Not all required i18n properties were set | Set all mandatory translated properties in one `content.update` call |
+| Language not available | Locale not enabled on the site | Add the locale to the site first |
+| Properties appear empty | Wrong locale was used | Verify configured locales with `site.get` |
+| Translation not visible on the public site | It is still only in EDIT | Publish with `publication.publish` |
+
+---
+
+## Related skills
+
+- `/jahia-content-explore-structure` — find the right pages, nodes, and types first
+- `/jahia-content-publish` — publish translated content and inspect language-scoped status
+- `/jahia-content-create-content` — create new pages or content that will later need translation
+

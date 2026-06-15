@@ -1,31 +1,31 @@
 ---
 name: jahia-content
-description: Entry point for managing content on a running Jahia website via MCP tools. Detects the current site state and routes to the right sub-skill. Use for any task involving creating, querying, moving, updating, or publishing JCR content.
+description: Entry point for creating sites, authoring pages, querying content, reorganizing nodes, uploading media, translating, and publishing a Jahia website via MCP tools.
 ---
 
 # Jahia Content — Content Management GPS
 
-You are the entry point for managing content on a live Jahia instance. Your job is to understand what the user needs, assess the current site state, and route to the right sub-skill.
+You are the entry point for content work on a live Jahia instance. Understand the request, assess the site state, and route to the right content skill.
 
 > **Never call Jahia's GraphQL API directly for content operations.** Use only MCP tools via the `my-jahia` MCP server. If a capability is missing, report it — do not work around with curl/GraphQL.
 
 ---
 
-## Step 1 — Verify MCP connection
+## Step 1 — Verify the MCP connection
 
-Confirm the `my-jahia` MCP server is available by listing sites:
+Confirm the `my-jahia` MCP server is available:
 
 ```
 tool: site.list
 ```
 
-If this fails, the MCP server is not configured or Jahia is not running.
+If this fails, Jahia or the MCP connection is not ready.
 
 ---
 
-## Step 2 — Detect site state
+## Step 2 — Detect the site state
 
-Run both checks to understand what's in the CMS:
+Run these checks to understand what exists already:
 
 ### A. List available sites
 
@@ -33,7 +33,14 @@ Run both checks to understand what's in the CMS:
 tool: site.list
 ```
 
-### B. List pages on the site
+### B. Discover installed template sets for new site creation
+
+```
+tool: site.templateSets
+args: {}
+```
+
+### C. If a site exists, list its pages
 
 ```
 tool: page.list
@@ -42,71 +49,109 @@ args: { "siteKey": "SITE_KEY" }
 
 ---
 
-## Step 3 — Report site state
+## Step 3 — Report the CMS state
+
+Summarize what you found:
 
 ```
 🌐 Jahia MCP:       ✅ connected
-📁 Sites:           <list site keys>
-📄 Pages:           <list page titles and templates>
+📁 Sites:           <site keys>
+🧱 Template sets:   <installed template sets>
+📄 Pages:           <page titles and templates for the chosen site>
 ```
 
 ---
 
 ## Step 4 — Route to the right sub-skill
 
-| What the user wants to do | Skill |
-|---------------------------|-------|
-| Explore an unknown site's content types, structure, properties | **`/jahia-content-explore-structure`** |
-| Find out what content exists, audit the tree, search | **`/jahia-content-query-content`** |
-| Create pages, content, populate a site | **`/jahia-content-create-content`** |
-| Update, reorganize, delete content | **`/jahia-content-move-content`** |
-| Translate existing content to another language | **`/jahia-content-translate-content`** |
-| Check publication status | Use `publication.status` tool |
-| Do several of the above in sequence | Start with **explore-structure** if site is unfamiliar, then create or move |
+| User intent | Skill |
+|-------------|-------|
+| Explore an unknown site, map areas, inspect types and properties | `/jahia-content-explore-structure` |
+| Create a brand-new site before authoring content | `/jahia-content-create-content` using `site.templateSets` and `site.create` |
+| Create pages, content, or structured trees on an existing site | `/jahia-content-create-content` |
+| Upload files and images to `/sites/<siteKey>/files` | `/jahia-content-media-upload` |
+| Find, inspect, or audit existing content | `/jahia-content-query-content` |
+| Move, copy, rename, reorder, or delete content | `/jahia-content-organize` |
+| Translate content to another locale | `/jahia-content-translate-content` |
+| Publish, unpublish, or check readiness | `/jahia-content-publish` |
+| Do several of the above in sequence | Start with `/jahia-content-explore-structure` if the site is unfamiliar |
 
 ---
 
-## Step 5 — Direct patterns for one-off operations
+## Direct MCP patterns
 
-### Publish a node (GraphQL — no MCP publish tool yet)
+### Create a site before authoring pages
 
-```bash
-curl -s -u root:root1234 \
-  -H "Content-Type: application/json" \
-  -H "Origin: http://localhost:8080" \
-  -X POST http://localhost:8080/modules/graphql \
-  -d '{"query":"mutation { jcr { mutateNode(pathOrId: \"/sites/mySite/home/about\") { publish(languages: [\"en\"]) } } }"}'
+```
+tool: site.templateSets
+args: {}
+
+tool: site.create
+args: {
+  "siteKey": "brandSite",
+  "title": "Brand Site",
+  "templateSet": "digitall",
+  "defaultLanguage": "en",
+  "languages": ["en", "fr"],
+  "serverName": "brand.local"
+}
 ```
 
-### Delete a node (GraphQL — no MCP delete tool yet)
+### Publish a page or subtree
 
-```bash
-curl -s -u root:root1234 \
-  -H "Content-Type: application/json" \
-  -H "Origin: http://localhost:8080" \
-  -X POST http://localhost:8080/modules/graphql \
-  -d '{"query":"mutation { jcr { mutateNode(pathOrId: \"/sites/mySite/home/old-page\") { delete } } }"}'
+```
+tool: publication.publish
+args: {
+  "path": "/sites/SITE_KEY/home/about",
+  "languages": ["en"]
+}
+```
+
+### Unpublish a page or subtree
+
+```
+tool: publication.unpublish
+args: {
+  "path": "/sites/SITE_KEY/home/about",
+  "languages": ["en"]
+}
+```
+
+### Delete a published node correctly
+
+```
+tool: content.markForDeletion
+args: { "path": "/sites/SITE_KEY/home/old-page" }
+
+tool: publication.publish
+args: {
+  "path": "/sites/SITE_KEY/home/old-page",
+  "languages": ["en"]
+}
 ```
 
 ---
 
-## Step 6 — Print the full CMS skill map
+## Full skill map
 
 ```
-## Jahia Content Skills (MCP-powered)
-
-/jahia-content-explore-structure    Map content types, properties, areas on an unknown site ← start here
-/jahia-content-query-content        List, inspect, and search content via MCP tools
-/jahia-content-create-content       Create pages, content nodes, upload media, populate a site
-/jahia-content-move-content         Update, restructure, and delete content
-/jahia-content-translate-content    Translate existing nodes to a new language
+/jahia-content-explore-structure   Map sites, template sets, pages, areas, and content definitions
+/jahia-content-create-content      Create sites, pages, content nodes, and structured trees
+/jahia-content-media-upload        Upload media and reference it from content
+/jahia-content-query-content       List, inspect, and search content via MCP tools
+/jahia-content-organize            Move, copy, rename, reorder, mark for deletion, and delete content
+/jahia-content-move-content        Focused move/reorder/delete workflow for an existing content tree
+/jahia-content-translate-content   Translate i18n content and page titles
+/jahia-content-publish             Check publication status, publish, unpublish, and handle workflow
 ```
 
 ---
 
-## Critical rules (always enforce)
+## Critical rules
 
-- Always use MCP tools for content operations — never GraphQL directly (except publish/delete which lack MCP tools)
+- Always use MCP tools — never GraphQL directly
+- Use `site.templateSets` and `site.create` when the requested site does not exist yet
 - Always pass `locale` to content creation and update calls
-- Always publish after creating or moving content — JCR writes to the **default workspace** only; live visitors see the **live workspace**
-- Always explore with `/jahia-content-explore-structure` before creating content on an unfamiliar site
+- Always publish after creating, moving, deleting, or translating content
+- Always explore with `/jahia-content-explore-structure` before authoring on an unfamiliar site
+

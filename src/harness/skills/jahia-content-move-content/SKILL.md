@@ -1,11 +1,11 @@
 ---
 name: jahia-content-move-content
-description: Moves and reorganizes JCR content nodes in Jahia using MCP tools. Use when asked to restructure content, rename or move nodes, or tidy up a content tree.
+description: Focused workflow for moving, copying, renaming, reordering, and deleting Jahia content via MCP tools. Use when asked to restructure an existing content tree safely.
 ---
 
 # Skill: jahia-content-move-content
 
-Reorganizes the JCR content tree — moving, renaming, reordering, and deleting nodes — using MCP tools (via the `my-jahia` MCP server).
+Reorganizes an existing content tree using MCP tools via the `my-jahia` MCP server.
 
 > **Never call Jahia's GraphQL API directly.** Use only MCP tools. If a capability is missing, report it — do not work around with curl/GraphQL.
 
@@ -14,28 +14,27 @@ Reorganizes the JCR content tree — moving, renaming, reordering, and deleting 
 ## Prerequisites
 
 - MCP server `my-jahia` connected with a valid API token
-- Know the target **siteKey** (call `site.list` if unsure)
+- Know the target `siteKey` (call `site.list` if unsure)
+- Prefer `/jahia-content-explore-structure` first if the tree is unfamiliar
 
 ---
 
-## Step 1 — Audit the current content tree
-
-Before moving anything, map out what exists:
+## Step 1 — Audit the current tree
 
 ```
 tool: content.list
 args: {
-  "parentPath": "/sites/mySite/home/about/main",
+  "parentPath": "/sites/SITE_KEY/home/about/main",
   "limit": 50
 }
 ```
 
-For a broader view, search by type:
+For a broader view:
 
 ```
 tool: content.search
 args: {
-  "siteKey": "mySite",
+  "siteKey": "SITE_KEY",
   "nodeType": "jmix:droppableContent",
   "locale": "en",
   "sortBy": "jcr:created",
@@ -46,14 +45,70 @@ args: {
 
 ---
 
-## Step 2 — Update content properties
+## Step 2 — Move, copy, rename, or reorder
 
-To update properties on an existing node:
+### Move a node
+
+```
+tool: content.move
+args: {
+  "path": "/sites/SITE_KEY/home/blog/main/old-article",
+  "destParentPath": "/sites/SITE_KEY/home/archive/main",
+  "newName": "archived-article"
+}
+```
+
+### Copy a node
+
+```
+tool: content.copy
+args: {
+  "path": "/sites/SITE_KEY/home/templates/main/hero-banner",
+  "destParentPath": "/sites/SITE_KEY/home/landing/main"
+}
+```
+
+### Rename a node
+
+```
+tool: content.rename
+args: {
+  "path": "/sites/SITE_KEY/home/about/main/old-name",
+  "newName": "new-name"
+}
+```
+
+### Reorder siblings
+
+```
+tool: content.reorder
+args: {
+  "parentPath": "/sites/SITE_KEY/home/blog/main",
+  "nodeName": "featured-post",
+  "position": "FIRST"
+}
+```
+
+Or place one node before another:
+
+```
+tool: content.reorder
+args: {
+  "parentPath": "/sites/SITE_KEY/home/blog/main",
+  "nodeName": "featured-post",
+  "position": "INPLACE",
+  "beforeNodeName": "second-post"
+}
+```
+
+---
+
+## Step 3 — Update content properties if needed
 
 ```
 tool: content.update
 args: {
-  "path": "/sites/mySite/home/about/main/intro-text",
+  "path": "/sites/SITE_KEY/home/about/main/intro-text",
   "locale": "en",
   "properties": {
     "jcr:title": "Updated Title",
@@ -62,62 +117,85 @@ args: {
 }
 ```
 
-Also supports:
-- `addMixins` — add mixin node types
-- `removeMixins` — remove mixin node types
-- `removeProperties` — remove specific properties
-
 ---
 
-## Step 3 — Delete a node
+## Step 4 — Delete correctly
 
-> ⚠️ Deletion is permanent. Always verify the path before deleting.
+### Draft-only content: hard delete
 
-Currently, deletion requires the GraphQL API as a fallback since the MCP surface does not yet include a delete tool:
+```
+tool: content.delete
+args: { "path": "/sites/SITE_KEY/home/draft-page/main/temp-node" }
+```
 
-```bash
-curl -s -u root:root1234 \
-  -H "Content-Type: application/json" \
-  -H "Origin: http://localhost:8080" \
-  -X POST http://localhost:8080/modules/graphql \
-  -d '{"query":"mutation { jcr { mutateNode(pathOrId: \"/sites/mySite/home/old-page\") { delete } } }"}'
+### Published content: mark for deletion, then publish the deletion
+
+```
+tool: content.markForDeletion
+args: { "path": "/sites/SITE_KEY/home/old-page" }
+```
+
+Publish the deletion to remove it from LIVE:
+
+```
+tool: publication.publish
+args: {
+  "path": "/sites/SITE_KEY/home/old-page",
+  "languages": ["en"]
+}
+```
+
+Undo the mark if needed:
+
+```
+tool: content.unmarkForDeletion
+args: { "path": "/sites/SITE_KEY/home/old-page" }
 ```
 
 ---
 
-## Step 4 — Publish after changes
+## Step 5 — Check and publish after changes
 
-Moving or updating content may unpublish it. Always republish affected nodes:
+Inspect publication status:
 
 ```
 tool: publication.status
 args: {
-  "path": "/sites/mySite/home/about",
+  "path": "/sites/SITE_KEY/home/about",
   "language": "en",
-  "subNodes": true
+  "subNodes": true,
+  "references": true
 }
 ```
 
-Check the status, then publish if needed. Publishing is done via the GraphQL API:
+Publish the affected branch:
 
-```bash
-curl -s -u root:root1234 \
-  -H "Content-Type: application/json" \
-  -H "Origin: http://localhost:8080" \
-  -X POST http://localhost:8080/modules/graphql \
-  -d '{"query":"mutation { jcr { mutateNode(pathOrId: \"/sites/mySite/home/about\") { publish(languages: [\"en\"]) } } }"}'
+```
+tool: publication.publish
+args: {
+  "path": "/sites/SITE_KEY/home/about",
+  "languages": ["en"]
+}
+```
+
+Unpublish if the goal is to remove content from LIVE while keeping EDIT:
+
+```
+tool: publication.unpublish
+args: {
+  "path": "/sites/SITE_KEY/home/about/main/outdated-section",
+  "languages": ["en"]
+}
 ```
 
 ---
 
-## Step 5 — Verify
-
-After making changes, verify the new structure:
+## Step 6 — Verify the result
 
 ```
 tool: content.list
 args: {
-  "parentPath": "/sites/mySite/home/about/main",
+  "parentPath": "/sites/SITE_KEY/home/about/main",
   "limit": 50
 }
 ```
@@ -126,7 +204,7 @@ Or preview the page:
 
 ```
 tool: page.preview
-args: { "path": "/sites/mySite/home/about" }
+args: { "path": "/sites/SITE_KEY/home/about" }
 ```
 
 ---
@@ -134,10 +212,20 @@ args: { "path": "/sites/mySite/home/about" }
 ## Workflow summary
 
 ```
-1. Audit      → content.list / content.search to map current state
-2. Update     → content.update for property changes
-3. Create     → content.create for new content
-4. Delete     → GraphQL delete mutation (MCP delete tool pending)
-5. Publish    → GraphQL publish mutation
-6. Verify     → content.list / page.preview to confirm
+1. Audit      → content.list / content.search
+2. Move/copy  → content.move / content.copy
+3. Rename     → content.rename
+4. Reorder    → content.reorder
+5. Delete     → content.delete or content.markForDeletion + publication.publish
+6. Publish    → publication.status + publication.publish / publication.unpublish
+7. Verify     → content.list / page.preview
 ```
+
+---
+
+## Related skills
+
+- `/jahia-content-organize` — fuller reorganization lifecycle and patterns
+- `/jahia-content-explore-structure` — understand the tree before changing it
+- `/jahia-content-publish` — publication readiness, publish, and unpublish flows
+

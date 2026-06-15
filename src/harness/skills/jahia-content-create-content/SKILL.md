@@ -1,11 +1,11 @@
 ---
 name: jahia-content-create-content
-description: Creates pages and content nodes in a running Jahia instance via MCP tools. Use when asked to populate a site with content, create pages, articles, or any content programmatically.
+description: Creates Jahia sites, pages, and content nodes via MCP tools. Use when asked to stand up a new site, create pages, populate areas, or build structured content trees.
 ---
 
 # Skill: jahia-content-create-content
 
-Creates pages and content in a running Jahia instance using MCP tools (via the `my-jahia` MCP server).
+Creates sites, pages, and content in a running Jahia instance using MCP tools via the `my-jahia` MCP server.
 
 > **Never call Jahia's GraphQL API directly.** Use only MCP tools. If a capability is missing, report it — do not work around with curl/GraphQL.
 
@@ -14,31 +14,84 @@ Creates pages and content in a running Jahia instance using MCP tools (via the `
 ## Prerequisites
 
 - MCP server `my-jahia` connected with a valid API token
-- Know the target **siteKey** (call `site.list` if unsure)
-- Know the **locale** for the content (e.g. `en`, `fr`)
+- Know the target `siteKey` if the site already exists (call `site.list` if unsure)
+- Know the content `locale` (for example `en` or `fr`)
 
 ---
 
-## ⚡ Minimum-call workflow
+## Minimum-call workflows
 
-### 1. Create a page with content in 4 calls
+### 1 — Create a brand-new site, then its first page
+
+Use this flow when the site does not exist yet:
+
+```
+# 1. Discover which template sets are installed for site creation
+tool: site.templateSets
+args: {}
+
+# 2. Create the site
+tool: site.create
+args: {
+  "siteKey": "brandSite",
+  "title": "Brand Site",
+  "templateSet": "digitall",
+  "defaultLanguage": "en",
+  "languages": ["en", "fr"],
+  "serverName": "brand.local"
+}
+
+# 3. Discover page templates available on the new site
+tool: page.templates
+args: { "siteKey": "brandSite" }
+
+# 4. Create the first page
+tool: page.create
+args: {
+  "parentPath": "/sites/brandSite/home",
+  "name": "about",
+  "title": "About",
+  "templateName": "simple",
+  "locale": "en"
+}
+
+# 5. Discover allowed content types in an area
+tool: content.list_definitions
+args: {
+  "siteKey": "brandSite",
+  "nodePath": "/sites/brandSite/home/about/main"
+}
+
+# 6. Create the first content item
+tool: content.create
+args: {
+  "parentPath": "/sites/brandSite/home/about/main",
+  "nodeType": "jnt:bigText",
+  "locale": "en",
+  "properties": {
+    "text": "<h2>Welcome</h2><p>Hello world.</p>"
+  }
+}
+```
+
+### 2 — Create a page with content on an existing site
 
 ```
 # 1. Discover templates
 tool: page.templates
 args: { "siteKey": "SITE_KEY" }
 
-# 2. Create the page (returns structure with areas + allowed types)
+# 2. Create the page
 tool: page.create
 args: {
   "parentPath": "/sites/SITE_KEY/home",
   "name": "my-page",
   "title": "My Page",
-  "templateName": "TEMPLATE_NAME",
+  "templateName": "simple",
   "locale": "en"
 }
 
-# 3. Check what properties a content type needs
+# 3. Check which content types and properties are allowed in the area
 tool: content.list_definitions
 args: {
   "siteKey": "SITE_KEY",
@@ -57,7 +110,7 @@ args: {
 }
 ```
 
-### 2. Create a content tree atomically
+### 3 — Create a content tree atomically
 
 Use `children` to build nested content in one call:
 
@@ -93,46 +146,54 @@ args: {
 
 The entire tree is created atomically — all or nothing.
 
-### 3. Upload images and reference them
-
-```
-# Upload from URL
-tool: media.upload.url
-args: {
-  "siteKey": "SITE_KEY",
-  "sourceUrl": "https://example.com/hero.jpg",
-  "fileName": "hero.jpg",
-  "folder": "images"
-}
-# → returns uuid: "abc-123..."
-
-# Reference in content
-tool: content.create
-args: {
-  "parentPath": "/sites/SITE_KEY/home/my-page/main",
-  "nodeType": "jdnt:imageBlock",
-  "locale": "en",
-  "properties": {
-    "j:node": "abc-123...",
-    "jcr:title": "Hero Image"
-  }
-}
-```
-
 ---
 
 ## Step-by-step workflow
 
-### Step 1 — Discover available templates
+### Step 1 — Check whether the site already exists
+
+```
+tool: site.list
+```
+
+- If the site already exists, continue with `page.templates`.
+- If it does not exist yet, do **site creation first**.
+
+### Step 2 — If needed, create the site first
+
+Discover what template sets are installed for site creation:
+
+```
+tool: site.templateSets
+args: {}
+```
+
+Then create the site:
+
+```
+tool: site.create
+args: {
+  "siteKey": "SITE_KEY",
+  "title": "My Site",
+  "templateSet": "digitall",
+  "defaultLanguage": "en",
+  "languages": ["en", "fr"],
+  "serverName": "mysite.local"
+}
+```
+
+Only after the site exists should you continue to page-template discovery and page creation.
+
+### Step 3 — Discover available page templates
 
 ```
 tool: page.templates
 args: { "siteKey": "SITE_KEY" }
 ```
 
-Pick the template that matches your page's purpose (e.g. `home`, `landing`, `simple`).
+Pick the template that matches the page's purpose.
 
-### Step 2 — Create the page
+### Step 4 — Create the page
 
 ```
 tool: page.create
@@ -145,16 +206,31 @@ args: {
 }
 ```
 
-**`page.create` returns the page structure** — content areas with their paths, allowed node types, and constraints. This is the same information you get from `page.structure` on an existing page. If you need to re-check the structure later, call `page.structure` with the page path.
+`page.create` returns the page structure: areas, paths, allowed types, and constraints. If you need to re-check the structure later, call `page.structure`.
 
-### Step 3 — Understand what content goes where
+### Step 5 — Understand what content goes where
 
-The structure from step 2 shows **areas** (containers). Each area has:
-- A **path** (e.g. `/sites/SITE_KEY/home/my-page/main`)
-- **Allowed node types** — what content types can be dropped there
-- **Current children** (empty for a new page)
+The page structure shows each area:
 
-### Step 4 — Check what properties a type requires
+- area path, for example `/sites/SITE_KEY/home/my-page/main`
+- allowed node types
+- existing children
+
+For a full type definition:
+
+```
+tool: content.type
+args: { "name": "jnt:bigText" }
+```
+
+To discover all types available on the site:
+
+```
+tool: site.types
+args: { "siteKey": "SITE_KEY" }
+```
+
+### Step 6 — Check what properties a type requires
 
 ```
 tool: content.list_definitions
@@ -164,16 +240,9 @@ args: {
 }
 ```
 
-Returns: allowed content types, mandatory/optional properties, property types, choicelist values, i18n flags.
+This returns allowed content types, mandatory and optional properties, property types, choicelist values, and i18n flags.
 
-For a specific type's full definition:
-
-```
-tool: content.type
-args: { "name": "jnt:bigText" }
-```
-
-### Step 5 — Create content in the area
+### Step 7 — Create content in an area
 
 ```
 tool: content.create
@@ -187,9 +256,7 @@ args: {
 }
 ```
 
-Call `content.create` multiple times for multiple items in the same area. Items appear in creation order.
-
-### Step 6 — Update existing content
+### Step 8 — Update existing content
 
 ```
 tool: content.update
@@ -202,16 +269,26 @@ args: {
 }
 ```
 
-Also supports: `addMixins`, `removeMixins`, `removeProperties`.
+Also supports `addMixins`, `removeMixins`, and `removeProperties`.
 
-### Step 7 — Preview and verify
+### Step 9 — Preview and verify
 
 ```
 tool: page.preview
 args: { "path": "/sites/SITE_KEY/home/my-page" }
 ```
 
-Returns rendered HTML. Use to verify the page looks correct before publishing.
+Use this to verify the rendered HTML before publishing.
+
+### Step 10 — Publish the result
+
+```
+tool: publication.publish
+args: {
+  "path": "/sites/SITE_KEY/home/my-page",
+  "languages": ["en"]
+}
+```
 
 ---
 
@@ -219,12 +296,46 @@ Returns rendered HTML. Use to verify the page looks correct before publishing.
 
 | Situation | How to handle |
 |-----------|---------------|
-| i18n property | Pass `locale` parameter + set in `properties` map |
-| Rich text | Use HTML: `"text": "<h2>Title</h2><p>Body</p>"` |
-| Date property | ISO-8601: `"2026-01-15T00:00:00.000Z"` |
-| Reference property | Pass UUID or absolute JCR path as string |
-| Multi-valued | Pass array: `"tags": ["a", "b"]` |
-| Node name | Optional — auto-derived from `jcr:title` if not provided |
+| i18n property | Pass `locale` and set the translated value in `properties` |
+| Rich text | Use HTML such as `"text": "<h2>Title</h2><p>Body</p>"` |
+| Date property | Use ISO-8601 such as `"2026-01-15T00:00:00.000Z"` |
+| Reference property | Pass a UUID or absolute JCR path |
+| Multi-valued property | Pass an array such as `"tags": ["a", "b"]` |
+| Node name | Optional — auto-derived from `jcr:title` or `title` if omitted |
+
+---
+
+## Common patterns
+
+### Create a page under a sub-page
+
+```
+tool: page.create
+args: {
+  "parentPath": "/sites/SITE_KEY/home/about",
+  "name": "team",
+  "title": "Our Team",
+  "templateName": "simple",
+  "locale": "en"
+}
+```
+
+### Multiple content items in the same area
+
+Call `content.create` multiple times with the same `parentPath`. Items appear in creation order. Use `content.reorder` if you need to rearrange them later.
+
+### Reference another node
+
+```
+tool: content.create
+args: {
+  "parentPath": "/sites/SITE_KEY/home/my-page/aside",
+  "nodeType": "jnt:contentReference",
+  "properties": {
+    "j:node": "UUID-OF-REFERENCED-NODE"
+  }
+}
+```
 
 ---
 
@@ -232,15 +343,17 @@ Returns rendered HTML. Use to verify the page looks correct before publishing.
 
 | Error | Cause | Fix |
 |-------|-------|-----|
-| `NODE_TYPE_NOT_ALLOWED` | Type not droppable in that area | Call `content.list_definitions` to check allowed types |
-| `MANDATORY_PROPERTY_MISSING` | Required property not set | Check `content.list_definitions` for mandatory properties |
-| `NODE_EXISTS` | Node name already taken | Use a different `nodeName` or omit it for auto-naming |
-| `PATH_NOT_FOUND` | Parent path doesn't exist | Create the page first, then add content to areas |
+| `NODE_TYPE_NOT_ALLOWED` | Type is not droppable in that area | Call `content.list_definitions` |
+| `MANDATORY_PROPERTY_MISSING` | A required property was omitted | Check `content.list_definitions` |
+| `NODE_EXISTS` | Node name already exists | Use a different `nodeName` or omit it |
+| `PATH_NOT_FOUND` | Parent path does not exist | Create the site or page first, then add content |
 
 ---
 
-## References
+## Related skills
 
-- For structure discovery → **`/jahia-content-explore-structure`**
-- For media uploads → **`/jahia-content-create-content`** (upload section above)
-- For publishing → use `publication.publish` tool after creating content
+- `/jahia-content-explore-structure` — map sites, pages, areas, and properties first
+- `/jahia-content-media-upload` — upload images and files before referencing them
+- `/jahia-content-publish` — publish pages, content, and translations
+- `/jahia-content-organize` — move, rename, reorder, copy, or delete content later
+
