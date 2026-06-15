@@ -15,9 +15,6 @@ jobs:
   benchmark:
     runs-on: ubuntu-latest
     timeout-minutes: 90
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
 
     steps:
       - uses: actions/checkout@v6
@@ -54,6 +51,13 @@ jobs:
         with:
           path: .website-dist
 
+  deploy:
+    if: github.ref == 'refs/heads/main'
+    needs: benchmark
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
       - id: deployment
-        if: github.ref == 'refs/heads/main'
         uses: actions/deploy-pages@v5
