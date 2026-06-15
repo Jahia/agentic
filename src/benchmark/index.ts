@@ -140,6 +140,19 @@ for (let attempt = 0; attempt < 30; attempt++) {
     }
     if (statusCode === "200") {
       console.log("MCP endpoint is ready.");
+      // Extract mcp-servlet version from Jahia docker logs
+      try {
+        const logs = execSync(
+          "docker compose logs jahia --no-color 2>/dev/null | grep 'Finished starting DX OSGi bundle mcp-servlet' | tail -1",
+          { cwd: root, encoding: "utf-8", timeout: 10000 },
+        );
+        const versionMatch = logs.match(/mcp-servlet v([\d.]+\S*)/);
+        if (versionMatch) {
+          console.log(`mcp-servlet installed version: ${versionMatch[1]}`);
+        }
+      } catch {
+        // Best-effort — version logging should never block the benchmark
+      }
       break;
     }
   } catch {
