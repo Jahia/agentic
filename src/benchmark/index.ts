@@ -176,13 +176,14 @@ console.log("API token created successfully.");
 const mcpConfigDir = join(root, ".github");
 mkdirSync(mcpConfigDir, { recursive: true });
 const mcpConfig = {
-  servers: {
+  mcpServers: {
     "my-jahia": {
       type: "http",
       url: `${JAHIA_URL}/modules/mcp`,
       headers: {
         Authorization: `APIToken ${apiToken}`,
       },
+      tools: ["*"],
     },
   },
 };
