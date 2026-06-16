@@ -3,4 +3,4 @@
 "@jahia/agentic": minor
 ---
 
-Migrate benchmark from GraphQL to MCP-based content operations (#6)
+Replaced GraphQL with MCP for content operations. (#6)
