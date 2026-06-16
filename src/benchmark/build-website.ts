@@ -162,6 +162,7 @@ a:hover { text-decoration: underline; }
 .card-tokens { font-size: 0.8rem; color: var(--text-muted); margin-top: 6px; }
 .card-scores { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 8px; }
 .badge { display: inline-block; font-size: 0.75rem; font-weight: 600; color: #fff; padding: 2px 8px; border-radius: 20px; }
+.branch-badge { display: inline-block; font-size: 0.7rem; font-weight: 600; color: #fff; padding: 2px 8px; border-radius: 4px; background: #6366f1; margin-left: 6px; }
 .empty { text-align: center; color: var(--text-muted); padding: 80px 0; font-size: 1.1rem; }
 
 /* ── Back link ── */
@@ -315,6 +316,8 @@ function runCard(run: BenchmarkRun): string {
 
   const totalTokens = run.tokens.input + run.tokens.output;
   const cost = estimateCost(run.tokens);
+  const branch = run.branch || "main";
+  const branchBadge = branch !== "main" ? `<span class="branch-badge">${escHtml(branch)}</span>` : "";
 
   return `<a class="card" href="run/${run.id}/">
   <div class="card-screenshot">${screenshotHtml}</div>
@@ -322,6 +325,7 @@ function runCard(run: BenchmarkRun): string {
     <div>
       <span class="card-date">${formatDate(run.date)}</span>
       <span class="card-duration">· ${formatDuration(run.durationSeconds)}</span>
+      ${branchBadge}
     </div>
     <div class="card-tokens">↑${formatCount(run.tokens.input)} ↓${formatCount(run.tokens.output)} · ${formatCount(totalTokens)} total tokens · ${formatCost(cost)}</div>
     <div class="card-scores">${scores}</div>
@@ -337,8 +341,16 @@ function detailPage(run: BenchmarkRun): string {
     ? `<a class="run-meta-link" href="${run.githubRunUrl}" target="_blank" rel="noopener">View run logs ↗</a>`
     : "";
 
+  const branch = run.branch || "main";
+  const branchItem = branch !== "main" ? `
+  <div class="run-meta-item">
+    <span class="run-meta-label">Branch</span>
+    <span class="run-meta-value"><span class="branch-badge">${escHtml(branch)}</span></span>
+  </div>` : "";
+
   const metaBox = `
 <div class="run-meta">
+  ${branchItem}
   <div class="run-meta-item">
     <span class="run-meta-label">Date</span>
     <span class="run-meta-value">${formatDate(run.date)}</span>

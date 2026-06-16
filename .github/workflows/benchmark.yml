@@ -31,6 +31,7 @@ jobs:
         run: yarn benchmark
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_REF: ${{ github.ref }}
           COPILOT_TOKEN: ${{ secrets.COPILOT_TOKEN }}
           GITHUB_RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
 

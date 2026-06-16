@@ -365,6 +365,15 @@ function parseStats(output: string): { durationSeconds: number; tokens: Benchmar
 
 const { durationSeconds, tokens } = parseStats(copilotOutput);
 
+// Extract branch name from GITHUB_REF (format: refs/heads/branch-name) or default to "main"
+function extractBranch(githubRef?: string): string {
+  if (!githubRef) return "main";
+  const match = githubRef.match(/refs\/heads\/(.+)$/);
+  return match ? match[1] : "main";
+}
+
+const branch = extractBranch(process.env["GITHUB_REF"]);
+
 const benchmarkPath = join(resultsDir, "benchmark.json");
 const existing: BenchmarkRun[] = existsSync(benchmarkPath)
   ? (JSON.parse(readFileSync(benchmarkPath, "utf-8")) as BenchmarkRun[])
@@ -376,6 +385,7 @@ const run: BenchmarkRun = {
   durationSeconds,
   tokens,
   githubRunUrl: process.env["GITHUB_RUN_URL"] || undefined,
+  branch,
   pages,
 };
 
