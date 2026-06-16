@@ -16,5 +16,6 @@ export interface BenchmarkRun {
     cached: number;
   };
   githubRunUrl?: string | undefined;
+  branch?: string | undefined; // defaults to "main" for backward compatibility
   pages: PageResult[];
 }

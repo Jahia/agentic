@@ -1,12 +1,13 @@
 ---
 name: jahia
-description: Top-level entry point for ALL Jahia tasks. Detects whether the request is about building a module (dev) or managing content (CMS), and delegates to the right skill or combination. Start here if unsure which Jahia skill to use.
-allowed-tools: Bash, Read
+description: Top-level entry point for ALL Jahia tasks. Detects whether the request is about building a module (dev) or managing content (CMS via MCP tools), and delegates to the right skill or combination. Start here if unsure which Jahia skill to use.
 ---
 
 # Jahia — Universal Entry Point
 
 You are the top-level GPS for all Jahia work. Your job is to understand what the user wants to accomplish, then delegate to the right skill(s) — `/jahia-dev`, `/jahia-content`, or both in sequence.
+
+> **Content operations use MCP tools** via the `jahia` MCP server. Never call Jahia's GraphQL API directly for content creation, querying, or structure discovery — use the MCP tools instead.
 
 ---
 
@@ -62,8 +63,8 @@ Use these recipes as starting points when the task maps to a known pattern.
 ```
 1. /jahia-dev-build-component       → define the content type + create the view
 2. /jahia-dev-create-page-template  → (if a new page layout is needed)
-3. /jahia-content-create-content    → populate the section with real or dummy content
-4. /jahia-content-move-content      → (if existing content needs to be reorganized)
+3. /jahia-content-create-content    → create the site if needed, then populate the section with content
+4. /jahia-content-organize          → (if existing content needs to be reorganized)
 ```
 
 ### "Add an article to the site"
@@ -71,7 +72,8 @@ Use these recipes as starting points when the task maps to a known pattern.
 1. Check the CND — does the article content type exist?
    → Yes: jump to step 2
    → No: /jahia-dev-define-content-type + /jahia-dev-create-view first
-2. /jahia-content-create-content    → create the article node + set properties + publish
+2. /jahia-content-create-content    → create the article node + set properties
+3. /jahia-content-publish           → publish it to LIVE
 ```
 
 ### "Redesign the layout of a page"
@@ -88,8 +90,9 @@ Use these recipes as starting points when the task maps to a known pattern.
 2. /jahia-dev-start-local           → start Jahia locally
 3. /jahia-dev-build-component       → build content types + views (repeat per component)
 4. /jahia-dev-create-page-template  → create page templates
-5. /jahia-content-create-content    → populate with articles, pages, folders
-6. /jahia-dev-review                → catch issues before shipping
+5. /jahia-content-create-content    → use `site.templateSets` + `site.create`, then add pages and content
+6. /jahia-content-publish           → publish the site content
+7. /jahia-dev-review                → catch issues before shipping
 ```
 
 ---
@@ -124,11 +127,16 @@ Always print this at the end so the user can jump anywhere:
 ### 📝 Content Management  (/jahia-content and sub-skills)
 /jahia-content                       Detect site state, route to content operations ← start here
 /jahia-content-explore-structure     Map content types, properties, enums & mixins on an unknown site
-/jahia-content-query-content         Query and audit content via GraphQL
-/jahia-content-create-content        Create nodes, folders, articles, bulk-populate
-/jahia-content-move-content          Restructure the content tree: move, rename, reorder
+/jahia-content-query-content         Query and audit content via MCP tools
+/jahia-content-create-content        Create sites, pages, nodes, folders, and articles
+/jahia-content-media-upload          Upload files and images into Jahia media storage
+/jahia-content-organize              Restructure the tree: move, copy, rename, reorder, delete
+/jahia-content-move-content          Focused move/reorder/delete workflow for an existing branch
+/jahia-content-translate-content     Translate i18n content and page titles
+/jahia-content-publish               Publish, unpublish, and inspect publication status
 ### 📚 Knowledge Reference
 /jahia-dev-java              OSGi DS, CND definitions, JSP rendering, Drools rules, Content Editor/jContent UI
+/jahia-jcr-sql2              JCR-SQL2 syntax, filtering, full-text, joins, and pagination guardrails
 /jahia-dev-apis              GraphQL, JCR Java/REST API, OAuth/SAML, personal tokens, HTML filtering, CSP
 /jahia-dev-ops               Docker Compose, Kubernetes, health monitoring, Karaf, provisioning YAML API
 /jahia-dev-properties        jahia.properties and OSGi .cfg configuration keys reference

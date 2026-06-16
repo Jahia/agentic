@@ -1,313 +1,340 @@
 ---
 name: jahia-content-create-content
-description: Creates and publishes JCR content nodes in a running Jahia instance via the GraphQL API. Use when asked to populate a site with content, create articles, tutorials, or any JCR node programmatically.
+description: Creates Jahia sites, pages, and content nodes via MCP tools. Use when asked to stand up a new site, create pages, populate areas, or build structured content trees.
 ---
 
 # Skill: jahia-content-create-content
 
-Creates content nodes in a running Jahia instance using the GraphQL JCR mutation API, then publishes them.
+Creates sites, pages, and content in a running Jahia instance using MCP tools via the `jahia` MCP server.
+
+> **Never call Jahia's GraphQL API directly.** Use only MCP tools. If a capability is missing, report it — do not work around with curl/GraphQL.
 
 ---
 
 ## Prerequisites
 
-- Jahia running at `http://localhost:8080`
-- Credentials: `root` / `root1234` (default)
-- GraphQL endpoint: `http://localhost:8080/modules/graphql`
-
-**Auth pattern — always use both flags:**
-```bash
-curl -u root:root1234 \
-     -H "Content-Type: application/json" \
-     -H "Origin: http://localhost:8080" \
-     ...
-```
-
-> ⚠️ The `Origin: http://localhost:8080` header is **required**. Requests without it return `Permission denied` even with correct credentials.
+- MCP server `jahia` connected with a valid API token
+- Know the target `siteKey` if the site already exists (call `site.list` if unsure)
+- Know the content `locale` (for example `en` or `fr`)
 
 ---
 
-## ⚡ Minimum-call workflow
+## Minimum-call workflows
 
-Use these patterns to minimise the number of API round-trips:
+### 1 — Create a brand-new site, then its first page
 
-### 1. Batch site exploration — one call instead of four
+Use this flow when the site does not exist yet:
 
-Use GraphQL aliases to retrieve site metadata, page structure, files, and available content types in a **single request**:
+```
+# 1. Discover which template sets are installed for site creation
+tool: site.templateSets
+args: {}
 
-```bash
-curl -s -u root:root1234 \
-  -H "Content-Type: application/json" -H "Origin: http://localhost:8080" \
-  -X POST http://localhost:8080/modules/graphql \
-  -d '{"query":"{ jcr { site: nodeByPath(path: \"/sites/SITE_KEY\") { properties(names: [\"j:templatesSet\",\"j:defaultLanguage\"]) { name value } } home: nodeByPath(path: \"/sites/SITE_KEY/home\") { children { nodes { name primaryNodeType { name } children { nodes { name primaryNodeType { name } } } } } } files: nodeByPath(path: \"/sites/SITE_KEY/files\") { children { nodes { name uuid } } } contentTypes: nodeTypes(filter: {siteKey: \"SITE_KEY\", includeMixins: false, includeAbstract: false}) { nodes { name systemId } } } }"}'
+# 2. Create the site
+tool: site.create
+args: {
+  "siteKey": "brandSite",
+  "title": "Brand Site",
+  "templateSet": "digitall",
+  "defaultLanguage": "en",
+  "languages": ["en", "fr"],
+  "serverName": "brand.local"
+}
+
+# 3. Discover page templates available on the new site
+tool: page.templates
+args: { "siteKey": "brandSite" }
+
+# 4. Create the first page
+tool: page.create
+args: {
+  "parentPath": "/sites/brandSite/home",
+  "name": "about",
+  "title": "About",
+  "templateName": "simple",
+  "locale": "en"
+}
+
+# 5. Discover allowed content types in an area
+tool: content.list_definitions
+args: {
+  "siteKey": "brandSite",
+  "nodePath": "/sites/brandSite/home/about/main"
+}
+
+# 6. Create the first content item
+tool: content.create
+args: {
+  "parentPath": "/sites/brandSite/home/about/main",
+  "nodeType": "jnt:bigText",
+  "locale": "en",
+  "properties": {
+    "text": "<h2>Welcome</h2><p>Hello world.</p>"
+  }
+}
 ```
 
-Then fetch all needed type definitions in one more call using `nodeTypesByNames` (see `/jahia-content-explore-structure`).
+### 2 — Create a page with content on an existing site
 
-### 2. Upload images in parallel
+```
+# 1. Discover templates
+tool: page.templates
+args: { "siteKey": "SITE_KEY" }
 
-Run all uploads simultaneously using background processes:
+# 2. Create the page
+tool: page.create
+args: {
+  "parentPath": "/sites/SITE_KEY/home",
+  "name": "my-page",
+  "title": "My Page",
+  "templateName": "simple",
+  "locale": "en"
+}
 
-```bash
-for f in /path/to/img1.jpg /path/to/img2.jpg /path/to/img3.jpg; do
-  name=$(basename "$f")
-  curl -s -u root:root1234 \
-    -H "Origin: http://localhost:8080" \
-    -X POST http://localhost:8080/modules/graphql \
-    -F "operations={\"query\":\"mutation { jcr { addNode(name: \\\"${name}\\\", parentPathOrId: \\\"/sites/SITE_KEY/files\\\", primaryNodeType: \\\"jnt:file\\\", mixins: [\\\"jmix:image\\\"]) { addChild(name: \\\"jcr:content\\\", primaryNodeType: \\\"jnt:resource\\\") { content: mutateProperty(name: \\\"jcr:data\\\") { setValue(type: BINARY, value: \\\"fc\\\") } contentType: mutateProperty(name: \\\"jcr:mimeType\\\") { setValue(value: \\\"image/jpeg\\\") } } uuid } } }\"}" \
-    -F 'map={"fc":["variables.f"]}' \
-    -F "fc=@${f};type=image/jpeg" &
-done
-wait  # all uploads complete in parallel
+# 3. Check which content types and properties are allowed in the area
+tool: content.list_definitions
+args: {
+  "siteKey": "SITE_KEY",
+  "nodePath": "/sites/SITE_KEY/home/my-page/main"
+}
+
+# 4. Create content inside the area
+tool: content.create
+args: {
+  "parentPath": "/sites/SITE_KEY/home/my-page/main",
+  "nodeType": "jnt:bigText",
+  "locale": "en",
+  "properties": {
+    "text": "<h2>Welcome</h2><p>Hello world.</p>"
+  }
+}
 ```
 
-> ⚠️ Always include `mixins: ["jmix:image"]` in the upload. Without it, the file node **cannot be used as a WEAKREFERENCE** in image properties.
+### 3 — Create a content tree atomically
 
-To collect UUIDs after parallel uploads, query them in one batch:
-```bash
-curl -s -u root:root1234 -H "Content-Type: application/json" -H "Origin: http://localhost:8080" \
-  -X POST http://localhost:8080/modules/graphql \
-  -d '{"query":"{ jcr { nodesByQuery(query: \"SELECT * FROM [jnt:file] WHERE ISDESCENDANTNODE(\u0027/sites/SITE_KEY/files/FOLDER\u0027)\", queryLanguage: SQL2) { nodes { name uuid } } } }"}'
+Use `children` to build nested content in one call:
+
+```
+tool: content.create
+args: {
+  "parentPath": "/sites/SITE_KEY/home/my-page/main",
+  "nodeType": "mymodule:section",
+  "locale": "en",
+  "properties": {
+    "jcr:title": "Features Section"
+  },
+  "children": [
+    {
+      "name": "card-1",
+      "nodeType": "mymodule:card",
+      "properties": {
+        "jcr:title": "Feature One",
+        "body": "<p>Description here.</p>"
+      }
+    },
+    {
+      "name": "card-2",
+      "nodeType": "mymodule:card",
+      "properties": {
+        "jcr:title": "Feature Two",
+        "body": "<p>Another description.</p>"
+      }
+    }
+  ]
+}
 ```
 
-### 3. Create an entire content tree in one mutation
+The entire tree is created atomically — all or nothing.
 
-Use nested `addChild` calls inside a single `addNode` mutation to build a complete page hierarchy without sequential round-trips:
+---
 
-```bash
-curl -s -u root:root1234 -H "Content-Type: application/json" -H "Origin: http://localhost:8080" \
-  -X POST http://localhost:8080/modules/graphql \
-  -d '{"query":"mutation { jcr { addNode(parentPathOrId: \"/sites/SITE_KEY/home\", name: \"my-page\", primaryNodeType: \"jnt:page\", properties: [{name: \"j:templateName\", value: \"TEMPLATE\"}, {name: \"jcr:title\", value: \"Page Title\", language: \"en\"}]) { uuid addChild(name: \"AREA_NAME\", primaryNodeType: \"AREA_TYPE\") { addChild(name: \"section-1\", primaryNodeType: \"NAMESPACE:section\", properties: [{name: \"jcr:title\", value: \"Section 1\", language: \"en\"}]) { uuid addChild(name: \"item-1\", primaryNodeType: \"NAMESPACE:item\", properties: [{name: \"jcr:title\", value: \"Item 1\", language: \"en\"}, {name: \"body\", value: \"<p>Content</p>\", language: \"en\"}]) { uuid } } } } } }"}'
+## Step-by-step workflow
+
+### Step 1 — Check whether the site already exists
+
+```
+tool: site.list
 ```
 
-> This creates the full `page → area → section → item` hierarchy atomically.
+- If the site already exists, continue with `page.templates`.
+- If it does not exist yet, do **site creation first**.
 
-### 4. Publish the entire page in one call
+### Step 2 — If needed, create the site first
 
-```bash
-curl -s -u root:root1234 -H "Content-Type: application/json" -H "Origin: http://localhost:8080" \
-  -X POST http://localhost:8080/modules/graphql \
-  -d '{"query":"mutation { jcr { mutateNode(pathOrId: \"/sites/SITE_KEY/home/my-page\") { publish(languages: [\"en\"]) } } }"}'
+Discover what template sets are installed for site creation:
+
+```
+tool: site.templateSets
+args: {}
+```
+
+Then create the site:
+
+```
+tool: site.create
+args: {
+  "siteKey": "SITE_KEY",
+  "title": "My Site",
+  "templateSet": "digitall",
+  "defaultLanguage": "en",
+  "languages": ["en", "fr"],
+  "serverName": "mysite.local"
+}
+```
+
+Only after the site exists should you continue to page-template discovery and page creation.
+
+### Step 3 — Discover available page templates
+
+```
+tool: page.templates
+args: { "siteKey": "SITE_KEY" }
+```
+
+Pick the template that matches the page's purpose.
+
+### Step 4 — Create the page
+
+```
+tool: page.create
+args: {
+  "parentPath": "/sites/SITE_KEY/home",
+  "name": "my-page",
+  "title": "My Page",
+  "templateName": "simple",
+  "locale": "en"
+}
+```
+
+`page.create` returns the page structure: areas, paths, allowed types, and constraints. If you need to re-check the structure later, call `page.structure`.
+
+### Step 5 — Understand what content goes where
+
+The page structure shows each area:
+
+- area path, for example `/sites/SITE_KEY/home/my-page/main`
+- allowed node types
+- existing children
+
+For a full type definition:
+
+```
+tool: content.type
+args: { "name": "jnt:bigText" }
+```
+
+To discover all types available on the site:
+
+```
+tool: site.types
+args: { "siteKey": "SITE_KEY" }
+```
+
+### Step 6 — Check what properties a type requires
+
+```
+tool: content.list_definitions
+args: {
+  "siteKey": "SITE_KEY",
+  "nodePath": "/sites/SITE_KEY/home/my-page/main"
+}
+```
+
+This returns allowed content types, mandatory and optional properties, property types, choicelist values, and i18n flags.
+
+### Step 7 — Create content in an area
+
+```
+tool: content.create
+args: {
+  "parentPath": "/sites/SITE_KEY/home/my-page/main",
+  "nodeType": "jnt:bigText",
+  "locale": "en",
+  "properties": {
+    "text": "<h2>Welcome</h2><p>This is the intro paragraph.</p>"
+  }
+}
+```
+
+### Step 8 — Update existing content
+
+```
+tool: content.update
+args: {
+  "path": "/sites/SITE_KEY/home/my-page/main/intro-text",
+  "locale": "en",
+  "properties": {
+    "text": "<h2>Updated Title</h2><p>New content.</p>"
+  }
+}
+```
+
+Also supports `addMixins`, `removeMixins`, and `removeProperties`.
+
+### Step 9 — Preview and verify
+
+```
+tool: page.preview
+args: { "path": "/sites/SITE_KEY/home/my-page" }
+```
+
+Use this to verify the rendered HTML before publishing.
+
+### Step 10 — Publish the result
+
+```
+tool: publication.publish
+args: {
+  "path": "/sites/SITE_KEY/home/my-page",
+  "languages": ["en"]
+}
 ```
 
 ---
 
-## Uploading image files
+## Property rules
 
-Use the GraphQL API with a **multipart request** to upload files.
-
-> ⚠️ Do **not** use `Content-Type: application/json` for uploads — use multipart form-data.
-> Do **not** use `type: BINARY` inside the `properties: [...]` array of `addNode` or `addChild` — it won't work. Always use the separate `mutateProperty.setValue` step.
-
-### Upload a single file
-
-> ⚠️ Always include `mixins: ["jmix:image"]` when uploading images. Without this mixin, the file node **cannot be used as a WEAKREFERENCE** in image properties — you will get a constraint error.
-
-```bash
-curl -s -u root:root1234 \
-  -H "Origin: http://localhost:8080" \
-  -X POST http://localhost:8080/modules/graphql \
-  -F 'operations={"query":"mutation { jcr { addNode(name: \"image.jpg\", parentPathOrId: \"/sites/SITE_KEY/files\", primaryNodeType: \"jnt:file\", mixins: [\"jmix:image\"]) { addChild(name: \"jcr:content\", primaryNodeType: \"jnt:resource\") { content: mutateProperty(name: \"jcr:data\") { setValue(type: BINARY, value: \"fc\") } contentType: mutateProperty(name: \"jcr:mimeType\") { setValue(value: \"image/jpeg\") } } uuid } } }"}' \
-  -F 'map={"fc":["variables.f"]}' \
-  -F "fc=@/absolute/path/to/image.jpg;type=image/jpeg"
-```
-
-The response contains the UUID:
-```json
-{"data":{"jcr":{"addNode":{"addChild":{"content":{"setValue":true},"contentType":{"setValue":true}},"uuid":"xxxxxxxx-..."}}}}
-```
-
-### Use a file UUID as an image property
-
-Image properties in CND have `requiredType: WEAKREFERENCE`. Pass the UUID with `type: WEAKREFERENCE`:
-
-```graphql
-properties: [
-  {name: "image", value: "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx", type: WEAKREFERENCE}
-]
-```
-
-> After uploading, publish the files folder so images are accessible on the live site:
-> ```bash
-> curl -s -u root:root1234 -H "Content-Type: application/json" -H "Origin: http://localhost:8080" \
->   -X POST http://localhost:8080/modules/graphql \
->   -d '{"query":"mutation { jcr { mutateNode(pathOrId: \"/sites/SITE_KEY/files\") { publish(languages: [\"en\"]) } } }"}'
-> ```
-
----
-
-## Creating pages (jnt:page) — Area structure is mandatory
-
-> ⚠️ If your task involves creating a **page**, read this section first.
-
-In Jahia, a `jnt:page` uses a template that declares named **Areas**. Content added as **direct children of the page node** is silently ignored by the renderer — it will never appear on the page.
-
-Content must be created as children of the **Area sub-node** (e.g. `/sites/mySite/home/my-page/AREA_NAME/hero`).
-
-### Step A — Discover the correct Area structure from an existing page
-
-Pick any working sibling page and inspect its children:
-
-```bash
-curl -s -u root:root1234 \
-  -H "Content-Type: application/json" \
-  -H "Origin: http://localhost:8080" \
-  -X POST http://localhost:8080/modules/graphql \
-  -d '{"query":"{ jcr { nodeByPath(path: \"/sites/SITE_KEY/home\") { children { nodes { name primaryNodeType { name } children { nodes { name primaryNodeType { name } } } } } } } }"}'
-```
-
-Look for a child node that is a content list or area type (e.g. `jnt:contentList`, `jnt:area`, or a custom area type). Note its **name** — that is your Area node name.
-
-### Step B — Check the page template
-
-```bash
-curl -s -u root:root1234 \
-  -H "Content-Type: application/json" \
-  -H "Origin: http://localhost:8080" \
-  -X POST http://localhost:8080/modules/graphql \
-  -d '{"query":"{ jcr { nodeByPath(path: \"/sites/SITE_KEY/home/EXISTING_PAGE\") { properties(names: [\"j:templateName\"]) { name value } } } }"}'
-```
-
-Use this exact template name for your new page.
-
-### Step C — Create the page, then add content inside the Area
-
-```bash
-# 1. Create the page
-curl -s -u root:root1234 -H "Content-Type: application/json" -H "Origin: http://localhost:8080" \
-  -X POST http://localhost:8080/modules/graphql \
-  -d '{"query":"mutation { jcr { addNode(parentPathOrId: \"/sites/SITE_KEY/home\", name: \"my-page\", primaryNodeType: \"jnt:page\", properties: [{name: \"jcr:title\", value: \"My Page\", language: \"en\"}, {name: \"j:templateName\", value: \"TEMPLATE_NAME\"}]) { uuid node { path } } } }"}'
-
-# 2. Create the Area sub-node (same type and name as the sibling page's area)
-curl -s -u root:root1234 -H "Content-Type: application/json" -H "Origin: http://localhost:8080" \
-  -X POST http://localhost:8080/modules/graphql \
-  -d '{"query":"mutation { jcr { addNode(parentPathOrId: \"/sites/SITE_KEY/home/my-page\", name: \"AREA_NAME\", primaryNodeType: \"AREA_TYPE\") { uuid node { path } } } }"}'
-
-# 3. Add content INSIDE the area (not on the page directly)
-curl -s -u root:root1234 -H "Content-Type: application/json" -H "Origin: http://localhost:8080" \
-  -X POST http://localhost:8080/modules/graphql \
-  -d '{"query":"mutation { jcr { addNode(parentPathOrId: \"/sites/SITE_KEY/home/my-page/AREA_NAME\", name: \"hero\", primaryNodeType: \"jnt:text\", properties: [{name: \"text\", value: \"<h1>Hello<\\/h1>\", language: \"en\"}]) { uuid node { path } } } }"}'
-```
-
-### Step D — Publish the page
-
-```bash
-curl -s -u root:root1234 -H "Content-Type: application/json" -H "Origin: http://localhost:8080" \
-  -X POST http://localhost:8080/modules/graphql \
-  -d '{"query":"mutation { jcr { mutateNode(pathOrId: \"/sites/SITE_KEY/home/my-page\") { publish(languages: [\"en\"]) } } }"}'
-```
-
----
-
-## Step 1 — Identify target site and content folder
-
-Standard content folder paths:
-- `/sites/<siteKey>/contents/articles/` — for article nodes
-- `/sites/<siteKey>/contents/tutorials/` — for tutorial nodes
-- `/sites/<siteKey>/contents/` — for any other content folder
-
----
-
-## Step 2 — Look up the content type's properties
-
-> 💡 **If the site is unfamiliar**, use **`/jahia-content-explore-structure`** first.
-
-```bash
-curl -s -u root:root1234 \
-  -H "Content-Type: application/json" \
-  -H "Origin: http://localhost:8080" \
-  -X POST http://localhost:8080/modules/graphql \
-  -d '{
-    "query": "{ jcr { nodeTypeByName(name: \"NAMESPACE:typeName\") { properties { name requiredType internationalized mandatory constraints } } } }"
-  }'
-```
-
----
-
-## Step 3 — Create a node
-
-```bash
-curl -s -u root:root1234 \
-  -H "Content-Type: application/json" \
-  -H "Origin: http://localhost:8080" \
-  -X POST http://localhost:8080/modules/graphql \
-  -d '{
-    "query": "mutation { jcr { addNode(parentPathOrId: \"/sites/mySite/contents/articles\", name: \"my-article\", primaryNodeType: \"namespace:docArticle\", properties: [{name: \"jcr:title\", value: \"My Article\", language: \"en\"}, {name: \"body\", value: \"<p>Content here</p>\", language: \"en\"}]) { uuid node { path } } } }"
-  }'
-```
-
-### Property rules
-
-| Situation | GraphQL syntax |
+| Situation | How to handle |
 |-----------|---------------|
-| i18n property (declared `i18n` in CND) | `{name: "body", value: "...", language: "en"}` |
-| Non-i18n property | `{name: "product", value: "jahia"}` |
-| Title (from `mix:title`) | `{name: "jcr:title", value: "...", language: "en"}` |
-| Date property | `{name: "updatedAt", value: "2024-01-15T00:00:00.000Z", type: DATE}` |
-| Multiple values | `{name: "tags", values: ["a", "b"]}` |
-
-### Node name rules
-- Use lowercase kebab-case: `my-article`, `getting-started`
-- No spaces, no special characters
-- Must be unique within the parent folder
-- Use `useAvailableNodeName: true` to auto-suffix if name is taken
+| i18n property | Pass `locale` and set the translated value in `properties` |
+| Rich text | Use HTML such as `"text": "<h2>Title</h2><p>Body</p>"` |
+| Date property | Use ISO-8601 such as `"2026-01-15T00:00:00.000Z"` |
+| Reference property | Pass a UUID or absolute JCR path |
+| Multi-valued property | Pass an array such as `"tags": ["a", "b"]` |
+| Node name | Optional — auto-derived from `jcr:title` or `title` if omitted |
 
 ---
 
-## Step 4 — Publish the node
+## Common patterns
 
-```bash
-curl -s -u root:root1234 \
-  -H "Content-Type: application/json" \
-  -H "Origin: http://localhost:8080" \
-  -X POST http://localhost:8080/modules/graphql \
-  -d '{
-    "query": "mutation { jcr { mutateNode(pathOrId: \"/sites/mySite/contents/articles/my-article\") { publish(languages: [\"en\"]) } } }"
-  }'
+### Create a page under a sub-page
+
+```
+tool: page.create
+args: {
+  "parentPath": "/sites/SITE_KEY/home/about",
+  "name": "team",
+  "title": "Our Team",
+  "templateName": "simple",
+  "locale": "en"
+}
 ```
 
-Expected response: `{"data": {"jcr": {"mutateNode": {"publish": true}}}}`
+### Multiple content items in the same area
 
----
+Call `content.create` multiple times with the same `parentPath`. Items appear in creation order. Use `content.reorder` if you need to rearrange them later.
 
-## Step 5 — Batch creation
+### Reference another node
 
-To create multiple nodes efficiently, use `addNodesBatch`:
-
-```bash
-curl -s -u root:root1234 \
-  -H "Content-Type: application/json" \
-  -H "Origin: http://localhost:8080" \
-  -X POST http://localhost:8080/modules/graphql \
-  -d '{
-    "query": "mutation { jcr { addNodesBatch(nodes: [{parentPathOrId: \"/sites/mySite/contents/articles\", name: \"article-1\", primaryNodeType: \"namespace:docArticle\", properties: [{name: \"jcr:title\", value: \"Article One\", language: \"en\"}, {name: \"body\", value: \"<p>Body 1</p>\", language: \"en\"}]}, {parentPathOrId: \"/sites/mySite/contents/articles\", name: \"article-2\", primaryNodeType: \"namespace:docArticle\", properties: [{name: \"jcr:title\", value: \"Article Two\", language: \"en\"}, {name: \"body\", value: \"<p>Body 2</p>\", language: \"en\"}]}]) { uuid node { path } } } }"
-  }'
 ```
-
-Then publish all at once using `mutateNodesByQuery`:
-
-```bash
-curl -s -u root:root1234 \
-  -H "Content-Type: application/json" \
-  -H "Origin: http://localhost:8080" \
-  -X POST http://localhost:8080/modules/graphql \
-  -d '{
-    "query": "mutation { jcr { mutateNodesByQuery(query: \"SELECT * FROM [namespace:docArticle] WHERE ISDESCENDANTNODE(\u0027/sites/mySite/contents/articles\u0027)\", queryLanguage: SQL2) { publish(languages: [\"en\"]) } } }"
-  }'
-```
-
----
-
-## Step 6 — Verify
-
-```bash
-curl -s -u root:root1234 \
-  -H "Content-Type: application/json" \
-  -H "Origin: http://localhost:8080" \
-  -X POST http://localhost:8080/modules/graphql \
-  -d '{
-    "query": "{ jcr { nodesByQuery(query: \"SELECT * FROM [namespace:docArticle] WHERE ISDESCENDANTNODE(\u0027/sites/mySite/contents/articles\u0027)\", queryLanguage: SQL2) { nodes { name path properties(names: [\"jcr:title\"], language: \"en\") { name value } } } } }"
-  }'
+tool: content.create
+args: {
+  "parentPath": "/sites/SITE_KEY/home/my-page/aside",
+  "nodeType": "jnt:contentReference",
+  "properties": {
+    "j:node": "UUID-OF-REFERENCED-NODE"
+  }
+}
 ```
 
 ---
@@ -316,69 +343,17 @@ curl -s -u root:root1234 \
 
 | Error | Cause | Fix |
 |-------|-------|-----|
-| `Permission denied` | Missing `Origin` header | Add `-H "Origin: http://localhost:8080"` |
-| `Couldn't find definition for property X` | Wrong property name or non-i18n prop given with `language:` | Check CND definition; remove `language:` for non-i18n props |
-| `ConstraintViolationException: mandatory property` | A mandatory CND property was not provided | Provide all mandatory properties |
-| `ItemExistsException` | Node name already taken | Use `useAvailableNodeName: true` or choose a different name |
-| WEAKREFERENCE image constraint error | Uploaded file missing `jmix:image` mixin | Always include `mixins: ["jmix:image"]` in the `addNode` upload mutation |
-| `deletePropertiesBatch fails with missing required fields` | `language` is NON_NULL in `InputJCRDeletedProperty` — required even for non-i18n properties | Always provide `language: "en"` in every `deletePropertiesBatch` entry |
+| `NODE_TYPE_NOT_ALLOWED` | Type is not droppable in that area | Call `content.list_definitions` |
+| `MANDATORY_PROPERTY_MISSING` | A required property was omitted | Check `content.list_definitions` |
+| `NODE_EXISTS` | Node name already exists | Use a different `nodeName` or omit it |
+| `PATH_NOT_FOUND` | Parent path does not exist | Create the site or page first, then add content |
 
 ---
 
-## Setting `j:linkType` links via GraphQL
+## Related skills
 
-> 🚫 **NEVER use `j:linkType: "external"` to link to an internal Jahia page.** Always use `"internal"` with `j:linknode`. Hardcoding an internal URL as an external link will break on environment changes, language switching, vanity URLs, and live/preview workspace toggling.
+- `/jahia-content-explore-structure` — map sites, pages, areas, and properties first
+- `/jahia-content-media-upload` — upload images and files before referencing them
+- `/jahia-content-publish` — publish pages, content, and translations
+- `/jahia-content-organize` — move, rename, reorder, copy, or delete content later
 
-### Internal link (`j:linkType: "internal"`)
-
-`j:linknode` is an **internationalized** weakreference. Add the mixin first, then set the property with `language:`.
-
-```graphql
-# Step 1 — add mixin + set j:linkType
-mutation {
-  jcr {
-    mutateNode(pathOrId: "/sites/mySite/home/features/my-card") {
-      addMixins(mixins: ["jmix:internalLink"])
-      setPropertiesBatch(properties: [
-        {name: "j:linkType", value: "internal"}
-      ]) { path }
-    }
-  }
-}
-
-# Step 2 — set j:linknode (i18n weakreference — must include language)
-mutation {
-  jcr {
-    mutateNode(pathOrId: "/sites/mySite/home/features/my-card") {
-      mutateProperty(name: "j:linknode") {
-        setValue(value: "<target-node-uuid>", language: "en", type: WEAKREFERENCE)
-      }
-    }
-  }
-}
-```
-
-### External link (`j:linkType: "external"`)
-
-```graphql
-mutation {
-  jcr {
-    mutateNode(pathOrId: "/sites/mySite/home/features/my-card") {
-      addMixins(mixins: ["jmix:externalLink"])
-      setPropertiesBatch(properties: [
-        {name: "j:linkType", value: "external"}
-        {name: "j:url", value: "https://example.com", language: "en"}
-        {name: "j:linkTitle", value: "Visit Example", language: "en"}
-      ]) { path }
-    }
-  }
-}
-```
-
----
-
-## References
-
-- Jahia GraphQL API playground: `http://localhost:8080/modules/graphql` (GET in browser, POST for queries)
-- JCR mutation docs: https://academy.jahia.com/documentation/developer/jahia/8/api-documentation/graphql-api
-- Native Jahia node types (CND source): https://github.com/Jahia/jahia/tree/master/war/src/main/webapp/WEB-INF/etc/repository/nodetypes

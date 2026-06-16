@@ -1,139 +1,157 @@
 ---
 name: jahia-content
-description: Entry point for managing content on a running Jahia website via the GraphQL API. Detects the current site state and routes to the right sub-skill. Use for any task involving creating, querying, moving, updating, or publishing JCR content.
+description: Entry point for creating sites, authoring pages, querying content, reorganizing nodes, uploading media, translating, and publishing a Jahia website via MCP tools.
 ---
 
 # Jahia Content — Content Management GPS
 
-You are the entry point for managing content on a live Jahia instance. Your job is to understand what the user needs, assess the current site state, and route to the right sub-skill.
+You are the entry point for content work on a live Jahia instance. Understand the request, assess the site state, and route to the right content skill.
+
+> **Never call Jahia's GraphQL API directly for content operations.** Use only MCP tools via the `jahia` MCP server. If a capability is missing, report it — do not work around with curl/GraphQL.
 
 ---
 
-## Step 1 — Verify Jahia is reachable
+## Step 1 — Verify the MCP connection
 
-```bash
-curl -s -o /dev/null -w "%{http_code}" http://localhost:8080/cms/login
+Confirm the `jahia` MCP server is available:
+
+```
+tool: site.list
 ```
 
-- `200` → Jahia is running ✅
-- Anything else → Jahia is not running. Tell the user: **"Please start Jahia first (use `/jahia-dev-start-local` if needed)."**
+If this fails, Jahia or the MCP connection is not ready.
 
 ---
 
-## Step 2 — Detect site state
+## Step 2 — Detect the site state
 
-Run both checks in parallel to understand what's currently in the CMS:
+Run these checks to understand what exists already:
 
 ### A. List available sites
-```bash
-curl -s -u root:root1234 \
-  -H "Content-Type: application/json" \
-  -H "Origin: http://localhost:8080" \
-  -X POST http://localhost:8080/modules/graphql \
-  -d '{"query":"{ jcr { nodeByPath(path: \"/sites\") { children { nodes { name } } } } }"}'
+
+```
+tool: site.list
 ```
 
-### B. List top-level content folders
-```bash
-curl -s -u root:root1234 \
-  -H "Content-Type: application/json" \
-  -H "Origin: http://localhost:8080" \
-  -X POST http://localhost:8080/modules/graphql \
-  -d '{"query":"{ jcr { nodeByPath(path: \"/sites/mySite/contents\") { children { nodes { name primaryNodeType { name } } } } } }"}'
+### B. Discover installed template sets for new site creation
+
+```
+tool: site.templateSets
+args: {}
 ```
 
-> Replace `mySite` with the actual site key if different.
+### C. If a site exists, list its pages
+
+```
+tool: page.list
+args: { "siteKey": "SITE_KEY" }
+```
 
 ---
 
-## Step 3 — Report site state
+## Step 3 — Report the CMS state
+
+Summarize what you found:
 
 ```
-🌐 Jahia:          ✅ running at http://localhost:8080
-📁 Sites:          <list site keys>
-📂 Content root:   <list folder names under /contents>
+🌐 Jahia MCP:       ✅ connected
+📁 Sites:           <site keys>
+🧱 Template sets:   <installed template sets>
+📄 Pages:           <page titles and templates for the chosen site>
 ```
 
 ---
 
 ## Step 4 — Route to the right sub-skill
 
-Use the task description to pick the right skill(s):
-
-| What the user wants to do | Skill |
-|---------------------------|-------|
-| Explore an unknown site's content types, property names, enum values, mixins | **`/jahia-content-explore-structure`** |
-| Find out what content exists, audit the tree, run a search | **`/jahia-content-query-content`** |
-| Create pages, articles, tutorials, folders, populate a site | **`/jahia-content-create-content`** |
-| Move, rename, restructure content into sub-folders | **`/jahia-content-move-content`** |
-| Translate existing content to another language | **`/jahia-content-translate-content`** |
-| Publish content to the live site | Use `publish` mutation (see below) |
-| Delete content | Use `deleteNode` mutation (see below) |
-| Do several of the above in sequence | Run the skills in order — start with **explore-structure** if site is unfamiliar, then create or move |
-
----
-
-## Step 5 — Direct patterns for one-off operations
-
-Use these when the task is simple enough to not need a full sub-skill.
-
-### Publish a node (and all its children)
-```bash
-curl -s -u root:root1234 \
-  -H "Content-Type: application/json" \
-  -H "Origin: http://localhost:8080" \
-  -X POST http://localhost:8080/modules/graphql \
-  -d '{"query":"mutation { jcr { mutateNode(pathOrId: \"/sites/mySite/contents/articles\") { publish(languages: [\"en\"]) } } }"}'
-```
-
-### Publish all content at once
-```bash
-curl -s -u root:root1234 \
-  -H "Content-Type: application/json" \
-  -H "Origin: http://localhost:8080" \
-  -X POST http://localhost:8080/modules/graphql \
-  -d '{"query":"mutation { jcr { mutateNodesByQuery(query: \"SELECT * FROM [jnt:content] WHERE ISDESCENDANTNODE(\u0027/sites/mySite/contents\u0027)\", queryLanguage: SQL2) { publish(languages: [\"en\"]) } } }"}'
-```
-
-### Delete a node
-```bash
-curl -s -u root:root1234 \
-  -H "Content-Type: application/json" \
-  -H "Origin: http://localhost:8080" \
-  -X POST http://localhost:8080/modules/graphql \
-  -d '{"query":"mutation { jcr { mutateNode(pathOrId: \"/sites/mySite/contents/articles/old-article\") { delete } } }"}'
-```
-
-### Update a property on an existing node
-```bash
-curl -s -u root:root1234 \
-  -H "Content-Type: application/json" \
-  -H "Origin: http://localhost:8080" \
-  -X POST http://localhost:8080/modules/graphql \
-  -d '{"query":"mutation { jcr { mutateNode(pathOrId: \"/sites/mySite/contents/articles/my-article\") { mutateProperty(name: \"jcr:title\") { setValue(language: \"en\", value: \"Updated Title\") } } } }"}'
-```
+| User intent | Skill |
+|-------------|-------|
+| Explore an unknown site, map areas, inspect types and properties | `/jahia-content-explore-structure` |
+| Create a brand-new site before authoring content | `/jahia-content-create-content` using `site.templateSets` and `site.create` |
+| Create pages, content, or structured trees on an existing site | `/jahia-content-create-content` |
+| Upload files and images to `/sites/<siteKey>/files` | `/jahia-content-media-upload` |
+| Find, inspect, or audit existing content | `/jahia-content-query-content` |
+| Move, copy, rename, reorder, or delete content | `/jahia-content-organize` |
+| Translate content to another locale | `/jahia-content-translate-content` |
+| Publish, unpublish, or check readiness | `/jahia-content-publish` |
+| Do several of the above in sequence | Start with `/jahia-content-explore-structure` if the site is unfamiliar |
 
 ---
 
-## Step 6 — Print the full CMS skill map
+## Direct MCP patterns
 
-Always print this at the end so the user can navigate anywhere:
+### Create a site before authoring pages
 
 ```
-## Jahia Content Skills
+tool: site.templateSets
+args: {}
 
-/jahia-content-explore-structure    Map content types, properties, enums, mixins on an unknown site ← start here
-/jahia-content-query-content        List, inspect, and search content via GraphQL
-/jahia-content-create-content       Create nodes, folders, articles, and bulk-populate a site
-/jahia-content-move-content         Restructure the content tree: move, rename, reorder nodes
-/jahia-content-translate-content    Translate existing nodes to a new language and publish
+tool: site.create
+args: {
+  "siteKey": "brandSite",
+  "title": "Brand Site",
+  "templateSet": "digitall",
+  "defaultLanguage": "en",
+  "languages": ["en", "fr"],
+  "serverName": "brand.local"
+}
+```
+
+### Publish a page or subtree
+
+```
+tool: publication.publish
+args: {
+  "path": "/sites/SITE_KEY/home/about",
+  "languages": ["en"]
+}
+```
+
+### Unpublish a page or subtree
+
+```
+tool: publication.unpublish
+args: {
+  "path": "/sites/SITE_KEY/home/about",
+  "languages": ["en"]
+}
+```
+
+### Delete a published node correctly
+
+```
+tool: content.markForDeletion
+args: { "path": "/sites/SITE_KEY/home/old-page" }
+
+tool: publication.publish
+args: {
+  "path": "/sites/SITE_KEY/home/old-page",
+  "languages": ["en"]
+}
 ```
 
 ---
 
-## Critical rules (always enforce)
+## Full skill map
 
-- Always include `-H "Origin: http://localhost:8080"` in every curl — omitting it causes `Permission denied`
-- Always use `language: "en"` (or the site's language) for `i18n` properties (`jcr:title` on folders with `mix:title`, richtext body, etc.)
-- Always publish after creating or moving content — JCR writes to the **default workspace** only; live visitors see the **live workspace**
-- Mandatory fields (e.g. `body`) must be set **before** other properties on the same node in a new locale
+```
+/jahia-content-explore-structure   Map sites, template sets, pages, areas, and content definitions
+/jahia-content-create-content      Create sites, pages, content nodes, and structured trees
+/jahia-content-media-upload        Upload media and reference it from content
+/jahia-content-query-content       List, inspect, and search content via MCP tools
+/jahia-content-organize            Move, copy, rename, reorder, mark for deletion, and delete content
+/jahia-content-move-content        Focused move/reorder/delete workflow for an existing content tree
+/jahia-content-translate-content   Translate i18n content and page titles
+/jahia-content-publish             Check publication status, publish, unpublish, and handle workflow
+```
+
+---
+
+## Critical rules
+
+- Always use MCP tools — never GraphQL directly
+- Use `site.templateSets` and `site.create` when the requested site does not exist yet
+- Always pass `locale` to content creation and update calls
+- Always publish after creating, moving, deleting, or translating content
+- Always explore with `/jahia-content-explore-structure` before authoring on an unfamiliar site
+

@@ -1,236 +1,231 @@
 ---
 name: jahia-content-move-content
-description: Moves and reorganizes JCR content nodes in Jahia. Use when asked to restructure content folders, nest flat content into sections, rename or move nodes, or tidy up a content tree.
+description: Focused workflow for moving, copying, renaming, reordering, and deleting Jahia content via MCP tools. Use when asked to restructure an existing content tree safely.
 ---
 
 # Skill: jahia-content-move-content
 
-Reorganizes the JCR content tree — moving nodes into sub-folders, renaming them, and reordering them — using the Jahia GraphQL API.
+Reorganizes an existing content tree using MCP tools via the `jahia` MCP server.
+
+> **Never call Jahia's GraphQL API directly.** Use only MCP tools. If a capability is missing, report it — do not work around with curl/GraphQL.
 
 ---
 
 ## Prerequisites
 
-- Jahia running at `http://localhost:8080`
-- Credentials: `root` / `root1234` (default)
-- GraphQL endpoint: `http://localhost:8080/modules/graphql`
-
-**Always include both auth flags:**
-```bash
-curl -s -u root:root1234 \
-     -H "Content-Type: application/json" \
-     -H "Origin: http://localhost:8080" \
-     -X POST http://localhost:8080/modules/graphql \
-     -d '{"query": "..."}'
-```
-
-> ⚠️ The `Origin` header is **required** — omitting it returns `Permission denied`.
+- MCP server `jahia` connected with a valid API token
+- Know the target `siteKey` (call `site.list` if unsure)
+- Prefer `/jahia-content-explore-structure` first if the tree is unfamiliar
 
 ---
 
-## Step 1 — Audit the current content tree
+## Step 1 — Audit the current tree
 
-Before moving anything, map out what exists and where:
-
-```bash
-# List all content folders and their direct children
-curl -s -u root:root1234 \
-  -H "Content-Type: application/json" \
-  -H "Origin: http://localhost:8080" \
-  -X POST http://localhost:8080/modules/graphql \
-  -d '{
-    "query": "{ jcr { nodeByPath(path: \"/sites/mySite/contents\") { descendants(fieldFilter: {filters: [{fieldName: \"primaryNodeType.name\", evaluation: EQUAL, value: \"jnt:contentFolder\"}]}) { nodes { path name } } } } }"
-  }'
+```
+tool: content.list
+args: {
+  "parentPath": "/sites/SITE_KEY/home/about/main",
+  "limit": 50
+}
 ```
 
-Or use a JCR-SQL2 query for a flat list of all content items:
+For a broader view:
 
-```bash
-curl -s -u root:root1234 \
-  -H "Content-Type: application/json" \
-  -H "Origin: http://localhost:8080" \
-  -X POST http://localhost:8080/modules/graphql \
-  -d '{
-    "query": "{ jcr { nodesByQuery(query: \"SELECT * FROM [jnt:content] WHERE ISDESCENDANTNODE(\u0027/sites/mySite/contents\u0027) ORDER BY [jcr:path] ASC\", queryLanguage: SQL2) { nodes { path primaryNodeType { name } } } } }"
-  }'
+```
+tool: content.search
+args: {
+  "siteKey": "SITE_KEY",
+  "nodeType": "jmix:droppableContent",
+  "locale": "en",
+  "sortBy": "jcr:created",
+  "order": "asc",
+  "limit": 50
+}
 ```
 
 ---
 
-## Step 2 — Create target sub-folders
+## Step 2 — Move, copy, rename, or reorder
 
-If destination folders don't exist yet, create them with `mix:title` for a proper display label:
+### Move a node
 
-```bash
-# Create a sub-folder
-curl -s -u root:root1234 \
-  -H "Content-Type: application/json" \
-  -H "Origin: http://localhost:8080" \
-  -X POST http://localhost:8080/modules/graphql \
-  -d '{
-    "query": "mutation { jcr { addNode(parentPathOrId: \"/sites/mySite/contents/articles\", name: \"getting-started\", primaryNodeType: \"jnt:contentFolder\") { node { path } } } }"
-  }'
+```
+tool: content.move
+args: {
+  "path": "/sites/SITE_KEY/home/blog/main/old-article",
+  "destParentPath": "/sites/SITE_KEY/home/archive/main",
+  "newName": "archived-article"
+}
+```
 
-# Set a human-readable title on the folder
-curl -s -u root:root1234 \
-  -H "Content-Type: application/json" \
-  -H "Origin: http://localhost:8080" \
-  -X POST http://localhost:8080/modules/graphql \
-  -d '{
-    "query": "mutation { jcr { mutateNode(pathOrId: \"/sites/mySite/contents/articles/getting-started\") { addMixins(mixins: [\"mix:title\"]) mutateProperty(name: \"jcr:title\") { setValue(language: \"en\", value: \"Getting Started\") } } } }"
-  }'
+### Copy a node
+
+```
+tool: content.copy
+args: {
+  "path": "/sites/SITE_KEY/home/templates/main/hero-banner",
+  "destParentPath": "/sites/SITE_KEY/home/landing/main"
+}
+```
+
+### Rename a node
+
+```
+tool: content.rename
+args: {
+  "path": "/sites/SITE_KEY/home/about/main/old-name",
+  "newName": "new-name"
+}
+```
+
+### Reorder siblings
+
+```
+tool: content.reorder
+args: {
+  "parentPath": "/sites/SITE_KEY/home/blog/main",
+  "nodeName": "featured-post",
+  "position": "FIRST"
+}
+```
+
+Or place one node before another:
+
+```
+tool: content.reorder
+args: {
+  "parentPath": "/sites/SITE_KEY/home/blog/main",
+  "nodeName": "featured-post",
+  "position": "INPLACE",
+  "beforeNodeName": "second-post"
+}
 ```
 
 ---
 
-## Step 3 — Move a node
+## Step 3 — Update content properties if needed
 
-Use `move` on a `mutateNode` to relocate a node to a new parent. The node keeps its name:
-
-```bash
-curl -s -u root:root1234 \
-  -H "Content-Type: application/json" \
-  -H "Origin: http://localhost:8080" \
-  -X POST http://localhost:8080/modules/graphql \
-  -d '{
-    "query": "mutation { jcr { mutateNode(pathOrId: \"/sites/mySite/contents/articles/my-article\") { move(parentPathOrId: \"/sites/mySite/contents/articles/getting-started\") } } }"
-  }'
 ```
-
-> ⚠️ `move` does **not** support a `name` argument — use `rename` separately if needed.
-
-### Rename a node in place
-
-```bash
-curl -s -u root:root1234 \
-  -H "Content-Type: application/json" \
-  -H "Origin: http://localhost:8080" \
-  -X POST http://localhost:8080/modules/graphql \
-  -d '{
-    "query": "mutation { jcr { mutateNode(pathOrId: \"/sites/mySite/contents/articles\") { rename(name: \"reference-pages\") } } }"
-  }'
-```
-
-To move **and** rename, call `move` then `rename` in sequence, or combine in one mutation:
-
-```graphql
-mutation {
-  jcr {
-    mutateNode(pathOrId: "/sites/mySite/contents/articles/old-name") {
-      move(parentPathOrId: "/sites/mySite/contents/articles/getting-started")
-    }
-    rename: mutateNode(pathOrId: "/sites/mySite/contents/articles/getting-started/old-name") {
-      rename(name: "new-name")
-    }
+tool: content.update
+args: {
+  "path": "/sites/SITE_KEY/home/about/main/intro-text",
+  "locale": "en",
+  "properties": {
+    "jcr:title": "Updated Title",
+    "text": "<p>New content here.</p>"
   }
 }
 ```
 
-### Batch move with Python
+---
 
-```python
-import subprocess, json
+## Step 4 — Delete correctly
 
-def gql(q):
-    r = subprocess.run(["curl","-s","-u","root:root1234",
-        "-H","Origin: http://localhost:8080",
-        "-H","Content-Type: application/json",
-        "-X","POST","http://localhost:8080/modules/graphql",
-        "-d", json.dumps({"query": q})], capture_output=True, text=True)
-    d = json.loads(r.stdout)
-    if "errors" in d: print("ERR:", d["errors"][0]["message"][:80])
-    return d
+### Draft-only content: hard delete
 
-moves = [
-    ("/sites/mySite/contents/articles/getting-started",
-     "/sites/mySite/contents/articles/core-concepts"),
-    ("/sites/mySite/contents/articles/graphql-api",
-     "/sites/mySite/contents/articles/api-reference"),
-]
+```
+tool: content.delete
+args: { "path": "/sites/SITE_KEY/home/draft-page/main/temp-node" }
+```
 
-for src, dest in moves:
-    r = gql(f'mutation {{ jcr {{ mutateNode(pathOrId: "{src}") {{ move(parentPathOrId: "{dest}") }} }} }}')
-    ok = "errors" not in r
-    print(f"  {'✓' if ok else '✗'} {src.split('/')[-1]} → {dest.split('/')[-1]}")
+### Published content: mark for deletion, then publish the deletion
+
+```
+tool: content.markForDeletion
+args: { "path": "/sites/SITE_KEY/home/old-page" }
+```
+
+Publish the deletion to remove it from LIVE:
+
+```
+tool: publication.publish
+args: {
+  "path": "/sites/SITE_KEY/home/old-page",
+  "languages": ["en"]
+}
+```
+
+Undo the mark if needed:
+
+```
+tool: content.unmarkForDeletion
+args: { "path": "/sites/SITE_KEY/home/old-page" }
 ```
 
 ---
 
-## Step 4 — Reorder siblings
+## Step 5 — Check and publish after changes
 
-To control the display order within a folder, use `reorder` after moving:
+Inspect publication status:
 
-```bash
-curl -s -u root:root1234 \
-  -H "Content-Type: application/json" \
-  -H "Origin: http://localhost:8080" \
-  -X POST http://localhost:8080/modules/graphql \
-  -d '{
-    "query": "mutation { jcr { mutateNode(pathOrId: \"/sites/mySite/contents/articles/intro\") { reorder(reorderNodes: {moveBeforeOrAfter: BEFORE, target: \"advanced\"}) } } }"
-  }'
+```
+tool: publication.status
+args: {
+  "path": "/sites/SITE_KEY/home/about",
+  "language": "en",
+  "subNodes": true,
+  "references": true
+}
+```
+
+Publish the affected branch:
+
+```
+tool: publication.publish
+args: {
+  "path": "/sites/SITE_KEY/home/about",
+  "languages": ["en"]
+}
+```
+
+Unpublish if the goal is to remove content from LIVE while keeping EDIT:
+
+```
+tool: publication.unpublish
+args: {
+  "path": "/sites/SITE_KEY/home/about/main/outdated-section",
+  "languages": ["en"]
+}
 ```
 
 ---
 
-## Step 5 — Publish after moving
+## Step 6 — Verify the result
 
-Moving a node unpublishes it in the live workspace. Always republish after reorganizing:
-
-```bash
-# Publish a single node
-curl -s -u root:root1234 \
-  -H "Content-Type: application/json" \
-  -H "Origin: http://localhost:8080" \
-  -X POST http://localhost:8080/modules/graphql \
-  -d '{
-    "query": "mutation { jcr { mutateNode(pathOrId: \"/sites/mySite/contents/articles/getting-started/my-article\") { publish(languages: [\"en\"]) } } }"
-  }'
-
-# Publish everything under a folder at once
-curl -s -u root:root1234 \
-  -H "Content-Type: application/json" \
-  -H "Origin: http://localhost:8080" \
-  -X POST http://localhost:8080/modules/graphql \
-  -d '{
-    "query": "mutation { jcr { mutateNodesByQuery(query: \"SELECT * FROM [jnt:content] WHERE ISDESCENDANTNODE(\u0027/sites/mySite/contents\u0027)\", queryLanguage: SQL2) { publish(languages: [\"en\"]) } } }"
-  }'
+```
+tool: content.list
+args: {
+  "parentPath": "/sites/SITE_KEY/home/about/main",
+  "limit": 50
+}
 ```
 
----
+Or preview the page:
 
-## Step 6 — Verify
-
-```bash
-curl -s -u root:root1234 \
-  -H "Content-Type: application/json" \
-  -H "Origin: http://localhost:8080" \
-  -X POST http://localhost:8080/modules/graphql \
-  -d '{
-    "query": "{ jcr { nodesByQuery(query: \"SELECT * FROM [jnt:content] WHERE ISDESCENDANTNODE(\u0027/sites/mySite/contents\u0027)\", queryLanguage: SQL2) { nodes { path } } } }"
-  }'
 ```
-
----
-
-## Common errors
-
-| Error | Cause | Fix |
-|-------|-------|-----|
-| `Permission denied` | Missing `Origin` header | Add `-H "Origin: http://localhost:8080"` |
-| `ItemExistsException` | A node with that name already exists at the destination | Choose a different name or use `rename` after moving |
-| `PathNotFoundException` | Source or destination path doesn't exist | Verify paths with `nodeByPath` first |
-| `move` returns `null` | Node was already at that location | Verify the current path first |
-| Content disappears from live after move | Move unpublishes — normal JCR behaviour | Run `publish` after every move |
+tool: page.preview
+args: { "path": "/sites/SITE_KEY/home/about" }
+```
 
 ---
 
 ## Workflow summary
 
 ```
-1. Audit      → list current paths and types
-2. Plan       → map old paths to new paths/folders
-3. Create     → addNode for any new folders needed
-4. Move       → mutateNode { move(...) } for each item
-5. Publish    → mutateNodesByQuery { publish(...) } for all affected content
-6. Verify     → query back and confirm structure
+1. Audit      → content.list / content.search
+2. Move/copy  → content.move / content.copy
+3. Rename     → content.rename
+4. Reorder    → content.reorder
+5. Delete     → content.delete or content.markForDeletion + publication.publish
+6. Publish    → publication.status + publication.publish / publication.unpublish
+7. Verify     → content.list / page.preview
 ```
+
+---
+
+## Related skills
+
+- `/jahia-content-organize` — fuller reorganization lifecycle and patterns
+- `/jahia-content-explore-structure` — understand the tree before changing it
+- `/jahia-content-publish` — publication readiness, publish, and unpublish flows
+
