@@ -1,5 +1,9 @@
 # `@jahia/agentic`
 
+## 0.3.0
+
+* Replaced GraphQL with MCP for content operations. (#6)
+
 ## 0.2.0
 
 * Added Java reviewer and Jahia-specific skills with concurrency pattern. (#4)
