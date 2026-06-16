@@ -407,5 +407,46 @@
         "seoScore": 0.91
       }
     ]
+  },
+  {
+    "id": "run-2026-06-16T06-20-53",
+    "date": "2026-06-16T06:21:23.455Z",
+    "durationSeconds": 491,
+    "tokens": {
+      "input": 4500000,
+      "output": 29300,
+      "cached": 4400000
+    },
+    "githubRunUrl": "https://github.com/Jahia/agentic/actions/runs/27597910415",
+    "pages": [
+      {
+        "url": "http://localhost:8080/cms/render/live/en/sites/forsure/home.html",
+        "title": "For Sure Insurance – Protect What Matters",
+        "screenshot": "screenshot-0.png",
+        "accessibilityScore": 1,
+        "seoScore": 0.82
+      },
+      {
+        "url": "http://localhost:8080/cms/render/live/en/sites/forsure/home/car-insurance.html",
+        "title": "Car Insurance | For Sure Insurance",
+        "screenshot": "screenshot-1.png",
+        "accessibilityScore": 1,
+        "seoScore": 0.91
+      },
+      {
+        "url": "http://localhost:8080/cms/render/live/en/sites/forsure/home/health-insurance.html",
+        "title": "Health Insurance | For Sure Insurance",
+        "screenshot": "screenshot-2.png",
+        "accessibilityScore": 1,
+        "seoScore": 0.91
+      },
+      {
+        "url": "http://localhost:8080/cms/render/live/en/sites/forsure/home/home-insurance.html",
+        "title": "Home Insurance | For Sure Insurance",
+        "screenshot": "screenshot-3.png",
+        "accessibilityScore": 1,
+        "seoScore": 0.91
+      }
+    ]
   }
 ]
