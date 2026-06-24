@@ -204,65 +204,67 @@ console.log("API token created successfully.");
 
 //#MARK: MCP config
 
-// Write to user-level config (~/.copilot/mcp-config.json) — this is the path
-// Copilot CLI reliably reads for MCP server discovery.
-const userCopilotDir = join(homedir(), ".copilot");
-mkdirSync(userCopilotDir, { recursive: true });
-const mcpConfig = {
+// Write to ~/.claude.json — the global config Claude Code reads for MCP server discovery.
+// Merge with any existing content to avoid clobbering other settings.
+const claudeConfigPath = join(homedir(), ".claude.json");
+const existingClaudeConfig = existsSync(claudeConfigPath)
+  ? (JSON.parse(readFileSync(claudeConfigPath, "utf-8")) as Record<string, unknown>)
+  : {};
+const claudeConfig = {
+  ...existingClaudeConfig,
   mcpServers: {
+    ...(existingClaudeConfig["mcpServers"] as Record<string, unknown>),
     jahia: {
       type: "http",
       url: `${JAHIA_URL}/modules/mcp`,
       headers: {
         Authorization: `APIToken ${apiToken}`,
       },
-      tools: ["*"],
     },
   },
 };
-writeFileSync(join(userCopilotDir, "mcp-config.json"), JSON.stringify(mcpConfig, null, 2));
-console.log("MCP config written to ~/.copilot/mcp-config.json");
+writeFileSync(claudeConfigPath, JSON.stringify(claudeConfig, null, 2));
+console.log("MCP config written to ~/.claude.json");
 
 //#MARK: install harness
 
-spawnSync("node", [resolve(import.meta.dirname, "..", "..", "dist"), "copilot"], {
+spawnSync("node", [resolve(import.meta.dirname, "..", "..", "dist"), "claude"], {
   cwd: root,
   stdio: "inherit",
 });
 
-//#MARK: copilot
+//#MARK: claude
 
-// Run copilot, streaming stdout live while capturing it for stats parsing
-const copilotProc = spawn(
-  "copilot",
+// Run claude, streaming stdout live while capturing it for stats parsing
+const claudeProc = spawn(
+  "claude",
   [
-    "--autopilot",
-    "--allow-all",
+    "--print",
+    "--dangerously-skip-permissions",
     "--model",
-    "claude-sonnet-4.6",
-    "--prompt",
+    "claude-sonnet-4-6",
+    "--output-format",
+    "stream-json",
     "Read ./prompt.md and follow the instructions.",
   ],
   {
     cwd: root,
     stdio: ["inherit", "pipe", "pipe"],
-    env: { ...process.env, GH_TOKEN: process.env["COPILOT_TOKEN"] },
+    env: { ...process.env },
   },
 );
 
-let copilotOutput = "";
-copilotProc.stdout.on("data", (chunk: Buffer) => {
+let claudeOutput = "";
+claudeProc.stdout.on("data", (chunk: Buffer) => {
   const text = chunk.toString();
-  copilotOutput += text;
+  claudeOutput += text;
   process.stdout.write(text);
 });
-copilotProc.stderr.on("data", (chunk: Buffer) => {
-  const text = chunk.toString();
-  copilotOutput += text;
-  process.stderr.write(text);
+claudeProc.stderr.on("data", (chunk: Buffer) => {
+  process.stderr.write(chunk);
 });
 
-await once(copilotProc, "exit");
+await once(claudeProc, "exit");
 
 const runId = `run-${new Date().toISOString().replace(/[:.]/g, "-").slice(0, 19)}`;
 const runDir = join(resultsDir, runId);
@@ -339,38 +341,31 @@ spawnSync("docker", ["compose", "down", "--volumes"], {
   timeout: 60_000,
 });
 
-// Parse token usage and duration from copilot's stdout summary
-// Format: "Tokens     ↑ 15.0m (14.6m cached, 328.8k written) • ↓ 83.6k (10.4k reasoning)"
-//         "AI Credits 688 (23m 50s)"
+// Parse token usage and duration from claude's stream-json output.
+// The final line has type "result" with duration_ms and usage fields.
 function parseStats(output: string): { durationSeconds: number; tokens: BenchmarkRun["tokens"] } {
-  const durationMatch = output.match(/\((\d+)m\s+(\d+)s\)/);
-  const durationSeconds = durationMatch
-    ? parseInt(durationMatch[1]!) * 60 + parseInt(durationMatch[2]!)
-    : 0;
-
-  function parseCount(s: string): number {
-    const n = parseFloat(s);
-    const suffix = s.slice(-1).toLowerCase();
-    if (suffix === "m") return Math.round(n * 1_000_000);
-    if (suffix === "k") return Math.round(n * 1_000);
-    return Math.round(n);
+  for (const line of output.trim().split("\n").reverse()) {
+    try {
+      const event = JSON.parse(line) as Record<string, unknown>;
+      if (event["type"] === "result") {
+        const usage = (event["usage"] as Record<string, number>) ?? {};
+        return {
+          durationSeconds: Math.round(((event["duration_ms"] as number) ?? 0) / 1000),
+          tokens: {
+            input: usage["input_tokens"] ?? 0,
+            output: usage["output_tokens"] ?? 0,
+            cached: usage["cache_read_input_tokens"] ?? 0,
+          },
+        };
+      }
+    } catch {
+      // not a JSON line
+    }
   }
-
-  // Parse: ↑ 15.0m (14.6m cached, 328.8k written) • ↓ 83.6k (10.4k reasoning)
-  const inputMatch = output.match(/↑\s*([\d.]+[mk]?)\s*\(/i);
-  const cachedMatch = output.match(/\(([\d.]+[mk]?)\s*cached/i);
-  const outputMatch = output.match(/↓\s*([\d.]+[mk]?)/i);
-
-  const tokens = {
-    input: inputMatch ? parseCount(inputMatch[1]!) : 0,
-    output: outputMatch ? parseCount(outputMatch[1]!) : 0,
-    cached: cachedMatch ? parseCount(cachedMatch[1]!) : 0,
-  };
-
-  return { durationSeconds, tokens };
+  return { durationSeconds: 0, tokens: { input: 0, output: 0, cached: 0 } };
 }
 
-const { durationSeconds, tokens } = parseStats(copilotOutput);
+const { durationSeconds, tokens } = parseStats(claudeOutput);
 
 // Extract branch name from GITHUB_REF (format: refs/heads/branch-name) or default to "main"
 function extractBranch(githubRef?: string): string {

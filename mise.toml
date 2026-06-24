@@ -1,5 +1,5 @@
 [tools]
 node = "lts"
 yarn = "4.15"
-copilot = "1"
+claude = "latest"
 "github:microsoft/apm" = "latest"
