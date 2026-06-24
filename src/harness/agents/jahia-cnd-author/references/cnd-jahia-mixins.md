@@ -42,6 +42,15 @@ Use as the type constraint on image weakreference properties:
 
 **Never use `< 'jnt:file'`** (quoted string form) — it does not enforce image type correctly.
 
+**Never declare `imageAlt (string) i18n`** alongside an image weakreference. The referenced image node already has `jcr:title` (from `mix:title`). Use that as the alt text in the view:
+
+```tsx
+const imageNode = props["image"] as JCRNode | undefined;
+const imageAlt = imageNode?.["jcr:title"] ?? "";
+```
+
+Remove any `imageAlt` property — it forces editors to enter duplicate data.
+
 ### `jmix:droppableContent` — never extend directly
 
 Always define a module-level component mixin and extend that:

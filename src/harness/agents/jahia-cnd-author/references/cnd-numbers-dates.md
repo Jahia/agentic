@@ -29,6 +29,16 @@ Always combine `autocreated` with `= 'value'`:
 - rating (long) mandatory < "[1,5]"
 ```
 
+**Star ratings always need a range constraint.** Never write `rating (long)` without `< "[1,5]"`:
+
+```cnd
+// WRONG
+- rating (long) = 5 indexed=no
+
+// CORRECT
+- rating (long) = '3' autocreated mandatory < "[1,5]"
+```
+
 ## Date range constraints
 
 Parentheses = exclusive bound, brackets = inclusive. Leave a side empty for open-ended:

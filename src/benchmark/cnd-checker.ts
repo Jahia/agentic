@@ -116,6 +116,30 @@ function checkFile(filePath: string, content: string): CndIssue[] {
       });
     }
 
+    // redundantImageAlt: imageAlt as plain string — image node already has jcr:title
+    if (/^-\s+imageAlt\s+\(string[,)]/i.test(trimmed)) {
+      issues.push({
+        severity: "warning",
+        file: filePath,
+        line: lineNum,
+        pattern: "redundantImageAlt",
+        message: '"imageAlt" is redundant — the image node\'s jcr:title (mix:title) serves as alt text',
+        fix: 'Remove imageAlt. In the view, use imageNode["jcr:title"] for alt text',
+      });
+    }
+
+    // missingRatingConstraint: rating (long) without a range constraint
+    if (/^-\s+rating\s+\(long[,)]/i.test(trimmed) && !/<\s*"?\[/.test(trimmed)) {
+      issues.push({
+        severity: "warning",
+        file: filePath,
+        line: lineNum,
+        pattern: "missingRatingConstraint",
+        message: '"rating" (long) has no range constraint',
+        fix: 'Add: < "[1,5]"',
+      });
+    }
+
     // studioOnly
     if (/jmix:studioOnly/.test(trimmed)) {
       issues.push({
