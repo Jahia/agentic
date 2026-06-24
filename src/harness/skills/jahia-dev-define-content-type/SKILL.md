@@ -60,9 +60,21 @@ Wait for the agent to report back before proceeding.
 
 ---
 
+## Step 2b — Validate the CND
+
+After `@jahia-cnd-author` reports back, invoke `/jahia-dev-review-cnd` on the written file:
+
+```
+/jahia-dev-review-cnd <module-path>/src/components/<Category>/<Name>/definition.cnd
+```
+
+If the review reports errors, send them back to `@jahia-cnd-author` to fix. Do not proceed until the review is clean.
+
+---
+
 ## Step 3 — Continue with deployment
 
-After `@jahia-cnd-author` reports PASS, proceed with:
+After the CND review is PASS, proceed with:
 - Add UI translations (`/jahia-dev-build-component` handles this if invoked from there)
 - `yarn build && yarn jahia-deploy`
 - Verify the type appears in Jahia's content editor

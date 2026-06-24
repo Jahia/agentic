@@ -1,6 +1,6 @@
 ---
 name: jahia-cnd-author
-description: Use when you need to write a Jahia CND content type definition and its TypeScript props interface. Receives a component spec and produces definition.cnd + types.ts with correct Jahia-specific syntax. Loads syntax references on demand, self-validates output with /jahia-dev-review-cnd before returning.
+description: Use when you need to write a Jahia CND content type definition and its TypeScript props interface. Receives a component spec and produces a per-component definition.cnd + types.ts with correct Jahia-specific syntax. Self-validates output before returning.
 allowed-tools: Read, Write, Edit, Bash
 tools:
   Read: true
@@ -27,69 +27,97 @@ Children: <repeatable sub-items if any>
 
 ## Step 1 — Load reference files
 
-Before writing any CND, load the reference files for the property types you need:
+Before writing any CND, use the `Read` tool to load the reference files for the property types you need:
 
-- **Always load**: `LOAD cnd-jahia-mixins.md` (you always need to know which native mixins to extend)
-- **If any text, link, or choice properties**: `LOAD cnd-string-selectors.md`
-- **If any repeatable child items**: `LOAD cnd-child-nodes.md`
-- **If any numbers, dates, or booleans**: `LOAD cnd-numbers-dates.md`
+- **Always load**: `Read .github/agents/cnd-jahia-mixins.agent.md` (you always need to know which native mixins to extend)
+- **If any text, link, or choice properties**: `Read .github/agents/cnd-string-selectors.agent.md`
+- **If any repeatable child items**: `Read .github/agents/cnd-child-nodes.agent.md`
+- **If any numbers, dates, or booleans**: `Read .github/agents/cnd-numbers-dates.agent.md`
+
+Do not skip this step. These files contain the exact CND patterns you must follow.
 
 ## Step 2 — Resolve namespace and location
 
 ```bash
-grep -h "^<" <module-path>/settings/definitions.cnd | head -1
-```
+# Get namespace prefix
+grep "^<" <module-path>/settings/definitions.cnd | head -5
 
-This shows the namespace declaration (e.g. `<forsure = 'http://www.forsure.com/...'>` → prefix is `forsure`).
-
-Check whether the module uses a two-tier mixin (`namespacemix:pageComponent` vs `namespacemix:component`):
-
-```bash
+# Check for two-tier mixin
 grep "pageComponent" <module-path>/settings/definitions.cnd
+
+# Find the right category directory
+ls <module-path>/src/components/
 ```
 
-If `pageComponent` exists, components dropped in page areas extend `namespacemix:pageComponent`. Children of other components extend `namespacemix:component`.
+If `namespacemix:pageComponent` exists: use it for components dropped in page areas, use `namespacemix:component` for children of other components.
 
-Component file location: `<module-path>/src/components/<Category>/<Name>/definition.cnd`
-Types file location: `<module-path>/src/components/<Category>/<Name>/types.ts`
+**File locations — collocation is mandatory:**
+
+Each component type lives in its own file, next to its view. NEVER put all types in `settings/definitions.cnd`.
+
+```
+src/
+  components/
+    Sections/
+      HeroSection/
+        definition.cnd    ← one type per file, co-located here
+        default.server.tsx
+        types.ts
+    Cards/
+      TextCard/
+        definition.cnd    ← separate file per component
+        types.ts
+settings/
+  definitions.cnd          ← namespace declarations + shared mixins ONLY
+```
 
 ## Step 3 — Write the CND
 
-Rules you MUST follow:
-1. **Links**: use `j:linkType (string, choicelist[linkTypeInitializer]) mandatory` — never `(string)` for a link/url/href
-2. **Titles**: extend `mix:title` — never `- title (string) i18n mandatory`
-3. **Repeatable CTAs**: model as child nodes `+ * (ns:ctaType)` — never `ctaText + ctaLink` on the parent
-4. **Image references**: `(weakreference, picker[type='image']) < jmix:image` — never `< 'jnt:file'`
-5. **i18n**: add `i18n` to every user-facing string/textarea/richtext property
-6. **Component mixin**: extend `namespacemix:component` or `namespacemix:pageComponent` — never `jmix:droppableContent` directly
-7. **No studioOnly**: use `jmix:hiddenType` for hidden structural types
+Create `<module-path>/src/components/<Category>/<Name>/definition.cnd`.
+
+Rules from the reference files you loaded — apply all of them:
+1. **Links**: `j:linkType (string, choicelist[linkTypeInitializer]) mandatory` — never `(string)` for `*Url`, `*Href`, `*Link`
+2. **Titles**: extend `mix:title` — never `- title (string)` or `- jcr:title (string)`
+3. **Repeatable CTAs**: child nodes `+ * (ns:callToAction)` — never flat `ctaText + ctaUrl` on the parent
+4. **Images**: `(weakreference, picker[type='image']) < jmix:image` — never `(string)` for image URLs
+5. **i18n**: on every user-facing string/textarea/richtext property
+6. **Component mixin**: extend `namespacemix:component` or `namespacemix:pageComponent` — never `jmix:droppableContent` directly on a concrete type
+
+Each per-component `definition.cnd` must include the namespace declarations at the top:
+```cnd
+<ns = 'http://...'>
+<nsmix = 'http://...'>
+```
 
 ## Step 4 — Write types.ts
 
-Map each CND property to a TypeScript type. All fields use `?:` (optional) even if mandatory in CND.
+Create `<module-path>/src/components/<Category>/<Name>/types.ts`. All fields use `?:` even if mandatory in CND.
 
-```ts
-import type { JCRNodeWrapper } from "org.jahia.services.content";
-
-export interface Props {
-  // list each property
-  fieldName?: TypeScriptType;
-}
-```
-
-For `j:linkType` properties, use the discriminated union from `references/cnd-string-selectors.md`.
+For `j:linkType` properties, use the discriminated union from the reference file you loaded.
 
 ## Step 5 — Self-validate
 
-After writing both files, invoke `/jahia-dev-review-cnd` passing the path to `definition.cnd`.
+```bash
+CND=<module-path>/src/components/<Category>/<Name>/definition.cnd
 
-If the review reports errors: fix them and re-run until PASS.
-If the review reports only warnings: fix them if the fix is obvious, otherwise note them in your output.
+# Error: raw string for a link/URL property
+grep -En "^[[:space:]]*-[[:space:]]+[a-zA-Z]*(Url|Href|Link)[[:space:]]+\(string" "$CND"
+
+# Error: title declared as raw property instead of mix:title
+grep -En "^[[:space:]]*-[[:space:]]+(title|jcr:title)[[:space:]]+\(string" "$CND"
+
+# Error: concrete type extends jmix:droppableContent directly
+grep -n "jmix:droppableContent" "$CND" | grep -v "mixin"
+
+# Error: image as plain string URL
+grep -En "^[[:space:]]*-[[:space:]]+[a-zA-Z]*(Image|Photo|Avatar|Logo)[[:space:]]+\(string" "$CND"
+```
+
+If any of these print matches, fix the issue and re-run before reporting.
 
 ## Step 6 — Report
 
-Output a summary:
 - Files written: paths
 - Type name(s) defined
-- Review result (PASS / PASS with warnings / issues fixed)
+- Self-validate result: PASS / fixed N errors
 - Any warnings not fixed and why
