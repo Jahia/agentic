@@ -1,3 +1,12 @@
+export interface CndIssue {
+  severity: "error" | "warning";
+  file: string;
+  line?: number;
+  pattern: string;
+  message: string;
+  fix: string;
+}
+
 export interface PageResult {
   url: string;
   title: string;
@@ -18,4 +27,6 @@ export interface BenchmarkRun {
   githubRunUrl?: string | undefined;
   branch?: string | undefined; // defaults to "main" for backward compatibility
   pages: PageResult[];
+  cndQualityScore: number | null; // 0–1, null if no CND files found
+  cndIssues?: CndIssue[] | undefined;
 }

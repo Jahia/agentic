@@ -311,8 +311,12 @@ function runCard(run: BenchmarkRun): string {
 
   const scores =
     home != null
-      ? [scoreBadge("A11y", home.accessibilityScore), scoreBadge("SEO", home.seoScore)].join("")
-      : "";
+      ? [
+          scoreBadge("A11y", home.accessibilityScore),
+          scoreBadge("SEO", home.seoScore),
+          scoreBadge("CND", run.cndQualityScore ?? null),
+        ].join("")
+      : scoreBadge("CND", run.cndQualityScore ?? null);
 
   const totalTokens = run.tokens.input + run.tokens.output;
   const cost = estimateCost(run.tokens);

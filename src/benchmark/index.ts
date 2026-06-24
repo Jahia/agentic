@@ -16,6 +16,7 @@ import { chromium } from "playwright";
 import { AxeBuilder } from "@axe-core/playwright";
 import lighthouse from "lighthouse";
 import type { BenchmarkRun, PageResult } from "./types.ts";
+import { checkCndFiles } from "./cnd-checker.js";
 
 const JAHIA_URL = "http://localhost:8080";
 const AUTHORIZATION = `Basic ${Buffer.from("root:root1234").toString("base64")}`;
@@ -323,6 +324,12 @@ for (const [i, rawUrl] of urls.entries()) {
 
 await browser.close();
 
+console.log("Checking CND quality...");
+const cndResult = checkCndFiles(root);
+console.log(
+  `CND quality: score=${cndResult.score.toFixed(2)}, files=${cndResult.filesChecked}, issues=${cndResult.issues.length}`,
+);
+
 //#MARK: dc down
 
 console.log("Stopping Jahia...");
@@ -369,7 +376,7 @@ const { durationSeconds, tokens } = parseStats(copilotOutput);
 function extractBranch(githubRef?: string): string {
   if (!githubRef) return "main";
   const match = githubRef.match(/refs\/heads\/(.+)$/);
-  return match ? match[1] : "main";
+  return match?.[1] ?? "main";
 }
 
 const branch = extractBranch(process.env["GITHUB_REF"]);
@@ -387,6 +394,8 @@ const run: BenchmarkRun = {
   githubRunUrl: process.env["GITHUB_RUN_URL"] || undefined,
   branch,
   pages,
+  cndQualityScore: cndResult.filesChecked > 0 ? cndResult.score : null,
+  cndIssues: cndResult.issues.length > 0 ? cndResult.issues : undefined,
 };
 
 existing.push(run);
