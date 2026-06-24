@@ -1,6 +1,7 @@
 ---
 name: jahia-cnd-author
 description: Use when you need to write a Jahia CND content type definition and its TypeScript props interface. Receives a component spec and produces definition.cnd + types.ts with correct Jahia-specific syntax. Loads syntax references on demand, self-validates output with /jahia-dev-review-cnd before returning.
+allowed-tools: Read, Write, Edit, Bash
 tools:
   Read: true
   Write: true
@@ -28,10 +29,10 @@ Children: <repeatable sub-items if any>
 
 Before writing any CND, load the reference files for the property types you need:
 
-- **Always load**: `LOAD references/cnd-jahia-mixins.md` (you always need to know which native mixins to extend)
-- **If any text, link, or choice properties**: `LOAD references/cnd-string-selectors.md`
-- **If any repeatable child items**: `LOAD references/cnd-child-nodes.md`
-- **If any numbers, dates, or booleans**: `LOAD references/cnd-numbers-dates.md`
+- **Always load**: `LOAD cnd-jahia-mixins.md` (you always need to know which native mixins to extend)
+- **If any text, link, or choice properties**: `LOAD cnd-string-selectors.md`
+- **If any repeatable child items**: `LOAD cnd-child-nodes.md`
+- **If any numbers, dates, or booleans**: `LOAD cnd-numbers-dates.md`
 
 ## Step 2 — Resolve namespace and location
 

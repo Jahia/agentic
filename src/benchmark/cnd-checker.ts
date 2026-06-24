@@ -37,7 +37,8 @@ function checkFile(filePath: string, content: string): CndIssue[] {
     if (trimmed.startsWith("//") || trimmed.startsWith("<")) return;
 
     // rawStringLink
-    if (/^-\s+\w*(link|url|href|path)\w*\s+\(string[,)]/i.test(trimmed)) {
+    if (/^-\s+\w*(Url|Href|Link)\s+\(string[,)]/i.test(trimmed) &&
+        !/choicelist\[linkTypeInitializer\]/.test(trimmed)) {
       const propName = trimmed.match(/^-\s+(\w+)/)?.[1] ?? "unknown";
       issues.push({
         severity: "error",
@@ -63,7 +64,7 @@ function checkFile(filePath: string, content: string): CndIssue[] {
     }
 
     // weakrefNoConstraint: (weakreference) with no < constraint on same line
-    if (/\(weakreference[,)]/.test(trimmed) && !/<\s/.test(trimmed)) {
+    if (/\(weakreference[,)]/.test(trimmed) && !/<\s*\S/.test(trimmed)) {
       issues.push({
         severity: "warning",
         file: filePath,
