@@ -47,7 +47,7 @@ Has children: <yes: ChildType / no>
 
 **Do not write CND manually.** Jahia-specific patterns (`choicelist[linkTypeInitializer]`, `mix:title`, child nodes for CTAs) are not in LLM training data — writing CND from memory always produces broken output. This skill delegates to `@jahia-cnd-author` which loads the correct reference files.
 
-Call `/jahia-dev-define-content-type` as a skill. Pass the component spec. Wait for it to confirm PASS before continuing.
+Invoke `/jahia-dev-define-content-type` in a sub-agent job. Pass the component spec. Wait for it to confirm PASS before continuing.
 
 The skill will:
 1. Confirm the namespace (from `settings/definitions.cnd`)
