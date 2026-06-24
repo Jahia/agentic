@@ -633,5 +633,146 @@
         "fix": "Remove ctaText and ctaLink. Add: + * (ns:cta). Create a [ns:cta] type with label + j:linkType"
       }
     ]
+  },
+  {
+    "id": "run-2026-06-24T11-03-08",
+    "date": "2026-06-24T11:03:39.414Z",
+    "durationSeconds": 1321,
+    "tokens": {
+      "input": 13300000,
+      "output": 63600,
+      "cached": 13200000
+    },
+    "githubRunUrl": "https://github.com/Jahia/agentic/actions/runs/28092637793",
+    "branch": "main",
+    "pages": [
+      {
+        "url": "http://localhost:8080/cms/render/live/en/sites/forsure/home.html",
+        "title": "Home | For Sure Insurance",
+        "screenshot": "screenshot-0.png",
+        "accessibilityScore": 1,
+        "seoScore": 1
+      },
+      {
+        "url": "http://localhost:8080/cms/render/live/en/sites/forsure/home/car-insurance.html",
+        "title": "Car Insurance | For Sure Insurance",
+        "screenshot": "screenshot-1.png",
+        "accessibilityScore": 1,
+        "seoScore": 1
+      },
+      {
+        "url": "http://localhost:8080/cms/render/live/en/sites/forsure/home/health-insurance.html",
+        "title": "Health Insurance | For Sure Insurance",
+        "screenshot": "screenshot-2.png",
+        "accessibilityScore": 1,
+        "seoScore": 1
+      },
+      {
+        "url": "http://localhost:8080/cms/render/live/en/sites/forsure/home/home-insurance.html",
+        "title": "Home Insurance | For Sure Insurance",
+        "screenshot": "screenshot-3.png",
+        "accessibilityScore": 1,
+        "seoScore": 1
+      }
+    ],
+    "cndQualityScore": 0.011108996538242306,
+    "cndIssues": [
+      {
+        "severity": "warning",
+        "file": "/home/runner/work/agentic/agentic/agentic-benchmark-Y7d9X7/forsure/settings/definitions.cnd",
+        "line": 18,
+        "pattern": "rawTitleProp",
+        "message": "\"title\" is a plain string — extend mix:title instead",
+        "fix": "Add mix:title to the type declaration and remove this property"
+      },
+      {
+        "severity": "error",
+        "file": "/home/runner/work/agentic/agentic/agentic-benchmark-Y7d9X7/forsure/settings/definitions.cnd",
+        "line": 21,
+        "pattern": "rawStringLink",
+        "message": "\"ctaUrl\" uses (string) for a link/url — use choicelist[linkTypeInitializer]",
+        "fix": "Replace with: - j:linkType (string, choicelist[linkTypeInitializer]) mandatory"
+      },
+      {
+        "severity": "warning",
+        "file": "/home/runner/work/agentic/agentic/agentic-benchmark-Y7d9X7/forsure/settings/definitions.cnd",
+        "line": 26,
+        "pattern": "rawTitleProp",
+        "message": "\"title\" is a plain string — extend mix:title instead",
+        "fix": "Add mix:title to the type declaration and remove this property"
+      },
+      {
+        "severity": "warning",
+        "file": "/home/runner/work/agentic/agentic/agentic-benchmark-Y7d9X7/forsure/settings/definitions.cnd",
+        "line": 34,
+        "pattern": "rawTitleProp",
+        "message": "\"title\" is a plain string — extend mix:title instead",
+        "fix": "Add mix:title to the type declaration and remove this property"
+      },
+      {
+        "severity": "error",
+        "file": "/home/runner/work/agentic/agentic/agentic-benchmark-Y7d9X7/forsure/settings/definitions.cnd",
+        "line": 37,
+        "pattern": "rawStringLink",
+        "message": "\"ctaUrl\" uses (string) for a link/url — use choicelist[linkTypeInitializer]",
+        "fix": "Replace with: - j:linkType (string, choicelist[linkTypeInitializer]) mandatory"
+      },
+      {
+        "severity": "warning",
+        "file": "/home/runner/work/agentic/agentic/agentic-benchmark-Y7d9X7/forsure/settings/definitions.cnd",
+        "line": 41,
+        "pattern": "rawTitleProp",
+        "message": "\"title\" is a plain string — extend mix:title instead",
+        "fix": "Add mix:title to the type declaration and remove this property"
+      },
+      {
+        "severity": "error",
+        "file": "/home/runner/work/agentic/agentic/agentic-benchmark-Y7d9X7/forsure/settings/definitions.cnd",
+        "line": 43,
+        "pattern": "rawStringLink",
+        "message": "\"imageUrl\" uses (string) for a link/url — use choicelist[linkTypeInitializer]",
+        "fix": "Replace with: - j:linkType (string, choicelist[linkTypeInitializer]) mandatory"
+      },
+      {
+        "severity": "error",
+        "file": "/home/runner/work/agentic/agentic/agentic-benchmark-Y7d9X7/forsure/settings/definitions.cnd",
+        "line": 46,
+        "pattern": "rawStringLink",
+        "message": "\"ctaUrl\" uses (string) for a link/url — use choicelist[linkTypeInitializer]",
+        "fix": "Replace with: - j:linkType (string, choicelist[linkTypeInitializer]) mandatory"
+      },
+      {
+        "severity": "warning",
+        "file": "/home/runner/work/agentic/agentic/agentic-benchmark-Y7d9X7/forsure/settings/definitions.cnd",
+        "line": 56,
+        "pattern": "rawTitleProp",
+        "message": "\"title\" is a plain string — extend mix:title instead",
+        "fix": "Add mix:title to the type declaration and remove this property"
+      },
+      {
+        "severity": "error",
+        "file": "/home/runner/work/agentic/agentic/agentic-benchmark-Y7d9X7/forsure/settings/definitions.cnd",
+        "line": 17,
+        "pattern": "singleHardcodedCta",
+        "message": "forsure:heroSection: flat ctaText+ctaLink forces a single CTA — model as child nodes",
+        "fix": "Remove ctaText and ctaLink. Add: + * (ns:cta). Create a [ns:cta] type with label + j:linkType"
+      },
+      {
+        "severity": "error",
+        "file": "/home/runner/work/agentic/agentic/agentic-benchmark-Y7d9X7/forsure/settings/definitions.cnd",
+        "line": 33,
+        "pattern": "singleHardcodedCta",
+        "message": "forsure:textCard: flat ctaText+ctaLink forces a single CTA — model as child nodes",
+        "fix": "Remove ctaText and ctaLink. Add: + * (ns:cta). Create a [ns:cta] type with label + j:linkType"
+      },
+      {
+        "severity": "error",
+        "file": "/home/runner/work/agentic/agentic/agentic-benchmark-Y7d9X7/forsure/settings/definitions.cnd",
+        "line": 40,
+        "pattern": "singleHardcodedCta",
+        "message": "forsure:imageCard: flat ctaText+ctaLink forces a single CTA — model as child nodes",
+        "fix": "Remove ctaText and ctaLink. Add: + * (ns:cta). Create a [ns:cta] type with label + j:linkType"
+      }
+    ]
   }
 ]
