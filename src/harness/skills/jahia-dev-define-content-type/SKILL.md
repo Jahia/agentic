@@ -39,7 +39,9 @@ grep "pageComponent" settings/definitions.cnd
 
 ---
 
-## Step 2 — Delegate to `@jahia-cnd-author`
+## Step 2 — REQUIRED: Delegate to `@jahia-cnd-author`
+
+**Do not write CND directly.** Writing CND from memory always produces incorrect Jahia-specific patterns. The sub-agent reads reference files containing the exact syntax — you cannot reproduce this from training data.
 
 Invoke the sub-agent with the complete structured spec:
 

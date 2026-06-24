@@ -12,6 +12,7 @@ You are helping develop a **Jahia JavaScript Module** — a React-based template
 ## Agent Principles
 
 1. **Always invoke a skill before any Jahia task** — skills are the canonical source of patterns, gotchas, and API syntax. Never operate from memory alone.
+1a. **Never write CND from memory — always use `@jahia-cnd-author`** — Jahia-specific patterns (`choicelist[linkTypeInitializer]`, `mix:title`, child nodes for CTAs, `jmix:image` weakreferences) are not in your training data. Writing CND directly always produces incorrect output. Every CND file must be produced by invoking `@jahia-cnd-author` through the skill chain (`/jahia-dev-build-component` → `/jahia-dev-define-content-type` → `@jahia-cnd-author`).
 2. **Never use `yarn dev` from an agent** — it is an interactive file watcher for human developers only. Always deploy with `yarn build && yarn jahia-deploy` (one-shot, non-interactive).
 3. **Never hardcode URLs** — all navigable links must come from contributed content (JCR nodes, `j:linkType`, `buildNodeUrl`). This is a CMS: content owns the URLs.
 4. **Never use `j:linkType: "external"` for internal pages** — use `"internal"` + `j:linknode`. External URLs break on environment changes, language switches, and vanity URL rewrites.

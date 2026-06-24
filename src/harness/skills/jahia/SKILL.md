@@ -88,7 +88,11 @@ Use these recipes as starting points when the task maps to a known pattern.
 ```
 1. /jahia-dev-create-template-set   → scaffold the module
 2. /jahia-dev-start-local           → start Jahia locally
-3. /jahia-dev-build-component       → build content types + views (repeat per component)
+3. /jahia-dev-build-component       → build ONE component at a time (repeat this step per component):
+                                       - invokes /jahia-dev-define-content-type
+                                       - which invokes @jahia-cnd-author (sub-agent, mandatory)
+                                       - then invokes /jahia-dev-create-view
+                                       ⚠ Never batch-write CND — always go through @jahia-cnd-author
 4. /jahia-dev-create-page-template  → create page templates
 5. /jahia-content-create-content    → use `site.templateSets` + `site.create`, then add pages and content
 6. /jahia-content-publish           → publish the site content
