@@ -100,11 +100,11 @@ Every `<img>` must have an `alt` attribute. Decorative images use `alt=""`. Info
 // ❌ Missing alt
 <img src={buildNodeUrl(props.image)} />
 
-// ✅ Descriptive alt from content
-<img src={buildNodeUrl(props.image)} alt={props.imageAlt ?? ""} />
+// ✅ Alt from the image node's title (no extra CND property needed)
+<img src={buildNodeUrl(props.image)} alt={props.image?.getPropertyAsString("jcr:title") ?? ""} />
 ```
 
-Add `- imageAlt (string) i18n` to the CND and `imageAlt?: string` to `types.ts` for any type with an image field.
+The image node already has `jcr:title` (from `mix:title`). **Do not add `imageAlt (string) i18n`** to the CND — it forces editors to enter duplicate data.
 
 ### Colour contrast
 

@@ -28,7 +28,7 @@ Common reusable mixin patterns:
 | `nsmix:cta` | `ctaLabel`, `j:linkType` | Any type with a button or link |
 | `nsmix:badge` | `badgeText`, `badgeColor` | Cards, teasers, labelled content |
 | `nsmix:seo` | `metaTitle`, `metaDescription` | Any `jmix:mainResource` type |
-| `nsmix:media` | `image` (weakreference), `imageAltText` | Any type with a visual asset |
+| `nsmix:media` | `image` (weakreference) | Any type with a visual asset — alt text comes from the image node's `jcr:title`, never add a separate imageAlt property |
 
 Example reusable CTA mixin:
 

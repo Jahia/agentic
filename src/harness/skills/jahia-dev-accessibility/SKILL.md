@@ -110,10 +110,10 @@ color: #595959; /* 7:1 ratio on white */
 /* Bad */
 <img src={buildNodeUrl(props.image)} />
 
-/* Fix — use content from CND, fall back to empty string for decorative */
-<img src={buildNodeUrl(props.image)} alt={props.imageAlt ?? ""} />
+/* Fix — use the image node's jcr:title, fall back to empty string for decorative */
+<img src={buildNodeUrl(props.image)} alt={props.image?.getPropertyAsString("jcr:title") ?? ""} />
 ```
-Add `- imageAlt (string) i18n` to the CND and `imageAlt?: string` to `types.ts`.
+The image node already has `jcr:title` (from `mix:title`). **Do not add `imageAlt (string) i18n`** to the CND.
 
 **`button-name`** — `<button>` or `<a>` is empty (icon-only without label)
 ```tsx

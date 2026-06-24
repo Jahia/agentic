@@ -45,8 +45,7 @@ Use as the type constraint on image weakreference properties:
 **Never declare `imageAlt (string) i18n`** alongside an image weakreference. The referenced image node already has `jcr:title` (from `mix:title`). Use that as the alt text in the view:
 
 ```tsx
-const imageNode = props["image"] as JCRNode | undefined;
-const imageAlt = imageNode?.["jcr:title"] ?? "";
+const imageAlt = props.image?.getPropertyAsString("jcr:title") ?? "";
 ```
 
 Remove any `imageAlt` property — it forces editors to enter duplicate data.

@@ -381,6 +381,20 @@ function extractBranch(githubRef?: string): string {
 
 const branch = extractBranch(process.env["GITHUB_REF"]);
 
+//#MARK: git commit
+
+const gitOpts = { cwd: resultsDir, stdio: "inherit" } as const;
+const gitCI = [
+  "-c",
+  "user.name=GitHub Actions",
+  "-c",
+  "user.email=github-actions@github.com",
+] as const;
+
+// Pull latest before reading benchmark.json — concurrent CI runs both write it;
+// without this pull the second writer clobbers the first entry.
+spawnSync("git", ["pull", "origin", resultsBranch], { cwd: resultsDir, stdio: "inherit" });
+
 const benchmarkPath = join(resultsDir, "benchmark.json");
 const existing: BenchmarkRun[] = existsSync(benchmarkPath)
   ? (JSON.parse(readFileSync(benchmarkPath, "utf-8")) as BenchmarkRun[])
@@ -402,19 +416,32 @@ existing.push(run);
 writeFileSync(benchmarkPath, JSON.stringify(existing, null, 2));
 console.log(`Run saved to results/${runId}`);
 
-//#MARK: git commit
-
-const gitOpts = { cwd: resultsDir, stdio: "inherit" } as const;
-const gitCI = [
-  "-c",
-  "user.name=GitHub Actions",
-  "-c",
-  "user.email=github-actions@github.com",
-] as const;
-
 spawnSync("git", ["add", "benchmark.json", runId], gitOpts);
 spawnSync("git", [...gitCI, "commit", "-m", `chore: benchmark run ${runId}`], gitOpts);
 
 if (process.env["GITHUB_ACTIONS"]) {
-  spawnSync("git", ["push", "origin", resultsBranch], { cwd: resultsDir, stdio: "inherit" });
+  for (let attempt = 0; attempt < 5; attempt++) {
+    const push = spawnSync("git", ["push", "origin", resultsBranch], {
+      cwd: resultsDir,
+      stdio: "inherit",
+    });
+    if (push.status === 0) break;
+    if (attempt === 4) {
+      console.error("Failed to push results after 5 attempts");
+      process.exit(1);
+    }
+    console.log(`Push attempt ${attempt + 1} rejected — pulling latest and retrying...`);
+    // Undo our commit but keep screenshots; restore benchmark.json so the pull is clean
+    spawnSync("git", ["reset", "--mixed", "HEAD~1"], { cwd: resultsDir, stdio: "inherit" });
+    spawnSync("git", ["restore", "benchmark.json"], { cwd: resultsDir, stdio: "inherit" });
+    spawnSync("git", ["pull", "origin", resultsBranch], { cwd: resultsDir, stdio: "inherit" });
+    // Re-read fresh state and re-append our run
+    const fresh: BenchmarkRun[] = existsSync(benchmarkPath)
+      ? (JSON.parse(readFileSync(benchmarkPath, "utf-8")) as BenchmarkRun[])
+      : [];
+    if (!fresh.find((r) => r.id === run.id)) fresh.push(run);
+    writeFileSync(benchmarkPath, JSON.stringify(fresh, null, 2));
+    spawnSync("git", ["add", "benchmark.json", runId], gitOpts);
+    spawnSync("git", [...gitCI, "commit", "-m", `chore: benchmark run ${runId}`], gitOpts);
+  }
 }
