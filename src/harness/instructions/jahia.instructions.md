@@ -35,6 +35,7 @@ Start with `/jahia` if unsure where to begin.
 | `/jahia-dev-start-local` | Start Jahia locally (Docker or bare metal) |
 | `/jahia-dev-build-component` | Build a complete component (CND + view) — start here |
 | `/jahia-dev-define-content-type` | Define a CND content type + types.ts |
+| `/jahia-dev-review-cnd` | Validate a CND file for antipatterns — run after writing any CND |
 | `/jahia-dev-create-view` | Implement a React view (.server.tsx + CSS Module) |
 | `/jahia-dev-create-page-template` | Create a page template with Areas |
 | `/jahia-dev-query-content` | Write JCR-SQL2 queries and useJCRQuery |
