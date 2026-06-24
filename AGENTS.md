@@ -110,3 +110,15 @@ A score of `1.0` means zero violations; `0.607` ≈ one serious violation; `0.36
 3. The benchmark CI will automatically run on merge to `main` and record a new result
 
 For skill additions, create a new folder under `src/harness/skills/<skill-name>/` with a `SKILL.md` file following the APM format (front-matter: `name`, `description`, `allowed-tools`).
+
+---
+
+## Cost discipline — mandatory
+
+**One push per working session, no exceptions.**
+
+Every push to `main` that touches `src/harness/**` or `src/benchmark/**` triggers a full benchmark run. Benchmark runs consume significant tokens and CI time. 
+
+- Batch all changes into a single commit before pushing.
+- Never push a follow-up fix as a separate commit — amend or accumulate first.
+- If you catch a mistake after committing, fix it locally and push everything together.
