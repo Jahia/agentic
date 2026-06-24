@@ -240,6 +240,7 @@ const claudeProc = spawn(
   "claude",
   [
     "--print",
+    "--verbose",
     "--dangerously-skip-permissions",
     "--model",
     "claude-sonnet-4-6",
