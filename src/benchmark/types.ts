@@ -1,11 +1,5 @@
-export interface CndIssue {
-  severity: "error" | "warning";
-  file: string;
-  line?: number;
-  pattern: string;
-  message: string;
-  fix: string;
-}
+import type { CndIssue } from "../harness/skills/jahia-dev-review-cnd/scripts/check-cnd.mjs";
+export type { CndIssue };
 
 export interface PageResult {
   url: string;

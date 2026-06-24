@@ -16,7 +16,7 @@ import { chromium } from "playwright";
 import { AxeBuilder } from "@axe-core/playwright";
 import lighthouse from "lighthouse";
 import type { BenchmarkRun, PageResult } from "./types.ts";
-import { checkCndFiles } from "./cnd-checker.ts";
+import { checkCndFiles } from "../harness/skills/jahia-dev-review-cnd/scripts/check-cnd.mjs";
 
 const JAHIA_URL = "http://localhost:8080";
 const AUTHORIZATION = `Basic ${Buffer.from("root:root1234").toString("base64")}`;

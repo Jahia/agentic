@@ -1,17 +1,16 @@
-import { readFileSync, readdirSync } from "node:fs";
-import { join } from "node:path";
-import type { CndIssue } from "./types.ts";
+#!/usr/bin/env node
+import { readFileSync, readdirSync, statSync } from "node:fs";
+import { join, resolve } from "node:path";
 
-export interface CndCheckResult {
-  score: number; // 0–1, same exponential decay formula as accessibility
-  issues: CndIssue[];
-  filesChecked: number;
-}
-
-function findCndFiles(dir: string): string[] {
-  const results: string[] = [];
-  function walk(current: string) {
+function findCndFiles(dir) {
+  const results = [];
+  function walk(current) {
     try {
+      const stat = statSync(current);
+      if (stat.isFile()) {
+        if (current.endsWith(".cnd")) results.push(current);
+        return;
+      }
       for (const entry of readdirSync(current, { withFileTypes: true })) {
         if (entry.isDirectory() && entry.name !== "node_modules" && entry.name !== ".git") {
           walk(join(current, entry.name));
@@ -20,15 +19,15 @@ function findCndFiles(dir: string): string[] {
         }
       }
     } catch {
-      // skip unreadable directories
+      // skip unreadable paths
     }
   }
   walk(dir);
   return results;
 }
 
-function checkFile(filePath: string, content: string): CndIssue[] {
-  const issues: CndIssue[] = [];
+function checkFile(filePath, content) {
+  const issues = [];
   const lines = content.split("\n");
 
   lines.forEach((line, i) => {
@@ -37,13 +36,13 @@ function checkFile(filePath: string, content: string): CndIssue[] {
     if (trimmed.startsWith("//") || trimmed.startsWith("<")) return;
 
     // rawStringLink
-    if (/^-\s+\w*(Url|Href|Link)\s+\(string[,)]/i.test(trimmed) &&
-        !/choicelist\[linkTypeInitializer\]/.test(trimmed)) {
+    if (
+      /^-\s+\w*(Url|Href|Link)\s+\(string[,)]/i.test(trimmed) &&
+      !/choicelist\[linkTypeInitializer\]/.test(trimmed)
+    ) {
       const propName = trimmed.match(/^-\s+(\w+)/)?.[1] ?? "unknown";
       issues.push({
-        severity: "error",
-        file: filePath,
-        line: lineNum,
+        severity: "error", file: filePath, line: lineNum,
         pattern: "rawStringLink",
         message: `"${propName}" uses (string) for a link/url — use choicelist[linkTypeInitializer]`,
         fix: "Replace with: - j:linkType (string, choicelist[linkTypeInitializer]) mandatory",
@@ -54,9 +53,7 @@ function checkFile(filePath: string, content: string): CndIssue[] {
     if (/^-\s+(title|heroTitle|pageTitle|sectionTitle)\s+\(string[,)]/i.test(trimmed)) {
       const propName = trimmed.match(/^-\s+(\w+)/)?.[1] ?? "unknown";
       issues.push({
-        severity: "warning",
-        file: filePath,
-        line: lineNum,
+        severity: "warning", file: filePath, line: lineNum,
         pattern: "rawTitleProp",
         message: `"${propName}" is a plain string — extend mix:title instead`,
         fix: "Add mix:title to the type declaration and remove this property",
@@ -66,9 +63,7 @@ function checkFile(filePath: string, content: string): CndIssue[] {
     // weakrefNoConstraint: (weakreference) with no < constraint on same line
     if (/\(weakreference[,)]/.test(trimmed) && !/<\s*\S/.test(trimmed)) {
       issues.push({
-        severity: "warning",
-        file: filePath,
-        line: lineNum,
+        severity: "warning", file: filePath, line: lineNum,
         pattern: "weakrefNoConstraint",
         message: "Unconstrained weakreference — add a type constraint",
         fix: "Add e.g. (weakreference, picker[type='image']) < jmix:image",
@@ -78,9 +73,7 @@ function checkFile(filePath: string, content: string): CndIssue[] {
     // weakrefWrongConstraint
     if (/< ['"]jnt:file['"]/.test(trimmed)) {
       issues.push({
-        severity: "warning",
-        file: filePath,
-        line: lineNum,
+        severity: "warning", file: filePath, line: lineNum,
         pattern: "weakrefWrongConstraint",
         message: "< 'jnt:file' (quoted) does not enforce image type",
         fix: "Replace with < jmix:image for images",
@@ -95,9 +88,7 @@ function checkFile(filePath: string, content: string): CndIssue[] {
       /(title|text|label|description|subtitle|caption|alt|heading|summary|excerpt|body)/i.test(trimmed)
     ) {
       issues.push({
-        severity: "warning",
-        file: filePath,
-        line: lineNum,
+        severity: "warning", file: filePath, line: lineNum,
         pattern: "missingI18n",
         message: "User-visible string property missing i18n",
         fix: "Add i18n keyword after the type declaration",
@@ -107,48 +98,40 @@ function checkFile(filePath: string, content: string): CndIssue[] {
     // directDroppable: concrete type (not mixin) extending jmix:droppableContent
     if (trimmed.startsWith("[") && /jmix:droppableContent/.test(trimmed) && !/\bmixin\b/.test(trimmed)) {
       issues.push({
-        severity: "error",
-        file: filePath,
-        line: lineNum,
+        severity: "error", file: filePath, line: lineNum,
         pattern: "directDroppable",
         message: "Extends jmix:droppableContent directly — always extend the module component mixin",
         fix: "Replace jmix:droppableContent with nsmix:component (or your module's equivalent)",
       });
     }
 
+    // studioOnly
+    if (/jmix:studioOnly/.test(trimmed)) {
+      issues.push({
+        severity: "warning", file: filePath, line: lineNum,
+        pattern: "studioOnly",
+        message: "jmix:studioOnly causes silent rendering issues",
+        fix: "Replace with jmix:hiddenType",
+      });
+    }
+
     // redundantImageAlt: imageAlt as plain string — image node already has jcr:title
     if (/^-\s+imageAlt\s+\(string[,)]/i.test(trimmed)) {
       issues.push({
-        severity: "warning",
-        file: filePath,
-        line: lineNum,
+        severity: "warning", file: filePath, line: lineNum,
         pattern: "redundantImageAlt",
         message: '"imageAlt" is redundant — the image node\'s jcr:title (mix:title) serves as alt text',
-        fix: 'Remove imageAlt. In the view, use imageNode["jcr:title"] for alt text',
+        fix: 'Remove imageAlt. In the view, use image.getPropertyAsString("jcr:title") for alt text',
       });
     }
 
     // missingRatingConstraint: rating (long) without a range constraint
     if (/^-\s+rating\s+\(long[,)]/i.test(trimmed) && !/<\s*"?\[/.test(trimmed)) {
       issues.push({
-        severity: "warning",
-        file: filePath,
-        line: lineNum,
+        severity: "warning", file: filePath, line: lineNum,
         pattern: "missingRatingConstraint",
         message: '"rating" (long) has no range constraint',
         fix: 'Add: < "[1,5]"',
-      });
-    }
-
-    // studioOnly
-    if (/jmix:studioOnly/.test(trimmed)) {
-      issues.push({
-        severity: "warning",
-        file: filePath,
-        line: lineNum,
-        pattern: "studioOnly",
-        message: "jmix:studioOnly causes silent rendering issues",
-        fix: "Replace with jmix:hiddenType",
       });
     }
   });
@@ -164,8 +147,7 @@ function checkFile(filePath: string, content: string): CndIssue[] {
       const typeName = block.match(/^\[(\S+)\]/m)?.[1] ?? "unknown";
       const typeLineIdx = lines.findIndex((l) => l.includes(`[${typeName}]`));
       issues.push({
-        severity: "error",
-        file: filePath,
+        severity: "error", file: filePath,
         ...(typeLineIdx >= 0 ? { line: typeLineIdx + 1 } : {}),
         pattern: "singleHardcodedCta",
         message: `${typeName}: flat ctaText+ctaLink forces a single CTA — model as child nodes`,
@@ -177,9 +159,9 @@ function checkFile(filePath: string, content: string): CndIssue[] {
   return issues;
 }
 
-export function checkCndFiles(projectDir: string): CndCheckResult {
+export function checkCndFiles(projectDir) {
   const files = findCndFiles(projectDir);
-  const allIssues: CndIssue[] = [];
+  const allIssues = [];
 
   for (const file of files) {
     try {
@@ -194,7 +176,32 @@ export function checkCndFiles(projectDir: string): CndCheckResult {
     (t, { severity }) => t + (severity === "error" ? 0.5 : 0.2),
     0,
   );
-  const score = Math.exp(-penalty);
 
-  return { score, issues: allIssues, filesChecked: files.length };
+  return { score: Math.exp(-penalty), issues: allIssues, filesChecked: files.length };
+}
+
+if (import.meta.main) {
+  const targetPath = resolve(process.argv[2] ?? ".");
+  const { score, issues, filesChecked } = checkCndFiles(targetPath);
+
+  const errors = issues.filter((i) => i.severity === "error");
+  const warnings = issues.filter((i) => i.severity === "warning");
+
+  console.log(`\nCND Review: ${filesChecked} file${filesChecked !== 1 ? "s" : ""} checked\n`);
+
+  for (const [label, group] of [["ERRORS", errors], ["WARNINGS", warnings]]) {
+    if (group.length === 0) continue;
+    console.log(`${label} (${group.length}):`);
+    for (const issue of group) {
+      const loc = issue.line ? `${issue.file}:${issue.line}` : issue.file;
+      console.log(`  [${issue.pattern}] ${loc}`);
+      console.log(`    ${issue.message}`);
+      console.log(`    Fix: ${issue.fix}`);
+    }
+    console.log();
+  }
+
+  const verdict = errors.length > 0 ? "FAIL" : warnings.length > 0 ? "PASS (with warnings)" : "PASS";
+  console.log(`Result: ${verdict} (score=${score.toFixed(2)})`);
+  process.exit(errors.length > 0 ? 1 : 0);
 }

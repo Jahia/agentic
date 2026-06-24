@@ -1,56 +1,41 @@
 ---
 name: jahia-dev-review-cnd
-description: Use after writing any CND file to validate it against Jahia best practices. Checks for known antipatterns and reports file:line citations with specific fixes. Run /jahia-dev-review-cnd <path-to-definition.cnd> to check a specific file, or without arguments to check all CND files in the current module.
-allowed-tools: Read, Bash
+description: Use after writing any CND file to validate it against Jahia best practices. Runs the deterministic cnd-checker script and reports PASS / PASS (with warnings) / FAIL with file:line citations and fixes. Run /jahia-dev-review-cnd <path> to check a specific file or directory, or without arguments to check all CND files in the current module.
+allowed-tools: Bash
 ---
 
-## Overview
-
-Scans CND files for antipatterns that produce broken or low-quality content models. Reports findings as PASS, WARN, or FAIL with a concrete fix for each issue.
-
-## Step 1 — Locate CND files
-
-If a specific file was given, check only that file.
-Otherwise, find all definition.cnd files in the module:
+## Step 1 — Run the checker
 
 ```bash
-find . -name "definition.cnd" -not -path "*/node_modules/*" -not -path "*/.git/*"
+node scripts/check-cnd.mjs <path-to-file-or-directory>
+# or, to check all CND files in the module:
+node scripts/check-cnd.mjs .
 ```
 
-## Step 2 — Check each file against the antipattern list
+The script exits with code 0 for PASS/PASS (with warnings) and code 1 for FAIL.
 
-Read each file and apply every check below. For each issue found, record:
-- `file`: relative file path
-- `line`: line number
-- `pattern`: antipattern name (from the list below)
-- `message`: what's wrong
-- `fix`: exact correction
+## Step 2 — Act on the result
+
+- **FAIL** — fix every ERROR before proceeding. Send errors back to `@jahia-cnd-author` with the exact message and fix.
+- **PASS (with warnings)** — fix obvious warnings; note the rest for the editor.
+- **PASS** — continue to the next step.
 
 ---
+
+## Antipattern reference
+
+The checker enforces these patterns. Use this as a guide when interpreting output or fixing issues manually.
 
 ### Error: `rawStringLink`
-
-**Trigger**: A property whose name contains `link`, `url`, `href`, or `path` declared as `(string)` or `(string, textarea)`.
-
-```
-- ctaLink (string) i18n         ← ERROR
-- externalUrl (string)          ← ERROR
-- redirectPath (string)         ← ERROR
-```
-
-**Fix**: Replace with the link picker pattern:
+Property whose name contains `link`, `url`, `href`, or `path` declared as `(string)`.
+**Fix**: Use the link picker:
 ```cnd
 - j:linkType (string, choicelist[linkTypeInitializer]) mandatory
-// Do NOT add j:linknode or j:url — Jahia injects them
 ```
 
----
-
 ### Error: `singleHardcodedCta`
-
-**Trigger**: A type that declares both a CTA label property (`ctaText`, `ctaLabel`, `buttonText`, `buttonLabel`) AND a CTA link property (`ctaLink`, `ctaUrl`, `ctaHref`, `buttonLink`) as flat properties, with no child node definition (`+ ...`) on the type.
-
-**Fix**: Remove both properties from the parent. Add a child node definition and a separate CTA child type:
+A type with both a CTA label (`ctaText`, `ctaLabel`, `buttonText`, `buttonLabel`) and a CTA link (`ctaLink`, `ctaUrl`, `ctaHref`, `buttonLink`) as flat properties, with no child node.
+**Fix**: Replace with a child node:
 ```cnd
 + * (ns:cta)
 
@@ -59,94 +44,34 @@ Read each file and apply every check below. For each issue found, record:
  - j:linkType (string, choicelist[linkTypeInitializer]) mandatory
 ```
 
----
-
 ### Error: `directDroppable`
+A concrete type extending `jmix:droppableContent` directly.
+**Fix**: Extend the module mixin: `[ns:hero] > jnt:content, nsmix:component`
 
-**Trigger**: A concrete type declaration (not a `mixin`) that extends `jmix:droppableContent` directly.
+### Warning: `redundantImageAlt`
+`imageAlt (string)` alongside an image weakreference. The image node already has `jcr:title`.
+**Fix**: Remove `imageAlt`. In the view: `image.getPropertyAsString("jcr:title") ?? ""`
 
-```
-[ns:hero] > jnt:content, jmix:droppableContent   ← ERROR
-```
-
-**Fix**: Extend the module's component mixin instead:
-```cnd
-[ns:hero] > jnt:content, nsmix:component
-```
-
----
+### Warning: `missingRatingConstraint`
+`rating (long)` without a range constraint.
+**Fix**: Add `< "[1,5]"`
 
 ### Warning: `rawTitleProp`
-
-**Trigger**: A property named `title`, `heroTitle`, `pageTitle`, `sectionTitle`, or `name` typed as `(string)`.
-
-**Fix**: Remove the property and extend `mix:title` on the type declaration. Access as `props["jcr:title"]` in the view.
-
----
+Property named `title`, `heroTitle`, `pageTitle`, or `sectionTitle` typed as `(string)`.
+**Fix**: Remove it, extend `mix:title`. Access as `props["jcr:title"]`.
 
 ### Warning: `weakrefNoConstraint`
-
-**Trigger**: A `(weakreference)` property with no `< ` type constraint.
-
-**Fix**: Add the appropriate constraint:
-- For images: `(weakreference, picker[type='image']) < jmix:image`
-- For files: `(weakreference, picker[type='file']) < jnt:file`
-- For pages: `(weakreference) < jnt:page`
-
----
+`(weakreference)` with no `< ` type constraint.
+**Fix**: Add constraint — `< jmix:image` for images, `< jnt:file` for files.
 
 ### Warning: `weakrefWrongConstraint`
-
-**Trigger**: A weakreference with `< 'jnt:file'` (value in quotes).
-
-```
-- image (weakreference) < 'jnt:file'   ← WARNING
-```
-
-**Fix**: Use unquoted type constraint for images:
-```cnd
-- image (weakreference, picker[type='image']) < jmix:image
-```
-
----
+`< 'jnt:file'` (quoted form).
+**Fix**: `< jmix:image` (unquoted).
 
 ### Warning: `missingI18n`
-
-**Trigger**: A `(string)`, `(string, textarea)`, or `(string, richtext)` property whose name contains `title`, `text`, `label`, `description`, `subtitle`, `caption`, `alt`, `heading`, `summary`, `excerpt`, or `body` — but does not have `i18n` declared.
-
-**Fix**: Add `i18n` after the type declaration:
-```cnd
-- heroSubtitle (string, richtext) i18n   ← correct
-```
-
----
+User-visible string (`title`, `text`, `label`, `description`, `subtitle`, `caption`, `alt`, `heading`, `summary`, `excerpt`, `body`) without `i18n`.
+**Fix**: Add `i18n` after the type declaration.
 
 ### Warning: `studioOnly`
-
-**Trigger**: Any reference to `jmix:studioOnly`.
-
+Any use of `jmix:studioOnly`.
 **Fix**: Replace with `jmix:hiddenType`.
-
----
-
-## Step 3 — Report
-
-After checking all files, output:
-
-```
-CND Review: <N> files checked
-
-ERRORS (<count>):
-  [rawStringLink] src/components/Hero/definition.cnd:8
-    Property "ctaLink" uses (string) for a link
-    Fix: - j:linkType (string, choicelist[linkTypeInitializer]) mandatory
-
-WARNINGS (<count>):
-  ...
-
-Result: PASS | PASS (with warnings) | FAIL
-```
-
-- **FAIL** = any errors. Do not proceed until errors are fixed.
-- **PASS (with warnings)** = no errors, some warnings. Fix obvious ones; note the rest.
-- **PASS** = no issues found.
