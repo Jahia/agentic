@@ -244,6 +244,8 @@ const claudeProc = spawn(
     "--dangerously-skip-permissions",
     "--model",
     "claude-sonnet-4-6",
+    "--max-turns",
+    "500",
     "--output-format",
     "stream-json",
     "Read ./prompt.md and follow the instructions.",
