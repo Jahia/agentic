@@ -1094,5 +1094,49 @@
       }
     ],
     "cndQualityScore": 1
+  },
+  {
+    "id": "run-2026-06-25T13-05-33",
+    "date": "2026-06-25T13:05:58.540Z",
+    "durationSeconds": 2684,
+    "costUSD": 13.872371550000004,
+    "tokens": {
+      "input": 23,
+      "output": 3588,
+      "cached": 500865
+    },
+    "githubRunUrl": "https://github.com/Jahia/agentic/actions/runs/28169508801",
+    "branch": "main",
+    "pages": [
+      {
+        "url": "http://localhost:8080/cms/render/default/en/sites/forsure/home.html",
+        "title": "404 - Page not found",
+        "screenshot": "screenshot-0.png",
+        "accessibilityScore": 0.36787944117144233,
+        "seoScore": 0
+      },
+      {
+        "url": "http://localhost:8080/cms/render/default/en/sites/forsure/home/car-insurance.html",
+        "title": "404 - Page not found",
+        "screenshot": "screenshot-1.png",
+        "accessibilityScore": 0.36787944117144233,
+        "seoScore": 0
+      },
+      {
+        "url": "http://localhost:8080/cms/render/default/en/sites/forsure/home/health-insurance.html",
+        "title": "404 - Page not found",
+        "screenshot": "screenshot-2.png",
+        "accessibilityScore": 0.36787944117144233,
+        "seoScore": 0
+      },
+      {
+        "url": "http://localhost:8080/cms/render/default/en/sites/forsure/home/home-insurance.html",
+        "title": "404 - Page not found",
+        "screenshot": "screenshot-3.png",
+        "accessibilityScore": 0.36787944117144233,
+        "seoScore": 0
+      }
+    ],
+    "cndQualityScore": 1
   }
 ]
