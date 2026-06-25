@@ -196,6 +196,20 @@ a:hover { text-decoration: underline; }
 .tab-panel img { width: 100%; display: block; }
 .tab-panel .no-screenshot { padding: 60px; text-align: center; color: #57606a; font-size: 0.9rem; background: #f6f8fa; }
 
+/* ── CND issues ── */
+.cnd-issues { margin-bottom: 24px; }
+.cnd-issues-title { font-size: 0.95rem; font-weight: 600; color: var(--text); margin-bottom: 10px; }
+.cnd-table { width: 100%; border-collapse: collapse; font-size: 0.82rem; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; }
+.cnd-table th { background: #eaeef2; padding: 8px 12px; text-align: left; font-weight: 600; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-muted); border-bottom: 1px solid var(--border); }
+.cnd-table td { padding: 8px 12px; border-bottom: 1px solid var(--border); vertical-align: top; }
+.cnd-table tr:last-child td { border-bottom: none; }
+.cnd-severity { display: inline-block; font-size: 0.72rem; font-weight: 700; padding: 1px 7px; border-radius: 20px; text-transform: uppercase; }
+.cnd-severity-error   { background: #ffeef0; color: #cf222e; }
+.cnd-severity-warning { background: #fff8c5; color: #7d4e00; }
+.cnd-severity-info    { background: #dbeafe; color: #0550ae; }
+.cnd-file { font-family: monospace; color: var(--text-muted); }
+.cnd-fix  { color: var(--text-muted); font-style: italic; }
+
 /* ── Release banner ── */
 .release-banner { grid-column: 1 / -1; display: flex; align-items: baseline; gap: 16px; padding: 12px 0; border-top: 1px solid var(--border); }
 .release-banner + .release-banner { border-top: none; padding-top: 0; }
@@ -352,6 +366,39 @@ function detailPage(run: BenchmarkRun): string {
     <span class="run-meta-value"><span class="branch-badge">${escHtml(branch)}</span></span>
   </div>` : "";
 
+  const cndMetaItem =
+    run.cndQualityScore != null
+      ? `
+  <div class="run-meta-item">
+    <span class="run-meta-label">CND Quality</span>
+    <span class="run-meta-value">${scoreBadge("CND", run.cndQualityScore)}${run.cndIssues?.length ? ` <span style="font-size:0.8rem;color:var(--text-muted)">(${run.cndIssues.length} issue${run.cndIssues.length === 1 ? "" : "s"})</span>` : ""}</span>
+  </div>`
+      : "";
+
+  const cndIssuesSection =
+    run.cndIssues && run.cndIssues.length > 0
+      ? `
+<section class="cnd-issues">
+  <h2 class="cnd-issues-title">CND Issues</h2>
+  <table class="cnd-table">
+    <thead><tr><th>Severity</th><th>File</th><th>Line</th><th>Issue</th><th>Fix</th></tr></thead>
+    <tbody>
+      ${run.cndIssues
+        .map(
+          (issue) => `<tr class="cnd-row cnd-${escHtml(issue.severity)}">
+        <td><span class="cnd-severity cnd-severity-${escHtml(issue.severity)}">${escHtml(issue.severity)}</span></td>
+        <td class="cnd-file">${escHtml(issue.file.replace(/.*\/src\//, "src/"))}</td>
+        <td>${issue.line}</td>
+        <td>${escHtml(issue.message)}</td>
+        <td class="cnd-fix">${escHtml(issue.fix ?? "")}</td>
+      </tr>`,
+        )
+        .join("\n")}
+    </tbody>
+  </table>
+</section>`
+      : "";
+
   const metaBox = `
 <div class="run-meta">
   ${branchItem}
@@ -375,6 +422,7 @@ function detailPage(run: BenchmarkRun): string {
     <span class="run-meta-label">${run.costUSD != null ? "Cost" : "Est. Cost"}</span>
     <span class="run-meta-value">${formatCost(cost)}</span>
   </div>
+  ${cndMetaItem}
   ${githubLink ? `<div class="run-meta-item">${githubLink}</div>` : ""}
 </div>`;
 
@@ -399,8 +447,10 @@ function detailPage(run: BenchmarkRun): string {
 
   const urlBarDefault = firstPage ? escHtml(firstPage.url) : "";
   const firstPageBadges = firstPage
-    ? scoreBadge("A11y", firstPage.accessibilityScore) + scoreBadge("SEO", firstPage.seoScore)
-    : "";
+    ? scoreBadge("A11y", firstPage.accessibilityScore) +
+      scoreBadge("SEO", firstPage.seoScore) +
+      scoreBadge("CND", run.cndQualityScore ?? null)
+    : scoreBadge("CND", run.cndQualityScore ?? null);
 
   const body = `
 <header class="header">
@@ -415,6 +465,7 @@ function detailPage(run: BenchmarkRun): string {
 <main class="container">
   <a class="back" href="../../">← All runs</a>
   ${metaBox}
+  ${cndIssuesSection}
   <div class="browser">
     <div class="browser-chrome">
       <div class="browser-dots">
