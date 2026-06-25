@@ -19,6 +19,8 @@ Parse the plan carefully. Note:
 - Efficiency rules (follow them exactly)
 - Round N Fix-Ups section (present from round 2 — fix these and ONLY these before re-deploying)
 
+**Fix-cycle guard:** If PLAN.md contains a `## Round N Fix-Ups` section (where N ≥ 2), this is a fix cycle. Skip Steps 5 (create content) and 6 (write pages.json) entirely — content was already created in round 1 and pages.json already exists. Apply only the listed fixes, redeploy (Step 4), and write DEV_STATUS.md (Step 7).
+
 ---
 
 ## Step 1 — Load CND reference files
