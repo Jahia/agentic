@@ -1138,5 +1138,59 @@
       }
     ],
     "cndQualityScore": 1
+  },
+  {
+    "id": "run-2026-06-25T14-25-09",
+    "date": "2026-06-25T14:25:51.311Z",
+    "durationSeconds": 1427,
+    "costUSD": 5.9769355499999985,
+    "tokens": {
+      "input": 21,
+      "output": 3316,
+      "cached": 427222
+    },
+    "githubRunUrl": "https://github.com/Jahia/agentic/actions/runs/28175514620",
+    "branch": "main",
+    "pages": [
+      {
+        "url": "http://localhost:8080/cms/render/live/en/sites/forsure/home.html",
+        "title": "Error",
+        "screenshot": "screenshot-0.png",
+        "accessibilityScore": 0.36787944117144233,
+        "seoScore": 0
+      },
+      {
+        "url": "http://localhost:8080/cms/render/live/en/sites/forsure/home/car-insurance.html",
+        "title": "Error",
+        "screenshot": "screenshot-1.png",
+        "accessibilityScore": 0.36787944117144233,
+        "seoScore": 0
+      },
+      {
+        "url": "http://localhost:8080/cms/render/live/en/sites/forsure/home/health-insurance.html",
+        "title": "Error",
+        "screenshot": "screenshot-2.png",
+        "accessibilityScore": 0.36787944117144233,
+        "seoScore": 0
+      },
+      {
+        "url": "http://localhost:8080/cms/render/live/en/sites/forsure/home/home-insurance.html",
+        "title": "Error",
+        "screenshot": "screenshot-3.png",
+        "accessibilityScore": 0.36787944117144233,
+        "seoScore": 0
+      }
+    ],
+    "cndQualityScore": 0.8187307530779818,
+    "cndIssues": [
+      {
+        "severity": "warning",
+        "file": "/home/runner/work/agentic/agentic/agentic-benchmark-tJ9yBv/forsure/settings/definitions.cnd",
+        "line": 57,
+        "pattern": "missingRatingConstraint",
+        "message": "\"rating\" (long) has no range constraint",
+        "fix": "Add: < \"[1,5]\""
+      }
+    ]
   }
 ]
