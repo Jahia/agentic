@@ -153,10 +153,17 @@ Expected: 200
 
 ## Step 6 — Write pages.json
 
-Create `pages.json` in the project root with the array of public page URLs:
+Create `pages.json` in the project root with the array of public page URLs.
+
+**Critical:** URLs must use `/cms/render/live/en/` — never `/cms/render/default/en/`. MCP tools often return `default` URLs (edit/preview mode); always replace `default` with `live` before writing pages.json. Pages in `default` mode require authentication and will score 0 in Lighthouse.
 
 ```json
 ["http://localhost:8080/cms/render/live/en/sites/<siteKey>/home.html", "..."]
+```
+
+After writing, verify every URL in the file contains `/render/live/`:
+```bash
+grep -v "/render/live/" pages.json && echo "ERROR: non-live URLs found" || echo "OK"
 ```
 
 ---
