@@ -1,4 +1,4 @@
-/jahia
+/jahia-orchestrate
 
 You are building a Jahia website from scratch for a fictional B2C insurance company named "For Sure".
 
