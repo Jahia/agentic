@@ -297,13 +297,8 @@ function prettyPrintLine(line: string): void {
   }
 
   switch (event["type"] as string) {
-    case "system": {
-      const model = (event["model"] as string) ?? "";
-      const sid = (event["session_id"] as string) ?? "";
-      console.log(col(C.gray, `── session ${sid.slice(0, 8)} · ${model} ──`));
-      _lastTime = Date.now();
-      break;
-    }
+    case "system":
+      break; // session init — no useful info to show
     case "assistant": {
       const msg = (event["message"] as Record<string, unknown>) ?? {};
       const content = (msg["content"] as unknown[]) ?? [];
@@ -311,7 +306,7 @@ function prettyPrintLine(line: string): void {
         const b = block as Record<string, unknown>;
         if (b["type"] === "text") {
           const text = ((b["text"] as string) ?? "").trimEnd();
-          if (text) process.stdout.write(text + "\n");
+          if (text) console.log(`${col(C.bold, text)} ${fmtDiff()}`);
         } else if (b["type"] === "tool_use") {
           const name = (b["name"] as string) ?? "unknown";
           const id = (b["id"] as string) ?? "";
