@@ -11,33 +11,34 @@
     "pages": [
       {
         "url": "http://localhost:8080/cms/render/live/en/sites/forsure/home.html",
-        "title": "Home — For Sure Insurance",
+        "title": "Home \u2014 For Sure Insurance",
         "screenshot": "screenshot-0.png",
         "accessibilityScore": 0.4723665527410147,
         "seoScore": 0.82
       },
       {
         "url": "http://localhost:8080/cms/render/live/en/sites/forsure/home/car-insurance.html",
-        "title": "Car Insurance — For Sure Insurance",
+        "title": "Car Insurance \u2014 For Sure Insurance",
         "screenshot": "screenshot-1.png",
         "accessibilityScore": 0.6065306597126334,
         "seoScore": 0.91
       },
       {
         "url": "http://localhost:8080/cms/render/live/en/sites/forsure/home/health-insurance.html",
-        "title": "Health Insurance — For Sure Insurance",
+        "title": "Health Insurance \u2014 For Sure Insurance",
         "screenshot": "screenshot-2.png",
         "accessibilityScore": 0.6065306597126334,
         "seoScore": 0.91
       },
       {
         "url": "http://localhost:8080/cms/render/live/en/sites/forsure/home/home-insurance.html",
-        "title": "Home Insurance — For Sure Insurance",
+        "title": "Home Insurance \u2014 For Sure Insurance",
         "screenshot": "screenshot-3.png",
         "accessibilityScore": 0.6065306597126334,
         "seoScore": 0.91
       }
-    ]
+    ],
+    "costUSD": 32.7525
   },
   {
     "id": "run-2026-05-21T14-59-02",
@@ -78,7 +79,8 @@
         "accessibilityScore": 0.36787944117144233,
         "seoScore": 0.91
       }
-    ]
+    ],
+    "costUSD": 34.0515
   },
   {
     "id": "run-2026-05-21T15-52-52",
@@ -119,7 +121,8 @@
         "accessibilityScore": 0.36787944117144233,
         "seoScore": 0
       }
-    ]
+    ],
+    "costUSD": 45.2325
   },
   {
     "id": "run-2026-05-21T16-14-16",
@@ -160,7 +163,8 @@
         "accessibilityScore": 0.36787944117144233,
         "seoScore": 0.91
       }
-    ]
+    ],
+    "costUSD": 18.8265
   },
   {
     "id": "run-2026-05-22T11-06-56",
@@ -201,7 +205,8 @@
         "accessibilityScore": 0.6065306597126334,
         "seoScore": 0.91
       }
-    ]
+    ],
+    "costUSD": 18.0735
   },
   {
     "id": "run-2026-05-22T15-00-34",
@@ -242,7 +247,8 @@
         "accessibilityScore": 1,
         "seoScore": 1
       }
-    ]
+    ],
+    "costUSD": 28.6575
   },
   {
     "id": "run-2026-05-28T14-09-42",
@@ -283,7 +289,8 @@
         "accessibilityScore": 1,
         "seoScore": 1
       }
-    ]
+    ],
+    "costUSD": 83.877
   },
   {
     "id": "run-2026-06-15T19-30-06",
@@ -324,7 +331,8 @@
         "accessibilityScore": 1,
         "seoScore": 0.91
       }
-    ]
+    ],
+    "costUSD": 0.0
   },
   {
     "id": "run-2026-06-15T20-46-20",
@@ -365,7 +373,8 @@
         "accessibilityScore": 0.6065306597126334,
         "seoScore": 0.91
       }
-    ]
+    ],
+    "costUSD": 0.0
   },
   {
     "id": "run-2026-06-15T22-00-39",
@@ -380,7 +389,7 @@
     "pages": [
       {
         "url": "http://localhost:8080/cms/render/live/en/sites/forsure/home.html",
-        "title": "For Sure Insurance — Protect What Matters | For Sure Insurance",
+        "title": "For Sure Insurance \u2014 Protect What Matters | For Sure Insurance",
         "screenshot": "screenshot-0.png",
         "accessibilityScore": 1,
         "seoScore": 0.91
@@ -406,7 +415,8 @@
         "accessibilityScore": 1,
         "seoScore": 0.91
       }
-    ]
+    ],
+    "costUSD": 29.718
   },
   {
     "id": "run-2026-06-16T06-20-53",
@@ -421,7 +431,7 @@
     "pages": [
       {
         "url": "http://localhost:8080/cms/render/live/en/sites/forsure/home.html",
-        "title": "For Sure Insurance – Protect What Matters",
+        "title": "For Sure Insurance \u2013 Protect What Matters",
         "screenshot": "screenshot-0.png",
         "accessibilityScore": 1,
         "seoScore": 0.82
@@ -447,7 +457,8 @@
         "accessibilityScore": 1,
         "seoScore": 0.91
       }
-    ]
+    ],
+    "costUSD": 15.2595
   },
   {
     "id": "run-2026-06-16T09-45-44",
@@ -463,33 +474,34 @@
     "pages": [
       {
         "url": "http://localhost:8080/cms/render/live/en/sites/forsure/home.html",
-        "title": "Home — For Sure Insurance",
+        "title": "Home \u2014 For Sure Insurance",
         "screenshot": "screenshot-0.png",
         "accessibilityScore": 0.7788007830714049,
         "seoScore": 1
       },
       {
         "url": "http://localhost:8080/cms/render/live/en/sites/forsure/home/car-insurance.html",
-        "title": "Car Insurance — For Sure Insurance",
+        "title": "Car Insurance \u2014 For Sure Insurance",
         "screenshot": "screenshot-1.png",
         "accessibilityScore": 0.7788007830714049,
         "seoScore": 1
       },
       {
         "url": "http://localhost:8080/cms/render/live/en/sites/forsure/home/health-insurance.html",
-        "title": "Health Insurance — For Sure Insurance",
+        "title": "Health Insurance \u2014 For Sure Insurance",
         "screenshot": "screenshot-2.png",
         "accessibilityScore": 0.7788007830714049,
         "seoScore": 1
       },
       {
         "url": "http://localhost:8080/cms/render/live/en/sites/forsure/home/home-insurance.html",
-        "title": "Home Insurance — For Sure Insurance",
+        "title": "Home Insurance \u2014 For Sure Insurance",
         "screenshot": "screenshot-3.png",
         "accessibilityScore": 0.7788007830714049,
         "seoScore": 1
       }
-    ]
+    ],
+    "costUSD": 16.59
   },
   {
     "id": "run-2026-06-16T10-16-17",
@@ -531,7 +543,8 @@
         "accessibilityScore": 1,
         "seoScore": 1
       }
-    ]
+    ],
+    "costUSD": 28.6575
   },
   {
     "id": "run-2026-06-24T10-14-12",
@@ -547,28 +560,28 @@
     "pages": [
       {
         "url": "http://localhost:8080/cms/render/live/en/sites/forsure/home.html",
-        "title": "Home — For Sure Insurance",
+        "title": "Home \u2014 For Sure Insurance",
         "screenshot": "screenshot-0.png",
         "accessibilityScore": 1,
         "seoScore": 0.82
       },
       {
         "url": "http://localhost:8080/cms/render/live/en/sites/forsure/home/car-insurance.html",
-        "title": "Car Insurance — For Sure Insurance",
+        "title": "Car Insurance \u2014 For Sure Insurance",
         "screenshot": "screenshot-1.png",
         "accessibilityScore": 1,
         "seoScore": 0.91
       },
       {
         "url": "http://localhost:8080/cms/render/live/en/sites/forsure/home/health-insurance.html",
-        "title": "Health Insurance — For Sure Insurance",
+        "title": "Health Insurance \u2014 For Sure Insurance",
         "screenshot": "screenshot-2.png",
         "accessibilityScore": 1,
         "seoScore": 0.91
       },
       {
         "url": "http://localhost:8080/cms/render/live/en/sites/forsure/home/home-insurance.html",
-        "title": "Home Insurance — For Sure Insurance",
+        "title": "Home Insurance \u2014 For Sure Insurance",
         "screenshot": "screenshot-3.png",
         "accessibilityScore": 1,
         "seoScore": 0.91
@@ -581,7 +594,7 @@
         "file": "/home/runner/work/agentic/agentic/agentic-benchmark-pKo75C/forsure/settings/definitions.cnd",
         "line": 17,
         "pattern": "rawStringLink",
-        "message": "\"ctaUrl\" uses (string) for a link/url — use choicelist[linkTypeInitializer]",
+        "message": "\"ctaUrl\" uses (string) for a link/url \u2014 use choicelist[linkTypeInitializer]",
         "fix": "Replace with: - j:linkType (string, choicelist[linkTypeInitializer]) mandatory"
       },
       {
@@ -589,7 +602,7 @@
         "file": "/home/runner/work/agentic/agentic/agentic-benchmark-pKo75C/forsure/settings/definitions.cnd",
         "line": 24,
         "pattern": "rawStringLink",
-        "message": "\"ctaUrl\" uses (string) for a link/url — use choicelist[linkTypeInitializer]",
+        "message": "\"ctaUrl\" uses (string) for a link/url \u2014 use choicelist[linkTypeInitializer]",
         "fix": "Replace with: - j:linkType (string, choicelist[linkTypeInitializer]) mandatory"
       },
       {
@@ -597,7 +610,7 @@
         "file": "/home/runner/work/agentic/agentic/agentic-benchmark-pKo75C/forsure/settings/definitions.cnd",
         "line": 30,
         "pattern": "rawStringLink",
-        "message": "\"imageUrl\" uses (string) for a link/url — use choicelist[linkTypeInitializer]",
+        "message": "\"imageUrl\" uses (string) for a link/url \u2014 use choicelist[linkTypeInitializer]",
         "fix": "Replace with: - j:linkType (string, choicelist[linkTypeInitializer]) mandatory"
       },
       {
@@ -605,7 +618,7 @@
         "file": "/home/runner/work/agentic/agentic/agentic-benchmark-pKo75C/forsure/settings/definitions.cnd",
         "line": 33,
         "pattern": "rawStringLink",
-        "message": "\"ctaUrl\" uses (string) for a link/url — use choicelist[linkTypeInitializer]",
+        "message": "\"ctaUrl\" uses (string) for a link/url \u2014 use choicelist[linkTypeInitializer]",
         "fix": "Replace with: - j:linkType (string, choicelist[linkTypeInitializer]) mandatory"
       },
       {
@@ -613,7 +626,7 @@
         "file": "/home/runner/work/agentic/agentic/agentic-benchmark-pKo75C/forsure/settings/definitions.cnd",
         "line": 13,
         "pattern": "singleHardcodedCta",
-        "message": "forsure:heroSection: flat ctaText+ctaLink forces a single CTA — model as child nodes",
+        "message": "forsure:heroSection: flat ctaText+ctaLink forces a single CTA \u2014 model as child nodes",
         "fix": "Remove ctaText and ctaLink. Add: + * (ns:cta). Create a [ns:cta] type with label + j:linkType"
       },
       {
@@ -621,7 +634,7 @@
         "file": "/home/runner/work/agentic/agentic/agentic-benchmark-pKo75C/forsure/settings/definitions.cnd",
         "line": 20,
         "pattern": "singleHardcodedCta",
-        "message": "forsure:textCard: flat ctaText+ctaLink forces a single CTA — model as child nodes",
+        "message": "forsure:textCard: flat ctaText+ctaLink forces a single CTA \u2014 model as child nodes",
         "fix": "Remove ctaText and ctaLink. Add: + * (ns:cta). Create a [ns:cta] type with label + j:linkType"
       },
       {
@@ -629,10 +642,11 @@
         "file": "/home/runner/work/agentic/agentic/agentic-benchmark-pKo75C/forsure/settings/definitions.cnd",
         "line": 27,
         "pattern": "singleHardcodedCta",
-        "message": "forsure:imageCard: flat ctaText+ctaLink forces a single CTA — model as child nodes",
+        "message": "forsure:imageCard: flat ctaText+ctaLink forces a single CTA \u2014 model as child nodes",
         "fix": "Remove ctaText and ctaLink. Add: + * (ns:cta). Create a [ns:cta] type with label + j:linkType"
       }
-    ]
+    ],
+    "costUSD": 43.719
   },
   {
     "id": "run-2026-06-24T11-03-08",
@@ -682,7 +696,7 @@
         "file": "/home/runner/work/agentic/agentic/agentic-benchmark-Y7d9X7/forsure/settings/definitions.cnd",
         "line": 18,
         "pattern": "rawTitleProp",
-        "message": "\"title\" is a plain string — extend mix:title instead",
+        "message": "\"title\" is a plain string \u2014 extend mix:title instead",
         "fix": "Add mix:title to the type declaration and remove this property"
       },
       {
@@ -690,7 +704,7 @@
         "file": "/home/runner/work/agentic/agentic/agentic-benchmark-Y7d9X7/forsure/settings/definitions.cnd",
         "line": 21,
         "pattern": "rawStringLink",
-        "message": "\"ctaUrl\" uses (string) for a link/url — use choicelist[linkTypeInitializer]",
+        "message": "\"ctaUrl\" uses (string) for a link/url \u2014 use choicelist[linkTypeInitializer]",
         "fix": "Replace with: - j:linkType (string, choicelist[linkTypeInitializer]) mandatory"
       },
       {
@@ -698,7 +712,7 @@
         "file": "/home/runner/work/agentic/agentic/agentic-benchmark-Y7d9X7/forsure/settings/definitions.cnd",
         "line": 26,
         "pattern": "rawTitleProp",
-        "message": "\"title\" is a plain string — extend mix:title instead",
+        "message": "\"title\" is a plain string \u2014 extend mix:title instead",
         "fix": "Add mix:title to the type declaration and remove this property"
       },
       {
@@ -706,7 +720,7 @@
         "file": "/home/runner/work/agentic/agentic/agentic-benchmark-Y7d9X7/forsure/settings/definitions.cnd",
         "line": 34,
         "pattern": "rawTitleProp",
-        "message": "\"title\" is a plain string — extend mix:title instead",
+        "message": "\"title\" is a plain string \u2014 extend mix:title instead",
         "fix": "Add mix:title to the type declaration and remove this property"
       },
       {
@@ -714,7 +728,7 @@
         "file": "/home/runner/work/agentic/agentic/agentic-benchmark-Y7d9X7/forsure/settings/definitions.cnd",
         "line": 37,
         "pattern": "rawStringLink",
-        "message": "\"ctaUrl\" uses (string) for a link/url — use choicelist[linkTypeInitializer]",
+        "message": "\"ctaUrl\" uses (string) for a link/url \u2014 use choicelist[linkTypeInitializer]",
         "fix": "Replace with: - j:linkType (string, choicelist[linkTypeInitializer]) mandatory"
       },
       {
@@ -722,7 +736,7 @@
         "file": "/home/runner/work/agentic/agentic/agentic-benchmark-Y7d9X7/forsure/settings/definitions.cnd",
         "line": 41,
         "pattern": "rawTitleProp",
-        "message": "\"title\" is a plain string — extend mix:title instead",
+        "message": "\"title\" is a plain string \u2014 extend mix:title instead",
         "fix": "Add mix:title to the type declaration and remove this property"
       },
       {
@@ -730,7 +744,7 @@
         "file": "/home/runner/work/agentic/agentic/agentic-benchmark-Y7d9X7/forsure/settings/definitions.cnd",
         "line": 43,
         "pattern": "rawStringLink",
-        "message": "\"imageUrl\" uses (string) for a link/url — use choicelist[linkTypeInitializer]",
+        "message": "\"imageUrl\" uses (string) for a link/url \u2014 use choicelist[linkTypeInitializer]",
         "fix": "Replace with: - j:linkType (string, choicelist[linkTypeInitializer]) mandatory"
       },
       {
@@ -738,7 +752,7 @@
         "file": "/home/runner/work/agentic/agentic/agentic-benchmark-Y7d9X7/forsure/settings/definitions.cnd",
         "line": 46,
         "pattern": "rawStringLink",
-        "message": "\"ctaUrl\" uses (string) for a link/url — use choicelist[linkTypeInitializer]",
+        "message": "\"ctaUrl\" uses (string) for a link/url \u2014 use choicelist[linkTypeInitializer]",
         "fix": "Replace with: - j:linkType (string, choicelist[linkTypeInitializer]) mandatory"
       },
       {
@@ -746,7 +760,7 @@
         "file": "/home/runner/work/agentic/agentic/agentic-benchmark-Y7d9X7/forsure/settings/definitions.cnd",
         "line": 56,
         "pattern": "rawTitleProp",
-        "message": "\"title\" is a plain string — extend mix:title instead",
+        "message": "\"title\" is a plain string \u2014 extend mix:title instead",
         "fix": "Add mix:title to the type declaration and remove this property"
       },
       {
@@ -754,7 +768,7 @@
         "file": "/home/runner/work/agentic/agentic/agentic-benchmark-Y7d9X7/forsure/settings/definitions.cnd",
         "line": 17,
         "pattern": "singleHardcodedCta",
-        "message": "forsure:heroSection: flat ctaText+ctaLink forces a single CTA — model as child nodes",
+        "message": "forsure:heroSection: flat ctaText+ctaLink forces a single CTA \u2014 model as child nodes",
         "fix": "Remove ctaText and ctaLink. Add: + * (ns:cta). Create a [ns:cta] type with label + j:linkType"
       },
       {
@@ -762,7 +776,7 @@
         "file": "/home/runner/work/agentic/agentic/agentic-benchmark-Y7d9X7/forsure/settings/definitions.cnd",
         "line": 33,
         "pattern": "singleHardcodedCta",
-        "message": "forsure:textCard: flat ctaText+ctaLink forces a single CTA — model as child nodes",
+        "message": "forsure:textCard: flat ctaText+ctaLink forces a single CTA \u2014 model as child nodes",
         "fix": "Remove ctaText and ctaLink. Add: + * (ns:cta). Create a [ns:cta] type with label + j:linkType"
       },
       {
@@ -770,10 +784,11 @@
         "file": "/home/runner/work/agentic/agentic/agentic-benchmark-Y7d9X7/forsure/settings/definitions.cnd",
         "line": 40,
         "pattern": "singleHardcodedCta",
-        "message": "forsure:imageCard: flat ctaText+ctaLink forces a single CTA — model as child nodes",
+        "message": "forsure:imageCard: flat ctaText+ctaLink forces a single CTA \u2014 model as child nodes",
         "fix": "Remove ctaText and ctaLink. Add: + * (ns:cta). Create a [ns:cta] type with label + j:linkType"
       }
-    ]
+    ],
+    "costUSD": 44.814
   },
   {
     "id": "run-2026-06-24T12-26-43",
@@ -816,7 +831,8 @@
         "seoScore": 0.91
       }
     ],
-    "cndQualityScore": 1
+    "cndQualityScore": 1,
+    "costUSD": 21.741
   },
   {
     "id": "run-2026-06-24T12-36-53",
@@ -860,7 +876,8 @@
       }
     ],
     "cndQualityScore": 0.0183,
-    "cndIssues": null
+    "cndIssues": null,
+    "costUSD": 60.741
   },
   {
     "id": "run-2026-06-24T15-57-11",
@@ -910,9 +927,10 @@
         "file": "/home/runner/work/agentic/agentic/agentic-benchmark-FFBtwJ/forsure/settings/definitions.cnd",
         "line": 10,
         "pattern": "weakrefNoConstraint",
-        "message": "Unconstrained weakreference — add a type constraint",
+        "message": "Unconstrained weakreference \u2014 add a type constraint",
         "fix": "Add e.g. (weakreference, picker[type='image']) < jmix:image"
       }
-    ]
+    ],
+    "costUSD": 12.0818022
   }
 ]
