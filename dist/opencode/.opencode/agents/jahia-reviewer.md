@@ -43,8 +43,9 @@ grep -rn "j:linknode\|j:url" src/ --include="*.cnd"
 
 **C4** — View using `j:linkType` value directly as an `href`
 ```bash
-grep -rn "j:linkType" src/ --include="*.server.tsx" --include="*.client.tsx"
+grep -rn 'href=.*j:linkType\|href=.*\["j:linkType"\]' src/ --include="*.server.tsx" --include="*.client.tsx"
 ```
+Note: a `switch(props["j:linkType"])` block is CORRECT usage — do NOT flag it. Only flag if the `j:linkType` value appears directly as an `href` attribute.
 
 **C8** — All `<Area>` elements using the same generic `nodeType`
 ```bash

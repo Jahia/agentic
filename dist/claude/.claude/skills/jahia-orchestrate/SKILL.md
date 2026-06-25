@@ -39,17 +39,21 @@ Write `PLAN.md` in the project root with the full build spec. Use the format:
 ## Pages
 <list from task description>
 
+## Page Template
+- `src/templates/<ModuleName>Template/default.server.tsx` — root layout with `<header>` (nav), `<main>` (areas), `<footer>`, and `<title>` tag
+- Build this FIRST before any page-specific components
+
 ## Components
 <list from task description with field descriptions>
 
 ## Efficiency Rules
 - ONE build+deploy at the end — do not deploy after each component
-- Skip /jahia-dev-accessibility
 - Skip UI validation in Page Builder
 - Write CND directly — load cnd reference files from .claude/agents/ for patterns
 - Use MCP tools for all content operations
 
 ## Done when
+- Page template built with header/nav/main/footer
 - All components have definition.cnd + default.server.tsx + component.module.css
 - yarn build && yarn jahia-deploy succeeded
 - All pages created via MCP and published

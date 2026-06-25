@@ -45,9 +45,54 @@ Note the namespace prefix and whether `namespacemix:pageComponent` exists.
 
 ---
 
-## Step 3 — Build all components
+## Step 3 — Build page template, then all components
 
-For **each component** in the plan:
+**Build the page template first.** Every website needs a root layout. Create:
+
+`src/templates/<ModuleName>Template/default.server.tsx`
+
+```tsx
+import React from 'react';
+import { Area, defineJahiaComponent, buildNodeUrl, useServerContext } from '@jahia/javascript-modules-library';
+import styles from './template.module.css';
+
+export default function Template() {
+  const { currentNode, renderContext } = useServerContext();
+  const siteName = renderContext?.getSite()?.getName() ?? 'For Sure';
+  return (
+    <>
+      <html lang="en">
+        <head>
+          <meta charSet="UTF-8" />
+          <meta name="viewport" content="width=device-width, initial-scale=1" />
+          <title>{currentNode?.displayName ? `${currentNode.displayName} — ${siteName}` : siteName}</title>
+        </head>
+        <body>
+          <header className={styles.header}>
+            <nav aria-label="Main navigation">
+              <Area name="header-nav" />
+            </nav>
+          </header>
+          <main id="main-content">
+            <Area name="pagecontent" />
+          </main>
+          <footer className={styles.footer}>
+            <Area name="footer" />
+          </footer>
+        </body>
+      </html>
+    </>
+  );
+}
+
+defineJahiaComponent({ displayName: 'Default Template', nodeType: '<namespace>:template', componentType: 'template' });
+```
+
+Also create `src/templates/<ModuleName>Template/template.module.css` with minimal header/footer styles.
+
+Replace `<namespace>` with the actual module namespace from Step 2.
+
+**Then, for each component** in the plan:
 
 1. Create `src/components/<Category>/<Name>/definition.cnd`
    - Namespace declarations at top

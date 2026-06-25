@@ -12,7 +12,7 @@ You are helping develop a **Jahia JavaScript Module** — a React-based template
 ## Agent Principles
 
 1. **Always invoke a skill before any Jahia task** — skills are the canonical source of patterns, gotchas, and API syntax. Never operate from memory alone.
-1a. **Never write CND from memory — always use `@jahia-cnd-author`** — Jahia-specific patterns (`choicelist[linkTypeInitializer]`, `mix:title`, child nodes for CTAs, `jmix:image` weakreferences) are not in your training data. Writing CND directly always produces incorrect output. Every CND file must be produced by invoking `@jahia-cnd-author` through the skill chain (`/jahia-dev-build-component` → `/jahia-dev-define-content-type` → `@jahia-cnd-author`).
+1a. **Always load CND reference files before writing any CND** — Jahia-specific patterns (`choicelist[linkTypeInitializer]`, `mix:title`, child nodes for CTAs, `jmix:image` weakreferences) are not in your training data. Before writing any CND, read the reference files: `find . -maxdepth 4 -name 'cnd-jahia-mixins*' | head -3`. When working interactively through skill chains, prefer `@jahia-cnd-author` (it loads these files for you).
 2. **Never use `yarn dev` from an agent** — it is an interactive file watcher for human developers only. Always deploy with `yarn build && yarn jahia-deploy` (one-shot, non-interactive).
 3. **Never hardcode URLs** — all navigable links must come from contributed content (JCR nodes, `j:linkType`, `buildNodeUrl`). This is a CMS: content owns the URLs.
 4. **Never use `j:linkType: "external"` for internal pages** — use `"internal"` + `j:linknode`. External URLs break on environment changes, language switches, and vanity URL rewrites.
@@ -22,6 +22,8 @@ You are helping develop a **Jahia JavaScript Module** — a React-based template
 8. **Build accessible HTML from the start** — every view must use semantic HTML (`<main>`, `<header>`, `<nav>`, `<footer>`, `<section>`, `<article>`), include exactly one `<h1>` per page, use a strict heading hierarchy (h1 → h2 → h3), add `alt` text to every `<img>`, and use sufficient colour contrast (≥ 4.5:1 for body text). Baking this in during authoring is faster than a post-hoc audit.
 9. **Run one accessibility audit at the end** — after all components are built and content is published, invoke `/jahia-dev-accessibility` once to catch any remaining violations. Do not audit after every individual component; it wastes time on pages that are not yet complete.
 10. **Batch builds and deploys** — build all components together, then run `yarn build && yarn jahia-deploy` once rather than after each individual component. Deploy once before populating content.
+11. **Always build a page template first** — every website needs a root template at `src/templates/<ModuleName>Template/default.server.tsx`. It must include: a `<header>` with site navigation (links to all main pages), a `<main>` with content Areas, and a `<footer>`. Include `<title>{currentPage?.displayName} — Site Name</title>` in the template `<head>` for SEO and browser tab labels. Build and deploy the page template before any page-specific components.
+12. **SEO baseline** — every page template must render a `<title>` tag, all `<img>` must have descriptive `alt` text, all links must have visible text (no icon-only links without `aria-label`), and pages must have a single `<h1>` matching the page title.
 
 ## Skill Map
 
