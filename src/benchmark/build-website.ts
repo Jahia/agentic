@@ -319,7 +319,7 @@ function runCard(run: BenchmarkRun): string {
       : scoreBadge("CND", run.cndQualityScore ?? null);
 
   const totalTokens = run.tokens.input + run.tokens.output;
-  const cost = estimateCost(run.tokens);
+  const cost = run.costUSD ?? estimateCost(run.tokens);
   const branch = run.branch || "main";
   const branchBadge = branch !== "main" ? `<span class="branch-badge">${escHtml(branch)}</span>` : "";
 
@@ -339,7 +339,7 @@ function runCard(run: BenchmarkRun): string {
 
 function detailPage(run: BenchmarkRun): string {
   const totalTokens = run.tokens.input + run.tokens.output;
-  const cost = estimateCost(run.tokens);
+  const cost = run.costUSD ?? estimateCost(run.tokens);
   const firstPage = run.pages[0];
   const githubLink = run.githubRunUrl
     ? `<a class="run-meta-link" href="${run.githubRunUrl}" target="_blank" rel="noopener">View run logs ↗</a>`
@@ -372,7 +372,7 @@ function detailPage(run: BenchmarkRun): string {
     <span class="run-meta-value">${formatCount(totalTokens)} tokens</span>
   </div>
   <div class="run-meta-item">
-    <span class="run-meta-label">Est. Cost</span>
+    <span class="run-meta-label">${run.costUSD != null ? "Cost" : "Est. Cost"}</span>
     <span class="run-meta-value">${formatCost(cost)}</span>
   </div>
   ${githubLink ? `<div class="run-meta-item">${githubLink}</div>` : ""}

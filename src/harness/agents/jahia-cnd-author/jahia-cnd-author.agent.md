@@ -25,16 +25,23 @@ Usage: <where this component appears>
 Children: <repeatable sub-items if any>
 ```
 
-## Step 1 — Load reference files
+## Step 1 — Locate and load reference files
 
-Before writing any CND, use the `Read` tool to load the reference files for the property types you need:
+Reference files live next to this agent file. First, discover where they are:
 
-- **Always load**: `Read .github/agents/cnd-jahia-mixins.agent.md` (you always need to know which native mixins to extend)
-- **If any text, link, or choice properties**: `Read .github/agents/cnd-string-selectors.agent.md`
-- **If any repeatable child items**: `Read .github/agents/cnd-child-nodes.agent.md`
-- **If any numbers, dates, or booleans**: `Read .github/agents/cnd-numbers-dates.agent.md`
+```bash
+# Find the directory that contains the cnd-jahia-mixins reference file
+find . -maxdepth 4 -name "cnd-jahia-mixins*" 2>/dev/null | head -5
+```
 
-Do not skip this step. These files contain the exact CND patterns you must follow.
+Then read the files you need (using whichever path the find command returned):
+
+- **Always read**: `cnd-jahia-mixins` (required — tells you which native mixins to extend)
+- **If text, link, or choice properties**: `cnd-string-selectors`
+- **If repeatable child items**: `cnd-child-nodes`
+- **If numbers, dates, or booleans**: `cnd-numbers-dates`
+
+Do not skip this step. These files contain the exact CND patterns you must use. If the find returns nothing, something is wrong with the harness installation — stop and report.
 
 ## Step 2 — Resolve namespace and location
 

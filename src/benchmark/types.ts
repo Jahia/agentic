@@ -13,6 +13,7 @@ export interface BenchmarkRun {
   id: string;
   date: string; // ISO 8601
   durationSeconds: number;
+  costUSD?: number; // actual cost from Claude; falls back to estimateCost() when absent
   tokens: {
     input: number;
     output: number;
