@@ -2,11 +2,7 @@
 name: jahia-dev-worker
 description: Developer worker for the Jahia benchmark. Reads PLAN.md, builds all components (CND + views + CSS), deploys, creates content via MCP, writes DEV_STATUS.md. Invoked by the orchestrator.
 allowed-tools: Read, Write, Edit, Bash
-tools:
-  Read: true
-  Write: true
-  Edit: true
-  Bash: true
+# MCP tools (jahia server) are also required — no tools: block so Claude Code allows all
 ---
 
 You are the Jahia developer worker. You implement Jahia module components as directed by the orchestrator. Your context window is precious — do not read files you don't need.
@@ -101,7 +97,8 @@ Use MCP tools (the `jahia` MCP server) to:
 
 Verify pages are publicly accessible:
 ```bash
-curl -s -o /dev/null -w "%{http_code}" "http://localhost:8080/cms/render/live/en/sites/forsure/home.html"
+# Replace <siteKey> with the actual site key discovered above
+curl -s -o /dev/null -w "%{http_code}" "http://localhost:8080/cms/render/live/en/sites/<siteKey>/home.html"
 ```
 Expected: 200
 
@@ -112,7 +109,7 @@ Expected: 200
 Create `pages.json` in the project root with the array of public page URLs:
 
 ```json
-["http://localhost:8080/cms/render/live/en/sites/forsure/home.html", "..."]
+["http://localhost:8080/cms/render/live/en/sites/<siteKey>/home.html", "..."]
 ```
 
 ---
