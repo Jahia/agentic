@@ -1050,5 +1050,49 @@
         "fix": "Remove ctaText and ctaLink. Add: + * (ns:cta). Create a [ns:cta] type with label + j:linkType"
       }
     ]
+  },
+  {
+    "id": "run-2026-06-25T11-23-46",
+    "date": "2026-06-25T11:24:17.225Z",
+    "durationSeconds": 2015,
+    "costUSD": 11.010646599999996,
+    "tokens": {
+      "input": 22,
+      "output": 3847,
+      "cached": 476116
+    },
+    "githubRunUrl": "https://github.com/Jahia/agentic/actions/runs/28164755653",
+    "branch": "main",
+    "pages": [
+      {
+        "url": "http://localhost:8080/cms/render/live/en/sites/forsure/home.html",
+        "title": "Home",
+        "screenshot": "screenshot-0.png",
+        "accessibilityScore": 0.6065306597126334,
+        "seoScore": 0.91
+      },
+      {
+        "url": "http://localhost:8080/cms/render/live/en/sites/forsure/home/car-insurance.html",
+        "title": "Car Insurance",
+        "screenshot": "screenshot-1.png",
+        "accessibilityScore": 0.6065306597126334,
+        "seoScore": 0.91
+      },
+      {
+        "url": "http://localhost:8080/cms/render/live/en/sites/forsure/home/health-insurance.html",
+        "title": "Health Insurance",
+        "screenshot": "screenshot-2.png",
+        "accessibilityScore": 0.6065306597126334,
+        "seoScore": 0.91
+      },
+      {
+        "url": "http://localhost:8080/cms/render/live/en/sites/forsure/home/home-insurance.html",
+        "title": "Home Insurance",
+        "screenshot": "screenshot-3.png",
+        "accessibilityScore": 0.6065306597126334,
+        "seoScore": 0.91
+      }
+    ],
+    "cndQualityScore": 1
   }
 ]
