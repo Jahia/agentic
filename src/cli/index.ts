@@ -137,12 +137,12 @@ for (const { src, dst } of filesToCopy) {
   copyFileSync(src, dst);
 }
 
-if (target === "claude") {
+if (target === "claude" && !process.env.CI) {
   p.log.step("Installing TypeScript LSP plugin for Claude Code…");
   const pluginInstall = spawnSync(
     "claude",
     ["plugin", "install", "typescript-lsp@claude-plugins-official"],
-    { encoding: "utf-8" },
+    { encoding: "utf-8", timeout: 15_000 },
   );
   if (pluginInstall.error || pluginInstall.status !== 0) {
     p.log.warn(
