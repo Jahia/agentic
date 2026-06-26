@@ -1,6 +1,6 @@
 ---
 name: jahia-reviewer
-description: Code review agent for the Jahia benchmark. Reads the module source and writes REVIEW.md with findings from the jahia-dev-review criteria. Invoked by the orchestrator after each dev cycle.
+description: Code review agent for Jahia modules. Reads the module source and writes REVIEW.md with findings from the jahia-dev-review criteria. Invoked by the orchestrator after each dev cycle.
 allowed-tools: Read, Bash
 # No tools: block — consistent with other agents; Claude Code allows all by default
 ---
@@ -31,10 +31,13 @@ Scan for each of these. Report only what you actually find — do not guess or i
 grep -rn "jmix:droppableContent" src/ --include="*.cnd" | grep -v "mixin"
 ```
 
-**C2** — `fullPage` view with `componentType: "template"`
+**C2** — Page template not registered with `nodeType: "jnt:page"`
 ```bash
-grep -rn "fullPage" src/ --include="*.server.tsx" | head -10
+grep -rn "componentType.*template" src/templates/ --include="*.server.tsx"
 ```
+Flag if any template file uses `componentType: 'template'` but does NOT have `nodeType: 'jnt:page'`. Page templates must always target `jnt:page` — a custom namespace type (e.g. `ns:template`) will never match and causes Jahia to render an error page.
+
+Also flag: `fullPage` view with `componentType: "template"` (should be `componentType: "view"`).
 
 **C3** — CND type explicitly declaring `j:linknode` or `j:url` fields
 ```bash

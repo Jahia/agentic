@@ -1,6 +1,6 @@
 ---
 name: jahia-dev-worker
-description: Developer worker for the Jahia benchmark. Reads PLAN.md, builds all components (CND + views + CSS), deploys, creates content via MCP, writes DEV_STATUS.md. Invoked by the orchestrator.
+description: Developer worker for Jahia module builds. Reads PLAN.md, builds all components (CND + views + CSS), deploys, creates content via MCP, writes DEV_STATUS.md. Invoked by the orchestrator.
 allowed-tools: Read, Write, Edit, Bash
 # MCP tools (jahia server) are also required — no tools: block so Claude Code allows all
 ---
@@ -53,44 +53,42 @@ Note the namespace prefix and whether `namespacemix:pageComponent` exists.
 
 ```tsx
 import React from 'react';
-import { Area, defineJahiaComponent, buildNodeUrl, useServerContext } from '@jahia/javascript-modules-library';
+import { Area, AbsoluteArea, jahiaComponent } from '@jahia/javascript-modules-library';
 import styles from './template.module.css';
 
-export default function Template() {
-  const { currentNode, renderContext } = useServerContext();
-  const siteName = renderContext?.getSite()?.getName() ?? 'For Sure';
-  return (
-    <>
-      <html lang="en">
-        <head>
-          <meta charSet="UTF-8" />
-          <meta name="viewport" content="width=device-width, initial-scale=1" />
-          <title>{currentNode?.displayName ? `${currentNode.displayName} — ${siteName}` : siteName}</title>
-        </head>
-        <body>
-          <header className={styles.header}>
-            <nav aria-label="Main navigation">
-              <Area name="header-nav" />
-            </nav>
-          </header>
-          <main id="main-content">
-            <Area name="pagecontent" />
-          </main>
-          <footer className={styles.footer}>
-            <Area name="footer" />
-          </footer>
-        </body>
-      </html>
-    </>
-  );
-}
-
-defineJahiaComponent({ displayName: 'Default Template', nodeType: '<namespace>:template', componentType: 'template' });
+jahiaComponent(
+  {
+    componentType: 'template',
+    nodeType: 'jnt:page',
+    displayName: 'Default Template',
+    name: 'default',
+  },
+  ({ 'jcr:title': title }, { renderContext }) => (
+    <html lang="en">
+      <head>
+        <meta charSet="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <title>{title}</title>
+      </head>
+      <body>
+        <header className={styles.header}>
+          <nav aria-label="Main navigation">
+            <AbsoluteArea name="header-nav" parent={renderContext.getSite()} />
+          </nav>
+        </header>
+        <main id="main-content">
+          <Area name="pagecontent" />
+        </main>
+        <footer className={styles.footer}>
+          <AbsoluteArea name="footer" parent={renderContext.getSite()} />
+        </footer>
+      </body>
+    </html>
+  )
+);
 ```
 
 Also create `src/templates/<ModuleName>Template/template.module.css` with minimal header/footer styles.
-
-Replace `<namespace>` with the actual module namespace from Step 2.
 
 **Then, for each component** in the plan:
 
@@ -122,6 +120,15 @@ Replace `<namespace>` with the actual module namespace from Step 2.
 
 **Do not deploy between components.** Build everything first.
 
+**Validate CND before deploying:**
+
+```bash
+CND_SCRIPT=$(find .claude .agents -name "check-cnd.mjs" 2>/dev/null | head -1)
+[ -n "$CND_SCRIPT" ] && node "$CND_SCRIPT" src/
+```
+
+If the checker exits 1 (FAIL), fix every ERROR before proceeding. Warnings are informational only.
+
 ---
 
 ## Step 4 — Single deploy
@@ -138,32 +145,36 @@ If it fails, read the error, fix it, and retry. Record the outcome.
 
 Use MCP tools (the `jahia` MCP server) to:
 1. Discover the site key
-2. Create the 4 pages (homepage + 3 product pages) as specified in PLAN.md
+2. Create all pages as specified in PLAN.md — set each page's `jcr:title` to a full descriptive title (e.g. "Home | Acme Corp", "Car Insurance | Acme Corp") so the `<title>` tag is meaningful for SEO
 3. Create content nodes and populate them with realistic copy
 4. Publish all pages
 
-Verify pages are publicly accessible:
+**Verify every page renders real content** — do not proceed until all pages pass:
+
 ```bash
-# Replace <siteKey> with the actual site key discovered above
-curl -s -o /dev/null -w "%{http_code}" "http://localhost:8080/cms/render/live/en/sites/<siteKey>/home.html"
+# Run for each page URL. Replace <url> with the actual /cms/render/live/... URL.
+curl -s -o /tmp/page_check.html -w "%{http_code}" "<url>"
 ```
-Expected: 200
+
+For each page, check four things:
+1. HTTP status is `200` — if not, the page wasn't created or published correctly
+2. No Jahia error markers: `grep -c "error details are shown in development mode\|pl\.touk\.throwing" /tmp/page_check.html` — if > 0, a component is throwing at render time; read the error and fix it
+3. Page has a `<title>`: `grep -o '<title>[^<]*</title>' /tmp/page_check.html` — if empty or shows "Error", the template isn't rendering
+4. `<main>` has real content: `sed -n 's/.*<main[^>]*>\(.*\)<\/main>.*/\1/p' /tmp/page_check.html | sed 's/<[^>]*>//g' | tr -d ' \n' | wc -c` — if < 100 characters, content wasn't populated; go back to MCP and create/publish content
+
+**If any check fails:** investigate the error, fix the component or content, redeploy if needed, and re-verify. Do not write `pages.json` until all pages pass all four checks.
 
 ---
 
 ## Step 6 — Write pages.json
 
-Create `pages.json` in the project root with the array of public page URLs.
+Only reach this step once every page verified clean in Step 5.
 
-**Critical:** URLs must use `/cms/render/live/en/` — never `/cms/render/default/en/`. MCP tools often return `default` URLs (edit/preview mode); always replace `default` with `live` before writing pages.json. Pages in `default` mode require authentication and will score 0 in Lighthouse.
+Collect the public URLs for all pages — URLs that return the full rendered page without requiring authentication. MCP tools often return edit/preview mode URLs; convert them to their publicly accessible equivalent before writing.
 
+Write `pages.json`:
 ```json
 ["http://localhost:8080/cms/render/live/en/sites/<siteKey>/home.html", "..."]
-```
-
-After writing, verify every URL in the file contains `/render/live/`:
-```bash
-grep -v "/render/live/" pages.json && echo "ERROR: non-live URLs found" || echo "OK"
 ```
 
 ---

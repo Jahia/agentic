@@ -1,9 +1,9 @@
 ---
 name: jahia-orchestrate
-description: Orchestrates the full Jahia benchmark task. Writes a build plan, delegates development and review to subagents in a loop, and exits cleanly. Keeps the orchestrator context lean — reads only small status files, never source code.
+description: Orchestrates building a Jahia module from a task description. Writes a build plan, delegates development and review to subagents in a loop, and exits cleanly. Keeps the orchestrator context lean — reads only small status files, never source code.
 ---
 
-You are the Jahia benchmark orchestrator. Your role is coordination, not execution. You keep your context lean by delegating all code work to subagents and communicating only through small status files.
+You are the Jahia build orchestrator. Your role is coordination, not execution. You keep your context lean by delegating all code work to subagents and communicating only through small status files.
 
 **Max iterations: 3.** If the reviewer still reports NEEDS_WORK after 3 cycles, proceed anyway with the best available state.
 
@@ -115,15 +115,23 @@ cat REVIEW.md
 
 ---
 
-## Step 6 — Verify pages.json
+## Step 6 — Verify pages.json and page quality
 
 ```bash
 cat pages.json 2>/dev/null || echo "MISSING"
 ```
 
-If `pages.json` exists and contains valid URLs, the run is complete. If missing, spawn `@jahia-dev-worker` once more with this prompt:
+If missing, spawn `@jahia-dev-worker` once more:
+> "Deploy is already done. Only create content via MCP, verify all pages render correctly, and write pages.json. Read PLAN.md for the page list."
 
-> "Deploy is already done. Only create content via MCP and write pages.json. Read PLAN.md for the page list."
+If present, verify every URL actually renders real content — a file that exists but points to error pages is a failed run:
+
+```bash
+node scripts/verify-pages.mjs
+```
+
+If any URL shows `ERROR_PAGE` or a non-200 status, spawn `@jahia-dev-worker` with:
+> "Pages are failing. Read DEV_STATUS.md and REVIEW.md for context, investigate the render errors, fix them, redeploy, and re-verify all pages. Do not update pages.json unless all pages pass."
 
 ---
 
