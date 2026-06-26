@@ -1,5 +1,9 @@
 # `@jahia/agentic`
 
+## 0.4.0
+
+* Specialized content modeling agent.
+
 ## 0.3.0
 
 * Replaced GraphQL with MCP for content operations. (#6)
