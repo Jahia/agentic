@@ -29,19 +29,28 @@ jahiaComponent(
     name: "default",
   },
   ({ "jcr:title": title }, { renderContext, mainNode }) => {
-    const navPages = getChildNodes(renderContext.getSite(), -1, 0, n => n.isNodeType("jnt:page"));
+    // Pages live under /sites/<key>/home — not directly under the site node
+    const siteHome = renderContext.getSite().getNode("home");
+    const navPages = getChildNodes(siteHome, -1, 0, n => n.isNodeType("jnt:page"));
+    const siteName = renderContext.getSite().getPropertyAsString("j:siteTitle") ?? renderContext.getSite().getName();
     return (
       <html lang="en">
         <head>
           <meta charSet="UTF-8" />
           <meta name="viewport" content="width=device-width, initial-scale=1" />
-          <title>{title}</title>
+          {/* jcr:title is the short page name — template appends site name for SEO */}
+          <title>{title}{siteName ? ` | ${siteName}` : ""}</title>
         </head>
         <body>
           <a href="#main-content" className={styles.skipLink}>Skip to main content</a>
           <header className={styles.header}>
             <nav aria-label="Main navigation">
               <ul className={styles.navList}>
+                <li key={siteHome.getPath()}>
+                  <a href={buildNodeUrl(siteHome)} aria-current={siteHome.getPath() === mainNode.getPath() ? "page" : undefined}>
+                    {siteHome.getPropertyAsString("jcr:title") ?? siteHome.getName()}
+                  </a>
+                </li>
                 {navPages.map(page => (
                   <li key={page.getPath()}>
                     <a
@@ -297,7 +306,7 @@ After deploying, the new template will appear in the **template selection** step
 - [ ] `componentType: "template"` and `nodeType: "jnt:page"`
 - [ ] `name` is set (used in Jahia UI template picker)
 - [ ] Skip link present: `<a href="#main-content">Skip to main content</a>`
-- [ ] Nav built from `getChildNodes` — not `AbsoluteArea`, not hardcoded links
+- [ ] Nav built from `getChildNodes(site.getNode('home'), ...)` — pages are children of `home`, not of the site node
 - [ ] `<h1>{title}</h1>` in the template — no `<h1>` in any component
 - [ ] `<footer>` landmark always has visible content (never empty)
 - [ ] Areas use a custom area node type (not bare `<Area name="..."/>`)

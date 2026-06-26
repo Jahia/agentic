@@ -64,19 +64,31 @@ jahiaComponent(
     name: 'default',
   },
   ({ 'jcr:title': title }, { renderContext, mainNode }) => {
-    const navPages = getChildNodes(renderContext.getSite(), -1, 0, n => n.isNodeType('jnt:page'));
+    // Pages live under /sites/<key>/home — not directly under the site node
+    const siteHome = renderContext.getSite().getNode('home');
+    const navPages = getChildNodes(siteHome, -1, 0, n => n.isNodeType('jnt:page'));
+    const siteName = renderContext.getSite().getPropertyAsString('j:siteTitle') ?? renderContext.getSite().getName();
     return (
       <html lang="en">
         <head>
           <meta charSet="UTF-8" />
           <meta name="viewport" content="width=device-width, initial-scale=1" />
-          <title>{title}</title>
+          {/* title = short page name + site name — never set jcr:title to the full "Page | Site" string */}
+          <title>{title}{siteName ? ` | ${siteName}` : ''}</title>
         </head>
         <body>
           <a href="#main-content" className={styles.skipLink}>Skip to main content</a>
           <header className={styles.header}>
             <nav aria-label="Main navigation">
               <ul className={styles.navList}>
+                <li key={siteHome.getPath()}>
+                  <a
+                    href={buildNodeUrl(siteHome)}
+                    aria-current={siteHome.getPath() === mainNode.getPath() ? 'page' : undefined}
+                  >
+                    {siteHome.getPropertyAsString('jcr:title') ?? siteHome.getName()}
+                  </a>
+                </li>
                 {navPages.map(page => (
                   <li key={page.getPath()}>
                     <a
@@ -138,6 +150,14 @@ Also create `src/templates/<ModuleName>Template/template.module.css` with minima
 
 **After each component, deploy and verify it renders before moving to the next.**
 
+**Check TypeScript types before each deploy:**
+
+```bash
+tsc --noEmit 2>&1 | head -30
+```
+
+Fix every type error before running `yarn build`. Use `mcp__ide__getDiagnostics` on each `.tsx` file for inline feedback — never grep `node_modules` for API signatures.
+
 **Validate CND before each deploy:**
 
 ```bash
@@ -163,9 +183,10 @@ If it fails, read the error, fix it, and retry. Record the outcome.
 
 Use MCP tools (the `jahia` MCP server) to:
 1. Discover the site key
-2. Create all pages as specified in PLAN.md — set each page's `jcr:title` to a full descriptive title (e.g. "Home | Acme Corp", "Car Insurance | Acme Corp") so the `<title>` tag is meaningful for SEO
-3. Create content nodes and populate them with realistic copy
-4. Publish all pages
+2. Create all pages as children of the home page (`parentPath: /sites/<key>/home`) — set `jcr:title` to the **short page name only** (e.g. "Car Insurance", not "Car Insurance | Acme Corp"). The template appends the site name to `<title>` automatically.
+3. Before creating content nodes, verify the parent area node exists with `content.get`. If it does not exist, create it first with the correct `jcr:primaryType` (e.g. `namespace:pageArea`).
+4. Create content nodes and populate them with realistic copy
+5. Publish all pages
 
 **Verify every page renders real content and passes a11y + SEO checks:**
 
