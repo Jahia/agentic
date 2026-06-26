@@ -27,6 +27,15 @@ jobs:
 
       - run: npx playwright install chromium --with-deps
 
+      - name: Install TypeScript language server
+        run: npm install -g typescript-language-server typescript
+
+      - name: Install TypeScript LSP plugin for Claude Code
+        run: claude plugin install typescript-lsp@claude-plugins-official
+        env:
+          CLAUDE_CODE_OAUTH_TOKEN: ${{ secrets.CLAUDE_CODE_API_TOKEN }}
+        timeout-minutes: 2
+
       - id: benchmark
         run: yarn benchmark
         env:
