@@ -21,7 +21,7 @@ You are helping develop a **Jahia JavaScript Module** — a React-based template
 6. **All props are optional at runtime** — even mandatory CND fields. Always guard against `undefined` in views.
 7. **Always include `-H "Origin: http://localhost:8080"` in every GraphQL curl** — omitting it returns `Permission denied` even with correct credentials.
 8. **Build accessible HTML from the start** — every view must use semantic HTML (`<main>`, `<header>`, `<nav>`, `<footer>`, `<section>`, `<article>`), include exactly one `<h1>` per page (in the template from `jcr:title` — never inside a component), use a strict heading hierarchy (h1 in template → h2 in components → h3 for sub-items), add `alt` text to every `<img>` with a meaningful fallback (`imageAlt || title || 'Image'` — never empty string), ensure sufficient colour contrast (≥ 4.5:1 for body text), include a skip link at the top of the template, and never leave a landmark (`<nav>`, `<footer>`) empty.
-9. **Run one accessibility audit at the end** — after all components are built and content is published, invoke `/jahia-dev-accessibility` once to catch any remaining violations. Do not audit after every individual component; it wastes time on pages that are not yet complete.
+9. **Review quality after each deploy** — after deploying and populating content, run `/jahia-dev-site-review` to get a scored a11y + SEO report. Fix any critical/serious violations before moving on. Do not write `pages.json` until the review passes.
 10. **Deploy iteratively** — deploy after each component with `yarn build && yarn jahia-deploy`, verify it renders, then move to the next. Don't accumulate components before deploying; a broken component is easier to diagnose in isolation.
 11. **Collocate everything per component** — each component lives in `src/components/<Category>/<Name>/` containing its `definition.cnd`, `default.server.tsx`, `component.module.css`, and `types.ts`. Never centralize content types in `settings/definitions.cnd` — that file holds only namespace declarations and the module base mixin.
 12. **Always build a page template first** — every website needs a root template at `src/templates/<ModuleName>Template/default.server.tsx`. It must include: a skip link, a `<nav>` built inline from the page tree using `getChildNodes(renderContext.getSite(), -1, 0, n => n.isNodeType('jnt:page'))`, a `<main id="main-content">` with `<h1>{title}</h1>` and Areas, and a `<footer>` that is never empty. Include a `<title>` tag for SEO. Build and deploy before any page-specific components.
@@ -45,7 +45,8 @@ Start with `/jahia` if unsure where to begin.
 | `/jahia-dev-create-page-template` | Create a page template with Areas |
 | `/jahia-dev-query-content` | Write JCR-SQL2 queries and useJCRQuery |
 | `/jahia-dev-review` | Code review: 8 critical checks, 9 warnings, 11 suggestions |
-| `/jahia-dev-accessibility` | Audit live pages with axe-core, fix WCAG 2.1 AA violations |
+| `/jahia-dev-site-review` | Scored a11y + SEO report on live pages — use after every deploy |
+| `/jahia-dev-accessibility` | Deep WCAG 2.1 AA audit with fixes — use for targeted a11y work |
 | `/jahia-dev-screenshot` | Screenshot reference + local render for visual comparison |
 | `/jahia-dev-debug` | Debug build/deploy/runtime errors end-to-end |
 

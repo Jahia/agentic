@@ -167,20 +167,24 @@ Use MCP tools (the `jahia` MCP server) to:
 3. Create content nodes and populate them with realistic copy
 4. Publish all pages
 
-**Verify every page renders real content** — do not proceed until all pages pass:
+**Verify every page renders real content and passes a11y + SEO checks:**
 
 ```bash
-# Run for each page URL. Replace <url> with the actual /cms/render/live/... URL.
-curl -s -o /tmp/page_check.html -w "%{http_code}" "<url>"
+SCRIPT=$(find .claude .agents -name "review-pages.mjs" 2>/dev/null | head -1)
+node "$SCRIPT" 2>&1 | tee /tmp/site-review.txt
 ```
 
-For each page, check four things:
-1. HTTP status is `200` — if not, the page wasn't created or published correctly
-2. No Jahia error markers: `grep -c "error details are shown in development mode\|pl\.touk\.throwing" /tmp/page_check.html` — if > 0, a component is throwing at render time; read the error and fix it
-3. Page has a `<title>`: `grep -o '<title>[^<]*</title>' /tmp/page_check.html` — if empty or shows "Error", the template isn't rendering
-4. `<main>` has real content: `sed -n 's/.*<main[^>]*>\(.*\)<\/main>.*/\1/p' /tmp/page_check.html | sed 's/<[^>]*>//g' | tr -d ' \n' | wc -c` — if < 100 characters, content wasn't populated; go back to MCP and create/publish content
+The script checks each URL in `pages.json` for:
+1. HTTP 200 and no Jahia error markers
+2. A11y: no critical/serious WCAG 2.1 AA violations (axe-core)
+3. SEO: `<title>`, `<meta name="description">`, single `<h1>`, all `<img>` have `alt`
 
-**If any check fails:** investigate the error, fix the component or content, redeploy if needed, and re-verify. Do not write `pages.json` until all pages pass all four checks.
+If the script exits 1, read the violations, fix them in the source, redeploy (`yarn build && yarn jahia-deploy`), and re-run. Do not write `pages.json` until the script exits 0.
+
+**Tooling check** — if `review-pages.mjs` reports missing modules:
+```bash
+npm install --no-save @axe-core/playwright playwright && npx playwright install chromium --with-deps
+```
 
 ---
 
