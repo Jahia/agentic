@@ -79,36 +79,28 @@ Follow the instructions on that page for the user's platform, then return here t
 
 ## Step 4 — Create a new site in Jahia
 
-Once the module is deployed to Jahia, create the site via the Provisioning API — **do not use the UI**.
+Once the module is deployed to Jahia, create the site via MCP:
 
-> ⚠️ **CRITICAL: syntax is `- createSite: ""`** — the empty string `""` after the colon is **mandatory**. Without it, Jahia returns HTTP 200 but silently creates nothing. Using `- createSite:` with nested properties is **wrong and will fail silently**.
-
-```bash
-MODULE_NAME=<module-name>   # value of "name" in package.json
-
-cat > /tmp/create-site.yaml <<EOF
-- createSite: ""
-  siteKey: ${MODULE_NAME}
-  title: "My Site"
-  defaultLanguage: en
-  serverName: localhost
-  templateSet: ${MODULE_NAME}
-EOF
-
-curl -u root:root1234 -X POST -H "Content-Type: application/yaml" \
-  --data-binary @/tmp/create-site.yaml \
-  http://localhost:8080/modules/api/provisioning
 ```
+tool: site.create
+args: {
+  "siteKey": "<module-name>",
+  "title": "My Site",
+  "templateSet": "<module-name>",
+  "defaultLanguage": "en",
+  "serverName": "localhost"
+}
+```
+
+Replace `<module-name>` with the `name` from `package.json`. `templateSet` must exactly match the deployed module name.
 
 Verify the site exists:
-```bash
-curl -s -u root:root1234 \
-  -H "Content-Type: application/json" -H "Origin: http://localhost:8080" \
-  -X POST http://localhost:8080/modules/graphql \
-  -d "{\"query\":\"{ jcr { nodeByPath(path:\\\"/sites/${MODULE_NAME}\\\") { name } } }\"}"
+
+```
+tool: site.list
 ```
 
-The response must contain `"name": "<module-name>"`. If it returns `null`, the site was not created — check that `templateSet` exactly matches the deployed module name.
+The site key must appear in the response. If it does not, check that `templateSet` exactly matches the deployed module name.
 
 Then open **Page Builder** at http://localhost:8080/jahia/page-builder to start building.
 
@@ -119,8 +111,8 @@ Then open **Page Builder** at http://localhost:8080/jahia/page-builder to start 
 - [ ] `docker compose up --wait` completes without errors (Docker path)
 - [ ] Jahia UI is reachable at http://localhost:8080
 - [ ] Module deployed to Jahia (`yarn build && yarn jahia-deploy` run; or `yarn dev` in user terminal for interactive development)
-- [ ] Site created via Provisioning API (`createSite: ""` with correct templateSet)
-- [ ] GraphQL confirms `/sites/<site-key>` node exists
+- [ ] Site created via `site.create` MCP tool with correct `templateSet`
+- [ ] `site.list` confirms site key exists
 
 ## Troubleshooting
 

@@ -119,66 +119,39 @@ yarn build && yarn jahia-deploy
 
 Verify the module is installed:
 
-```bash
-curl -s -u root:root1234 -H "Origin: http://localhost:8080" \
-  -X POST http://localhost:8080/modules/graphql \
-  -H "Content-Type: application/json" \
-  -d '{"query":"{ jcr { nodeByPath(path:\"/modules/<module-name>\") { name } } }"}'
+```
+tool: content.get
+args: { "path": "/modules/<module-name>" }
 ```
 
-Replace `<module-name>` with the `name` from `package.json`. The response should contain `"name": "<module-name>"`.
+Replace `<module-name>` with the `name` from `package.json`. The response should contain the module node.
 
 ---
 
 ## Step 5 — Create a new site in Jahia
 
-After the module is deployed, create the site via the Provisioning API — **do not use the UI**.
+After the module is deployed, create the site via MCP:
 
-> ⚠️ **CRITICAL: syntax is `- createSite: ""`** — the empty string `""` after the colon is **mandatory**. Without it, Jahia returns HTTP 200 but silently creates nothing. Using `- createSite:` with nested properties is **wrong and will fail silently**.
-
-```bash
-MODULE_NAME=<module-name>   # value of "name" in package.json
-
-curl -u root:root1234 \
-     -X POST \
-     -H "Content-Type: application/yaml" \
-     --data-binary "- createSite: \"\"
-  siteKey: ${MODULE_NAME}
-  title: \"My Site\"
-  defaultLanguage: en
-  serverName: localhost
-  templateSet: ${MODULE_NAME}" \
-     http://localhost:8080/modules/api/provisioning
+```
+tool: site.create
+args: {
+  "siteKey": "<module-name>",
+  "title": "My Site",
+  "templateSet": "<module-name>",
+  "defaultLanguage": "en",
+  "serverName": "localhost"
+}
 ```
 
-Or write the script to a file and POST it:
-
-```bash
-MODULE_NAME=<module-name>
-
-cat > /tmp/create-site.yaml <<EOF
-- createSite: ""
-  siteKey: ${MODULE_NAME}
-  title: "My Site"
-  defaultLanguage: en
-  serverName: localhost
-  templateSet: ${MODULE_NAME}
-EOF
-
-curl -u root:root1234 -X POST -H "Content-Type: application/yaml" \
-  --data-binary @/tmp/create-site.yaml \
-  http://localhost:8080/modules/api/provisioning
-```
+Replace `<module-name>` with the `name` from `package.json`. `templateSet` must exactly match the deployed module name.
 
 Verify the site was created:
-```bash
-curl -s -u root:root1234 \
-  -H "Content-Type: application/json" -H "Origin: http://localhost:8080" \
-  -X POST http://localhost:8080/modules/graphql \
-  -d "{\"query\":\"{ jcr { nodeByPath(path:\\\"/sites/${MODULE_NAME}\\\") { name } } }\"}"
+
+```
+tool: site.list
 ```
 
-The response must contain `"name": "<module-name>"`. If the path returns `null`, the site was not created — check that `templateSet` exactly matches the deployed module name.
+The site key must appear in the response. If it does not, check that `templateSet` exactly matches the deployed module name.
 
 ---
 
@@ -229,4 +202,4 @@ If anything goes wrong during setup or scaffolding, refer to the official Jahia 
 - [ ] Module directory created with expected structure
 - [ ] `yarn install` completes without errors
 - [ ] `yarn build && yarn jahia-deploy` succeeds — module appears at `/modules/<name>` in JCR
-- [ ] Site created with `createSite: ""` — JCR confirms `/sites/<name>` exists
+- [ ] Site created with `site.create` — `site.list` confirms site key exists
