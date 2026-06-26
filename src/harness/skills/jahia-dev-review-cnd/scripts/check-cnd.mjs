@@ -42,7 +42,7 @@ function checkFile(filePath, content) {
     ) {
       const propName = trimmed.match(/^-\s+(\w+)/)?.[1] ?? "unknown";
       issues.push({
-        severity: "error", file: filePath, line: lineNum,
+        file: filePath, line: lineNum,
         pattern: "rawStringLink",
         message: `"${propName}" uses (string) for a link/url — use choicelist[linkTypeInitializer]`,
         fix: "Replace with: - j:linkType (string, choicelist[linkTypeInitializer]) mandatory",
@@ -53,7 +53,7 @@ function checkFile(filePath, content) {
     if (/^-\s+(title|heroTitle|pageTitle|sectionTitle)\s+\(string[,)]/i.test(trimmed)) {
       const propName = trimmed.match(/^-\s+(\w+)/)?.[1] ?? "unknown";
       issues.push({
-        severity: "warning", file: filePath, line: lineNum,
+        file: filePath, line: lineNum,
         pattern: "rawTitleProp",
         message: `"${propName}" is a plain string — extend mix:title instead`,
         fix: "Add mix:title to the type declaration and remove this property",
@@ -63,7 +63,7 @@ function checkFile(filePath, content) {
     // weakrefNoConstraint: (weakreference) with no < constraint on same line
     if (/\(weakreference[,)]/.test(trimmed) && !/<\s*\S/.test(trimmed)) {
       issues.push({
-        severity: "warning", file: filePath, line: lineNum,
+        file: filePath, line: lineNum,
         pattern: "weakrefNoConstraint",
         message: "Unconstrained weakreference — add a type constraint",
         fix: "Add e.g. (weakreference, picker[type='image']) < jmix:image",
@@ -73,7 +73,7 @@ function checkFile(filePath, content) {
     // weakrefWrongConstraint
     if (/< ['"]jnt:file['"]/.test(trimmed)) {
       issues.push({
-        severity: "warning", file: filePath, line: lineNum,
+        file: filePath, line: lineNum,
         pattern: "weakrefWrongConstraint",
         message: "< 'jnt:file' (quoted) does not enforce image type",
         fix: "Replace with < jmix:image for images",
@@ -88,7 +88,7 @@ function checkFile(filePath, content) {
       /(title|text|label|description|subtitle|caption|alt|heading|summary|excerpt|body)/i.test(trimmed)
     ) {
       issues.push({
-        severity: "warning", file: filePath, line: lineNum,
+        file: filePath, line: lineNum,
         pattern: "missingI18n",
         message: "User-visible string property missing i18n",
         fix: "Add i18n keyword after the type declaration",
@@ -98,7 +98,7 @@ function checkFile(filePath, content) {
     // directDroppable: concrete type (not mixin) extending jmix:droppableContent
     if (trimmed.startsWith("[") && /jmix:droppableContent/.test(trimmed) && !/\bmixin\b/.test(trimmed)) {
       issues.push({
-        severity: "error", file: filePath, line: lineNum,
+        file: filePath, line: lineNum,
         pattern: "directDroppable",
         message: "Extends jmix:droppableContent directly — always extend the module component mixin",
         fix: "Replace jmix:droppableContent with nsmix:component (or your module's equivalent)",
@@ -108,7 +108,7 @@ function checkFile(filePath, content) {
     // studioOnly
     if (/jmix:studioOnly/.test(trimmed)) {
       issues.push({
-        severity: "warning", file: filePath, line: lineNum,
+        file: filePath, line: lineNum,
         pattern: "studioOnly",
         message: "jmix:studioOnly causes silent rendering issues",
         fix: "Replace with jmix:hiddenType",
@@ -118,7 +118,7 @@ function checkFile(filePath, content) {
     // redundantImageAlt: imageAlt as plain string — image node already has jcr:title
     if (/^-\s+imageAlt\s+\(string[,)]/i.test(trimmed)) {
       issues.push({
-        severity: "warning", file: filePath, line: lineNum,
+        file: filePath, line: lineNum,
         pattern: "redundantImageAlt",
         message: '"imageAlt" is redundant — the image node\'s jcr:title (mix:title) serves as alt text',
         fix: 'Remove imageAlt. In the view, use image.getPropertyAsString("jcr:title") for alt text',
@@ -128,9 +128,9 @@ function checkFile(filePath, content) {
     // missingRatingConstraint: rating (long) without a range constraint
     if (/^-\s+rating\s+\(long[,)]/i.test(trimmed) && !/<\s*"?\[/.test(trimmed)) {
       issues.push({
-        severity: "warning", file: filePath, line: lineNum,
+        file: filePath, line: lineNum,
         pattern: "missingRatingConstraint",
-        message: '"rating" (long) has no range constraint',
+        message: '"rating" (long) has no range constraint — unconstrained ratings cause data integrity issues',
         fix: 'Add: < "[1,5]"',
       });
     }
@@ -147,7 +147,7 @@ function checkFile(filePath, content) {
       const typeName = block.match(/^\[(\S+)\]/m)?.[1] ?? "unknown";
       const typeLineIdx = lines.findIndex((l) => l.includes(`[${typeName}]`));
       issues.push({
-        severity: "error", file: filePath,
+        file: filePath,
         ...(typeLineIdx >= 0 ? { line: typeLineIdx + 1 } : {}),
         pattern: "singleHardcodedCta",
         message: `${typeName}: flat ctaText+ctaLink forces a single CTA — model as child nodes`,
@@ -172,27 +172,18 @@ export function checkCndFiles(projectDir) {
     }
   }
 
-  const penalty = allIssues.reduce(
-    (t, { severity }) => t + (severity === "error" ? 0.5 : 0.2),
-    0,
-  );
-
-  return { score: Math.exp(-penalty), issues: allIssues, filesChecked: files.length };
+  return { score: Math.exp(-allIssues.length * 0.5), issues: allIssues, filesChecked: files.length };
 }
 
 if (import.meta.main) {
   const targetPath = resolve(process.argv[2] ?? ".");
   const { score, issues, filesChecked } = checkCndFiles(targetPath);
 
-  const errors = issues.filter((i) => i.severity === "error");
-  const warnings = issues.filter((i) => i.severity === "warning");
-
   console.log(`\nCND Review: ${filesChecked} file${filesChecked !== 1 ? "s" : ""} checked\n`);
 
-  for (const [label, group] of [["ERRORS", errors], ["WARNINGS", warnings]]) {
-    if (group.length === 0) continue;
-    console.log(`${label} (${group.length}):`);
-    for (const issue of group) {
+  if (issues.length > 0) {
+    console.log(`ISSUES (${issues.length}):`);
+    for (const issue of issues) {
       const loc = issue.line ? `${issue.file}:${issue.line}` : issue.file;
       console.log(`  [${issue.pattern}] ${loc}`);
       console.log(`    ${issue.message}`);
@@ -201,7 +192,7 @@ if (import.meta.main) {
     console.log();
   }
 
-  const verdict = errors.length > 0 ? "FAIL" : warnings.length > 0 ? "PASS (with warnings)" : "PASS";
+  const verdict = issues.length > 0 ? "FAIL" : "PASS";
   console.log(`Result: ${verdict} (score=${score.toFixed(2)})`);
-  process.exit(errors.length > 0 ? 1 : 0);
+  process.exit(issues.length > 0 ? 1 : 0);
 }

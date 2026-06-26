@@ -1,5 +1,4 @@
 export interface CndIssue {
-  severity: "error" | "warning";
   file: string;
   line?: number;
   pattern: string;

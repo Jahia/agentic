@@ -203,10 +203,6 @@ a:hover { text-decoration: underline; }
 .cnd-table th { background: #eaeef2; padding: 8px 12px; text-align: left; font-weight: 600; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-muted); border-bottom: 1px solid var(--border); }
 .cnd-table td { padding: 8px 12px; border-bottom: 1px solid var(--border); vertical-align: top; }
 .cnd-table tr:last-child td { border-bottom: none; }
-.cnd-severity { display: inline-block; font-size: 0.72rem; font-weight: 700; padding: 1px 7px; border-radius: 20px; text-transform: uppercase; }
-.cnd-severity-error   { background: #ffeef0; color: #cf222e; }
-.cnd-severity-warning { background: #fff8c5; color: #7d4e00; }
-.cnd-severity-info    { background: #dbeafe; color: #0550ae; }
 .cnd-file { font-family: monospace; color: var(--text-muted); }
 .cnd-fix  { color: var(--text-muted); font-style: italic; }
 
@@ -381,14 +377,13 @@ function detailPage(run: BenchmarkRun): string {
 <section class="cnd-issues">
   <h2 class="cnd-issues-title">CND Issues</h2>
   <table class="cnd-table">
-    <thead><tr><th>Severity</th><th>File</th><th>Line</th><th>Issue</th><th>Fix</th></tr></thead>
+    <thead><tr><th>File</th><th>Line</th><th>Issue</th><th>Fix</th></tr></thead>
     <tbody>
       ${run.cndIssues
         .map(
-          (issue) => `<tr class="cnd-row cnd-${escHtml(issue.severity)}">
-        <td><span class="cnd-severity cnd-severity-${escHtml(issue.severity)}">${escHtml(issue.severity)}</span></td>
+          (issue) => `<tr>
         <td class="cnd-file">${escHtml(issue.file.replace(/.*\/src\//, "src/"))}</td>
-        <td>${issue.line}</td>
+        <td>${issue.line ?? ""}</td>
         <td>${escHtml(issue.message)}</td>
         <td class="cnd-fix">${escHtml(issue.fix ?? "")}</td>
       </tr>`,

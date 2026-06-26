@@ -133,6 +133,17 @@ Also create `src/templates/<ModuleName>Template/template.module.css` with minima
    - Child items use `+ * (ns:childType) orderable`
    - i18n on ALL user-visible string/textarea/richtext properties
 
+   **After writing the CND file, immediately run the checker and loop until clean:**
+
+   ```bash
+   CND_SCRIPT=$(find .claude .agents -name "check-cnd.mjs" 2>/dev/null | head -1)
+   [ -n "$CND_SCRIPT" ] && node "$CND_SCRIPT" src/components/<Category>/<Name>/definition.cnd
+   ```
+
+   - If the result is `FAIL`: read each issue, apply the fix, re-run.
+   - Repeat until the result is `PASS`.
+   - **Do not write the view (`types.ts`, `default.server.tsx`) until the CND is clean.**
+
 2. Create `src/components/<Category>/<Name>/types.ts`
    - All props use `?:` (optional) even if mandatory in CND
    - Import `JCRNodeWrapper` from `@jahia/javascript-modules-library` for node refs
@@ -160,14 +171,14 @@ tsc --noEmit 2>&1 | head -30
 
 Fix every type error before running `yarn build`. Use `mcp__ide__getDiagnostics` on each `.tsx` file for inline feedback — never grep `node_modules` for API signatures.
 
-**Validate CND before each deploy:**
+**Validate all CNDs before each deploy (final gate):**
 
 ```bash
 CND_SCRIPT=$(find .claude .agents -name "check-cnd.mjs" 2>/dev/null | head -1)
 [ -n "$CND_SCRIPT" ] && node "$CND_SCRIPT" src/
 ```
 
-If the checker exits 1 (FAIL), fix every ERROR before proceeding. Warnings are informational only.
+If the result is `FAIL`, fix every issue and re-run until `PASS`. Do not run `yarn build` until the checker is clean.
 
 ---
 
