@@ -37,8 +37,8 @@ Read the file found. Also read `cnd-string-selectors.md` (links, choices) and `c
 
 ```bash
 grep "^<" settings/definitions.cnd | head -5
-grep "pageComponent" settings/definitions.cnd
-ls src/components/
+grep "pageComponent" settings/definitions.cnd || echo "(pageComponent not yet defined)"
+ls src/components/ 2>/dev/null || echo "(no components yet)"
 ```
 
 Note the namespace prefix and whether `namespacemix:pageComponent` exists.
@@ -50,6 +50,8 @@ Note the namespace prefix and whether `namespacemix:pageComponent` exists.
 **Build the page template first.** Every website needs a root layout. Create:
 
 `src/templates/<ModuleName>Template/default.server.tsx`
+
+> The template file is always `default.server.tsx` inside a named folder — never `basic.server.tsx` or any other name.
 
 ```tsx
 import React from 'react';
