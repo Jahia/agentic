@@ -137,6 +137,22 @@ for (const { src, dst } of filesToCopy) {
   copyFileSync(src, dst);
 }
 
+if (target === "claude") {
+  p.log.step("Installing TypeScript LSP plugin for Claude Code…");
+  const pluginInstall = spawnSync(
+    "claude",
+    ["plugin", "install", "typescript-lsp@claude-plugins-official"],
+    { encoding: "utf-8" },
+  );
+  if (pluginInstall.error || pluginInstall.status !== 0) {
+    p.log.warn(
+      `Could not install TypeScript LSP plugin automatically.\nRun manually: ${styleText("blueBright", "claude plugin install typescript-lsp@claude-plugins-official")}`,
+    );
+  } else {
+    p.log.success("TypeScript LSP plugin installed.");
+  }
+}
+
 p.outro(`Harness created successfully!
 
 To update the harness in the future, run ${styleText("blueBright", "npx @jahia/agentic@latest " + target)}`);

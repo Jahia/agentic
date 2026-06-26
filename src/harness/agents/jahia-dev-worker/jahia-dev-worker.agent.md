@@ -53,7 +53,7 @@ Note the namespace prefix and whether `namespacemix:pageComponent` exists.
 
 ```tsx
 import React from 'react';
-import { Area, AbsoluteArea, jahiaComponent } from '@jahia/javascript-modules-library';
+import { Area, AbsoluteArea, getChildNodes, buildNodeUrl, jahiaComponent } from '@jahia/javascript-modules-library';
 import styles from './template.module.css';
 
 jahiaComponent(
@@ -63,37 +63,55 @@ jahiaComponent(
     displayName: 'Default Template',
     name: 'default',
   },
-  ({ 'jcr:title': title }, { renderContext }) => (
-    <html lang="en">
-      <head>
-        <meta charSet="UTF-8" />
-        <meta name="viewport" content="width=device-width, initial-scale=1" />
-        <title>{title}</title>
-      </head>
-      <body>
-        <header className={styles.header}>
-          <nav aria-label="Main navigation">
-            <AbsoluteArea name="header-nav" parent={renderContext.getSite()} />
-          </nav>
-        </header>
-        <main id="main-content">
-          <Area name="pagecontent" />
-        </main>
-        <footer className={styles.footer}>
-          <AbsoluteArea name="footer" parent={renderContext.getSite()} />
-        </footer>
-      </body>
-    </html>
-  )
+  ({ 'jcr:title': title }, { renderContext, mainNode }) => {
+    const navPages = getChildNodes(renderContext.getSite(), -1, 0, n => n.isNodeType('jnt:page'));
+    return (
+      <html lang="en">
+        <head>
+          <meta charSet="UTF-8" />
+          <meta name="viewport" content="width=device-width, initial-scale=1" />
+          <title>{title}</title>
+        </head>
+        <body>
+          <a href="#main-content" className={styles.skipLink}>Skip to main content</a>
+          <header className={styles.header}>
+            <nav aria-label="Main navigation">
+              <ul className={styles.navList}>
+                {navPages.map(page => (
+                  <li key={page.getPath()}>
+                    <a
+                      href={buildNodeUrl(page)}
+                      aria-current={page.getPath() === mainNode.getPath() ? 'page' : undefined}
+                    >
+                      {page.getPropertyAsString('jcr:title') ?? page.getName()}
+                    </a>
+                  </li>
+                ))}
+              </ul>
+            </nav>
+          </header>
+          <main id="main-content">
+            <h1 className={styles.pageTitle}>{title}</h1>
+            <Area name="pagecontent" />
+          </main>
+          <footer className={styles.footer}>
+            <AbsoluteArea name="footer" parent={renderContext.getSite()} />
+            <p className={styles.copyright}>{'© '}{renderContext.getSite().getName()}</p>
+          </footer>
+        </body>
+      </html>
+    );
+  }
 );
 ```
 
-Also create `src/templates/<ModuleName>Template/template.module.css` with minimal header/footer styles.
+Also create `src/templates/<ModuleName>Template/template.module.css` with minimal header/footer styles including `.skipLink` (visually hidden until focused), `.navList` (horizontal flex list), `.pageTitle`, and `.copyright`.
 
 **Then, for each component** in the plan:
 
 1. Create `src/components/<Category>/<Name>/definition.cnd`
-   - Namespace declarations at top
+   - **⚠️ This file only. Never add component types to `settings/definitions.cnd` — that file is for namespace declarations and the module base mixin only.**
+   - Namespace declarations at top (e.g. `<ns = 'https://example.com/ns/nt/1.0'>`)
    - Extend `namespacemix:pageComponent` (for page-area components) or `namespacemix:component` (for children)
    - Use `mix:title` for titles, NOT `- title (string)`
    - Use `(weakreference, picker[type='image']) < jmix:image` for images
@@ -108,19 +126,19 @@ Also create `src/templates/<ModuleName>Template/template.module.css` with minima
 3. Create `src/components/<Category>/<Name>/default.server.tsx`
    - Import `Props` from `./types.js`
    - Use semantic HTML: `<section>`, `<article>`, `<header>`, `<main>`
-   - `<h1>` only once per page template; use `<h2>`/`<h3>` in components
+   - **Components use `<h2>` for their primary heading, `<h3>` for sub-headings. Never `<h1>` — the page template owns the h1.**
    - Guard all props: `{prop?.value && <span>{prop.value}</span>}`
    - Guard node URLs: `prop["j:linknode"] ? buildNodeUrl(prop["j:linknode"]) : "#"`
-   - `alt` text on every `<img>` using a CND string prop
+   - `alt` on every `<img>`: use `imageAlt || title || 'Image'` — never fall back to empty string
 
 4. Create `src/components/<Category>/<Name>/component.module.css`
    - Scoped CSS for the component
    - Mobile-first responsive
    - Colour contrast ≥ 4.5:1 for text on background
 
-**Do not deploy between components.** Build everything first.
+**After each component, deploy and verify it renders before moving to the next.**
 
-**Validate CND before deploying:**
+**Validate CND before each deploy:**
 
 ```bash
 CND_SCRIPT=$(find .claude .agents -name "check-cnd.mjs" 2>/dev/null | head -1)
@@ -131,7 +149,7 @@ If the checker exits 1 (FAIL), fix every ERROR before proceeding. Warnings are i
 
 ---
 
-## Step 4 — Single deploy
+## Step 4 — Deploy
 
 ```bash
 yarn build && yarn jahia-deploy

@@ -14,34 +14,62 @@ A **page template** defines the full layout of a page. It is registered with `co
 
 ## Step 1 — Create the template file
 
-Page templates live in `src/templates/Page/`. Name the file `<templateName>.server.tsx`.
+Page templates live in `src/templates/<ModuleName>Template/`. Name the file `default.server.tsx`.
 
 ```tsx
-import { Area, AbsoluteArea, jahiaComponent } from "@jahia/javascript-modules-library";
-import { Layout } from "../Layout.jsx";
+import React from "react";
+import { Area, AbsoluteArea, getChildNodes, buildNodeUrl, jahiaComponent } from "@jahia/javascript-modules-library";
+import styles from "./template.module.css";
 
 jahiaComponent(
   {
     componentType: "template",   // "template" for full pages, not "view"
     nodeType: "jnt:page",        // always jnt:page for page templates
-    displayName: "Single Column",
-    name: "singleColumn",        // used in Jahia UI when selecting a template
+    displayName: "Default Template",
+    name: "default",
   },
-  ({ "jcr:title": title }, { renderContext }) => (
-    <Layout title={title}>
-      <Area name="header" nodeType="namespace:header" />
-      <main style={{ maxWidth: "40rem", margin: "0 auto" }}>
-        <Area name="main" />
-      </main>
-      <AbsoluteArea
-        name="footer"
-        parent={renderContext.getSite()}
-        nodeType="namespace:footer"
-      />
-    </Layout>
-  ),
+  ({ "jcr:title": title }, { renderContext, mainNode }) => {
+    const navPages = getChildNodes(renderContext.getSite(), -1, 0, n => n.isNodeType("jnt:page"));
+    return (
+      <html lang="en">
+        <head>
+          <meta charSet="UTF-8" />
+          <meta name="viewport" content="width=device-width, initial-scale=1" />
+          <title>{title}</title>
+        </head>
+        <body>
+          <a href="#main-content" className={styles.skipLink}>Skip to main content</a>
+          <header className={styles.header}>
+            <nav aria-label="Main navigation">
+              <ul className={styles.navList}>
+                {navPages.map(page => (
+                  <li key={page.getPath()}>
+                    <a
+                      href={buildNodeUrl(page)}
+                      aria-current={page.getPath() === mainNode.getPath() ? "page" : undefined}
+                    >
+                      {page.getPropertyAsString("jcr:title") ?? page.getName()}
+                    </a>
+                  </li>
+                ))}
+              </ul>
+            </nav>
+          </header>
+          <main id="main-content">
+            <h1 className={styles.pageTitle}>{title}</h1>
+            <Area name="pagecontent" />
+          </main>
+          <footer className={styles.footer}>
+            <AbsoluteArea name="footer" parent={renderContext.getSite()} />
+            <p className={styles.copyright}>{"© "}{renderContext.getSite().getName()}</p>
+          </footer>
+        </body>
+      </html>
+    );
+  },
 );
 ```
+
 
 ---
 
@@ -266,13 +294,14 @@ After deploying, the new template will appear in the **template selection** step
 ---
 
 ## Validation checklist
-- [ ] File is in `src/templates/Page/`
 - [ ] `componentType: "template"` and `nodeType: "jnt:page"`
 - [ ] `name` is set (used in Jahia UI template picker)
+- [ ] Skip link present: `<a href="#main-content">Skip to main content</a>`
+- [ ] Nav built from `getChildNodes` — not `AbsoluteArea`, not hardcoded links
+- [ ] `<h1>{title}</h1>` in the template — no `<h1>` in any component
+- [ ] `<footer>` landmark always has visible content (never empty)
 - [ ] Areas use a custom area node type (not bare `<Area name="..."/>`)
 - [ ] Custom area type has `jmix:list`, `jmix:hiddenType`, and `orderable`
-- [ ] `AbsoluteArea` uses `renderContext.getSite()` as parent
-- [ ] Structural container nodes use `jmix:hiddenType` (hidden from picker)
 - [ ] Decision made: page template vs sectioning component (see Step 4)
 - [ ] `yarn build && yarn jahia-deploy` run and template appears in Jahia UI
 
