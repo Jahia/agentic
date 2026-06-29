@@ -8,7 +8,20 @@
 | `double` | Decimal number input | Coordinates, prices, ratios |
 | `boolean` | Checkbox | Feature flags, toggles |
 | `date` | Date picker | ISO 8601 stored, string in TypeScript |
-| `date, datepicker` | Date + time picker | Same storage, richer widget |
+| `date, datepicker` | Date-only picker | Same storage, date-only widget |
+| `date, datetimepicker` | Date + time picker | Use when time precision is needed |
+
+## Types to avoid
+
+| Avoid | Use instead | Reason |
+|---|---|---|
+| `path` | `weakreference` | weakreference is the preferred reference type |
+| `reference` | `weakreference` | Not properly implemented |
+| `uri` | `string` | No added value |
+| `decimal` | `double` | Use double for decimal numbers |
+| `name` | `string` | JCR node type name; use string instead |
+| `binary` | — | Binary data; rarely needed in practice |
+| `undefined` | — | Unknown type; avoid |
 
 ## Default values with `autocreated`
 
@@ -18,6 +31,14 @@ Always combine `autocreated` with `= 'value'`:
 - columns (long) = '3' autocreated mandatory < '1', '2', '3', '4'
 - isHighlighted (boolean) = 'false' autocreated
 - country (string, choicelist[country]) = 'US' autocreated mandatory
+```
+
+### `date` default — `now()`
+
+Use `now()` (no quotes) to default a date to the current time at node creation:
+
+```cnd
+- publishDate (date, datepicker) = now() autocreated
 ```
 
 ## Range constraints
@@ -49,6 +70,16 @@ Parentheses = exclusive bound, brackets = inclusive. Leave a side empty for open
 
 // Bounded campaign window
 - campaignDate (date, datepicker) < '(2020-01-01T00:00:00.000,2030-12-31T00:00:00.000)'
+```
+
+## `datetimepicker` vs `datepicker`
+
+```cnd
+// Date only
+- publishDate (date, datepicker) = now() autocreated
+
+// Date + time
+- eventDateTime (date, datetimepicker) i18n mandatory
 ```
 
 ## TypeScript mapping

@@ -43,18 +43,23 @@ Has children: <yes: ChildType / no>
 
 ---
 
-## Step 2 — REQUIRED: Invoke `/jahia-dev-define-content-type`
+## Step 2 — REQUIRED: Invoke `@jahia-cnd-author`
 
-**Do not write CND manually.** Jahia-specific patterns (`choicelist[linkTypeInitializer]`, `mix:title`, child nodes for CTAs) are not in LLM training data — writing CND from memory always produces broken output. This skill delegates to `@jahia-cnd-author` which loads the correct reference files.
+**Do not write CND manually.** Jahia-specific patterns (`choicelist[linkTypeInitializer]`, `mix:title`, child nodes for CTAs) are not in LLM training data — writing from memory produces broken output.
 
-Invoke `/jahia-dev-define-content-type` in a sub-agent job. Pass the component spec. Wait for it to confirm PASS before continuing.
+Invoke `@jahia-cnd-author` as a sub-agent with the complete spec:
 
-The skill will:
-1. Confirm the namespace (from `settings/definitions.cnd`)
-2. Invoke `@jahia-cnd-author` to create `src/components/<Category>/<Name>/definition.cnd`
-3. Invoke `@jahia-cnd-author` to create `src/components/<Category>/<Name>/types.ts`
+```
+Component: <PascalCase name>
+Namespace prefix: <ns>
+Module path: <absolute path to module root>
+Fields:
+  - <fieldName>: <type description> [mandatory] [i18n] [multiple]
+Children: <repeatable sub-items, e.g. "CTA buttons with label + link">
+Usage: <where this component appears, e.g. "dropped in page areas">
+```
 
-**Do not proceed to Step 3 until the CND review is PASS.**
+Wait for **PASS** before continuing. If it returns **FAIL**, send the issues back to `@jahia-cnd-author` to fix.
 
 ---
 
