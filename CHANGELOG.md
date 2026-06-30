@@ -1,5 +1,11 @@
 # `@jahia/agentic`
 
+## 0.5.0
+
+* Added support for Antigravity and Kiro agents.
+
+* Register MCP server on install.
+
 ## 0.4.1
 
 * Added all Jahia mixins to the harness.
