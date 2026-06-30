@@ -29,6 +29,7 @@ Free icons: https://www.flaticon.com/
 - Every node type must have a `.label` entry.
 - Every field must have a `.label` entry.
 - Choicelist options using `resourceBundle` must have a label per value.
+- Replace special characters (e.g. `:`) with `_` in the `.properties` key.
 
 ---
 

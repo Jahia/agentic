@@ -29,40 +29,6 @@ You are helping develop a **Jahia JavaScript Module** — a React-based template
 12. **Always build a page template first** — every website needs a root template at `src/templates/<ModuleName>Template/default.server.tsx`. It must include: a skip link, a `<nav>` built inline from children of the site's home node using `getChildNodes(renderContext.getSite().getNode('home'), -1, 0, n => n.isNodeType('jnt:page'))` (pages live under `home`, not directly under the site), a `<main id="main-content">` with `<h1>{title}</h1>` and Areas, and a `<footer>` that is never empty. The `<title>` tag must be `{title} | {siteName}` — never set `jcr:title` to the full `Page | Site` string; `jcr:title` is always just the short page name (e.g. "Car Insurance"). Build and deploy before any page-specific components.
 13. **SEO baseline** — every page template must render a `<title>` tag, all `<img>` must have descriptive `alt` text, all links must have visible text (no icon-only links without `aria-label`), and pages must have a single `<h1>` matching the page title.
 
-## Skill Map
-
-Start with `/jahia` if unsure where to begin.
-
-### Development
-
-| Skill | Purpose |
-|-------|---------|
-| `/jahia-dev` | Entry point — detect project state, guide to next step |
-| `/jahia-dev-create-template-set` | Scaffold a new Jahia JS module |
-| `/jahia-dev-start-local` | Start Jahia locally (Docker or bare metal) |
-| `/jahia-dev-build-component` | Build a complete component (CND + view) — start here |
-| `/jahia-dev-define-content-type` | Define a CND content type + types.ts |
-| `/jahia-dev-review-cnd` | Validate a CND file for antipatterns — run after writing any CND |
-| `/jahia-dev-create-view` | Implement a React view (.server.tsx + CSS Module) |
-| `/jahia-dev-create-page-template` | Create a page template with Areas |
-| `/jahia-dev-query-content` | Write JCR-SQL2 queries and useJCRQuery |
-| `/jahia-dev-review` | Code review: 8 critical checks, 9 warnings, 11 suggestions |
-| `/jahia-dev-site-review` | Scored a11y + SEO report on live pages — use after every deploy |
-| `/jahia-dev-accessibility` | Deep WCAG 2.1 AA audit with fixes — use for targeted a11y work |
-| `/jahia-dev-screenshot` | Screenshot reference + local render for visual comparison |
-| `/jahia-dev-debug` | Debug build/deploy/runtime errors end-to-end |
-
-### Content Management
-
-| Skill | Purpose |
-|-------|---------|
-| `/jahia-content` | Entry point — detect site state, route to content operations |
-| `/jahia-content-explore-structure` | Map content types, properties, enums on an unknown site |
-| `/jahia-content-query-content` | List and inspect content via GraphQL |
-| `/jahia-content-create-content` | Create nodes, folders, articles, bulk-populate |
-| `/jahia-content-move-content` | Restructure the content tree |
-| `/jahia-content-translate-content` | Translate existing nodes to a new language and publish |
-
 ## Canonical References
 
 Always fetch these when uncertain about version-sensitive topics:
@@ -85,8 +51,6 @@ Always fetch these when uncertain about version-sensitive topics:
 When Jahia is running at `http://localhost:8080` (default credentials: `root` / `root1234`):
 
 - **Login**: http://localhost:8080/cms/login
-- **Page Builder**: http://localhost:8080/jahia/page-builder
-- **jContent**: http://localhost:8080/jahia/jcontent
-- **GraphQL playground**: http://localhost:8080/modules/graphql
+- **GraphQL playground**: http://localhost:8080/modules/graphql-dxm-provider/tools/graphql-workspace.jsp
 - **JCR browser**: http://localhost:8080/modules/tools/jcrBrowser.jsp
 - **Definitions browser**: http://localhost:8080/modules/tools/definitionsBrowser.jsp
