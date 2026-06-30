@@ -1,5 +1,9 @@
 # `@jahia/agentic`
 
+## 0.4.1
+
+* Added all Jahia mixins to the harness.
+
 ## 0.4.0
 
 * Specialized content modeling agent.
