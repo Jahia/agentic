@@ -5,7 +5,7 @@ import { build } from "rolldown";
 
 // #MARK: Harnesses
 
-const targets = ["claude", "copilot", "cursor", "codex", "gemini", "opencode", "windsurf"];
+const targets = ["antigravity", "claude", "copilot", "cursor", "codex", "gemini", "kiro", "opencode", "windsurf"];
 const harness = resolve(import.meta.dirname, "..", "harness");
 const dist = resolve(import.meta.dirname, "..", "..", "dist");
 
@@ -22,6 +22,19 @@ for (const target of targets) {
       description: "Jahia harness for agentic development",
       author: "Jahia",
       includes: "auto",
+      dependencies: {
+        mcp: [
+          {
+            name: "jahia",
+            registry: false,
+            transport: "http",
+            url: `http://localhost:8080/modules/mcp`,
+            headers: {
+              Authorization: `Basic ${Buffer.from("root:root1234").toString("base64")}`,
+            }
+          }
+        ]
+      }
     }),
   );
   const opt = { cwd: join(dist, target), stdio: "inherit" } as const;

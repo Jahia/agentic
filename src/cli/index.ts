@@ -14,7 +14,7 @@ import {
 } from "node:fs";
 import { resolve } from "node:path";
 
-const targets = ["claude", "copilot", "cursor", "codex", "gemini", "opencode", "windsurf"];
+const targets = ["antigravity", "claude", "copilot", "cursor", "codex", "gemini", "kiro", "opencode", "windsurf"];
 let target: string | undefined | symbol = argv[2];
 const interactive = !target;
 
@@ -46,11 +46,13 @@ if (!target) {
   target = await p.select({
     message: "Which agent do you use?",
     options: [
+      { value: "antigravity", label: "Antigravity", hint: "Will create AGENTS.md and .agents/" },
       { value: "claude", label: "Claude", hint: "Will create CLAUDE.md and .claude/" },
       { value: "codex", label: "Codex", hint: "Will create AGENTS.md and .agents/" },
       { value: "copilot", label: "Copilot", hint: "Will create AGENTS.md, .agents/ and .github/" },
       { value: "cursor", label: "Cursor", hint: "Will create .agents/ and .cursor/" },
       { value: "gemini", label: "Gemini", hint: "Will create AGENTS.md, GEMINI.md and .agents/" },
+      { value: "kiro", label: "Kiro", hint: "Will create AGENTS.md and .kiro/" },
       { value: "opencode", label: "OpenCode", hint: "Will create AGENTS.md and .agents/" },
       { value: "windsurf", label: "Windsurf", hint: "Will create AGENTS.md and .windsurf/" },
     ],
