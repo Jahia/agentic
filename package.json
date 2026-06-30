@@ -1,6 +1,6 @@
 {
   "name": "@jahia/agentic",
-  "version": "0.4.0",
+  "version": "0.4.1",
   "description": "A CLI to bootstrap an agentic harness for Jahia",
   "license": "MIT",
   "repository": {
