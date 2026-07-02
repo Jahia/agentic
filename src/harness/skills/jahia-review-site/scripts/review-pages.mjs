@@ -24,9 +24,7 @@ for (const url of urls) {
   await page.goto(url, { waitUntil: "networkidle", timeout: 30_000 });
 
   // A11y
-  const axe = await new AxeBuilder({ page })
-    .withTags(["wcag2a", "wcag2aa", "wcag21aa"])
-    .analyze();
+  const axe = await new AxeBuilder({ page }).analyze();
 
   // SEO — Lighthouse reuses the already-open browser via the debug port
   const lhr = (await lighthouse(url, { port, output: "json", onlyCategories: ["seo"] }))?.lhr;
