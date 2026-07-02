@@ -1827,5 +1827,58 @@
       }
     ],
     "cndQualityScore": 1
+  },
+  {
+    "id": "run-2026-07-02T12-56-32",
+    "date": "2026-07-02T12:57:04.147Z",
+    "durationSeconds": 2589,
+    "costUSD": 7.752057449999998,
+    "tokens": {
+      "input": 700,
+      "output": 124778,
+      "cached": 11804072
+    },
+    "githubRunUrl": "https://github.com/Jahia/agentic/actions/runs/28588865972",
+    "branch": "main",
+    "pages": [
+      {
+        "url": "http://localhost:8080/cms/render/live/en/sites/forsure/home.html",
+        "title": "Home | forsure",
+        "screenshot": "screenshot-0.png",
+        "accessibilityScore": 1,
+        "seoScore": 1
+      },
+      {
+        "url": "http://localhost:8080/cms/render/live/en/sites/forsure/home/car-insurance.html",
+        "title": "Car Insurance | forsure",
+        "screenshot": "screenshot-1.png",
+        "accessibilityScore": 1,
+        "seoScore": 1
+      },
+      {
+        "url": "http://localhost:8080/cms/render/live/en/sites/forsure/home/health-insurance.html",
+        "title": "Health Insurance | forsure",
+        "screenshot": "screenshot-2.png",
+        "accessibilityScore": 1,
+        "seoScore": 1
+      },
+      {
+        "url": "http://localhost:8080/cms/render/live/en/sites/forsure/home/home-insurance.html",
+        "title": "Home Insurance | forsure",
+        "screenshot": "screenshot-3.png",
+        "accessibilityScore": 1,
+        "seoScore": 1
+      }
+    ],
+    "cndQualityScore": 0.6065306597126334,
+    "cndIssues": [
+      {
+        "file": "/home/runner/work/agentic/agentic/agentic-benchmark-cuSXib/forsure/src/components/Layout/Testimonial/definition.cnd",
+        "line": 10,
+        "pattern": "redundantImageAlt",
+        "message": "\"imageAlt\" is redundant — the image node's jcr:title (mix:title) serves as alt text",
+        "fix": "Remove imageAlt. In the view, use image.getPropertyAsString(\"jcr:title\") for alt text"
+      }
+    ]
   }
 ]
