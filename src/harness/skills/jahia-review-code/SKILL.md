@@ -1,10 +1,10 @@
 ---
-name: jahia-dev-review
+name: jahia-review-code
 description: Reviews a Jahia JavaScript module for generic and Jahia-specific best practices. Scans CND definitions, TypeScript views, and page templates. Reports issues in order of importance with fix suggestions. Covers 8 critical checks, 9 warnings, and 10 suggestions.
 allowed-tools: Bash, Read
 ---
 
-# Skill: jahia-dev-review
+# Skill: jahia-review-code
 
 Reviews a Jahia JavaScript module for correctness and best practices. Scans real files, reports issues in order of severity (🔴 Critical → 🟡 Warning → 🔵 Suggestion), and proposes fixes.
 
@@ -215,7 +215,7 @@ If no issues found in a category, print `✅ None`.
 
 After the report, ask: **"Would you like me to fix any of these issues?"**
 
-If yes, fix them — use the guidance from the relevant skill (`jahia-dev-define-content-type`, `jahia-dev-create-view`) and run `yarn build && yarn jahia-deploy` to push changes.
+If yes, fix them — use the guidance from the relevant skill (`jahia-cnd-author`, `jahia-dev-create-view`) and run `yarn build && yarn jahia-deploy` to push changes.
 
 ---
 

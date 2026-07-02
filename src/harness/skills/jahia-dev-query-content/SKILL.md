@@ -200,5 +200,5 @@ Use `ISDESCENDANTNODE` to cover nested folder trees automatically. Switch to `IS
 
 - `/jahia-jcr-sql2` — SQL2 syntax, full-text, joins, pagination, and performance
 - `/jahia-dev-build-component` — build the listing component that renders query results
-- `/jahia-dev-define-content-type` — create the queried content type and folder types
+- `/jahia-cnd-author` — create the queried content type and folder types
 

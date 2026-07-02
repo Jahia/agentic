@@ -144,7 +144,7 @@ Always import `Props` from `./types.js` (not `./types.ts` — use `.js` extensio
 import type { Props } from "./types.js";
 ```
 
-If `types.ts` doesn't exist yet, create it first (see `jahia-dev-define-content-type` skill).
+If `types.ts` doesn't exist yet, create it first (see `jahia-cnd-author` skill).
 
 ---
 
@@ -294,7 +294,7 @@ jahiaComponent(
 );
 ```
 
-The `Props` type must be a discriminated union (see `jahia-dev-define-content-type` skill).
+The `Props` type must be a discriminated union (see `jahia-cnd-author` skill).
 
 ### Cache properties — controlling fragment caching
 

@@ -106,7 +106,7 @@ Report findings, then ask: **"Should I import any of these? (yes / no / specific
 
 ### Step 5a — CND and view
 
-Using the confirmed field split from Step 3, run the `jahia-dev-define-content-type` and `jahia-dev-create-view` patterns to create:
+Using the confirmed field split from Step 3, run the `jahia-cnd-author` and `jahia-dev-create-view` patterns to create:
 
 - `src/components/<Category>/<Name>/definition.cnd`
 - `src/components/<Category>/<Name>/types.ts`

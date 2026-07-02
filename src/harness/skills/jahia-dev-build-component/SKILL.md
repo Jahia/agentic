@@ -1,13 +1,13 @@
 ---
 name: jahia-dev-build-component
-description: Builds a complete Jahia component (content type + view + CSS) from a description. Meta-skill that orchestrates jahia-dev-define-content-type and jahia-dev-create-view. Use when asked to build a new UI component or section.
+description: Builds a complete Jahia component (content type + view + CSS) from a description. Meta-skill that orchestrates jahia-cnd-author and jahia-dev-create-view. Use when asked to build a new UI component or section.
 ---
 
 ## Overview
 
 This meta-skill builds a complete **Single Directory Component (SDC)** — the standard Jahia component pattern — by sequencing two atomic skills:
 
-1. `jahia-dev-define-content-type` → create the CND definition and `types.ts`
+1. `jahia-cnd-author` → create the CND definition and `types.ts`
 2. `jahia-dev-create-view` → implement the React view and CSS Module
 
 Run these steps in order. Do not skip to the view before the content type is defined.

@@ -143,5 +143,5 @@ See [references/all-properties.md](references/all-properties.md) for all ~90 pro
 
 Search tip:
 ```bash
-grep -i "keyword" ~/.claude/skills/jahia-properties/references/all-properties.md
+grep -i "keyword" $(find .claude .agents -name "all-properties.md" 2>/dev/null | head -1)
 ```
