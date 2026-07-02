@@ -6,7 +6,7 @@ allowed-tools: Bash, Read, Write, Edit
 
 # Skill: jahia-review-site
 
-Runs automated a11y and SEO checks against every URL in `pages.json`. Lists all violations by rule ID and exits non-zero if any are found.
+Reads URLs from `pages-to-review.json`, runs automated a11y and SEO checks, and — only if all checks pass — writes `pages.json`. Exits non-zero without writing `pages.json` if any violation is found.
 
 **A11y:** axe-core WCAG 2.1 AA — any violation fails.
 
@@ -58,9 +58,10 @@ yarn build && yarn jahia-deploy
 node "$SCRIPT"
 ```
 
-Iterate until the script exits 0.
+Iterate until the script exits 0 and `pages.json` is written.
 
 ---
 
 ## Validation checklist
 - [ ] Script exits 0 (zero a11y violations, zero failing SEO audits)
+- [ ] `pages.json` exists (created by the script on pass)

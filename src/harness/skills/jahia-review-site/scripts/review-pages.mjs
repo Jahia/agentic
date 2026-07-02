@@ -1,14 +1,15 @@
 #!/usr/bin/env node
-// Runs a11y (axe-core) + SEO (Lighthouse) checks on every URL in pages.json.
-// Exits 1 if any page has a11y violations or failing SEO audits.
+// Reads URLs from pages-to-review.json, runs a11y (axe-core) + SEO (Lighthouse) checks.
+// On pass: writes pages.json and exits 0. On fail: exits 1 without writing pages.json.
 import { chromium } from "playwright";
 import { AxeBuilder } from "@axe-core/playwright";
 import lighthouse from "lighthouse";
-import { readFileSync } from "fs";
+import { readFileSync, writeFileSync } from "fs";
 
 const SCORED_MODES = new Set(["binary", "numeric"]);
 
-const urls = JSON.parse(readFileSync("pages.json", "utf-8"));
+const draft = readFileSync("pages-to-review.json", "utf-8");
+const urls = JSON.parse(draft);
 const port = 9222;
 const browser = await chromium.launch({
   args: ["--no-sandbox", `--remote-debugging-port=${port}`],
@@ -65,6 +66,11 @@ for (const r of results) {
 }
 
 console.log(`\n${"═".repeat(70)}`);
-console.log(failed ? "\n❌ FAIL — fix the issues above, redeploy, and re-run." : "\n✅ PASS");
-
-process.exit(failed ? 1 : 0);
+if (failed) {
+  console.log("\n❌ FAIL — fix the issues above, redeploy, and re-run.");
+  process.exit(1);
+} else {
+  writeFileSync("pages.json", draft);
+  console.log("\n✅ PASS — pages.json written.");
+  process.exit(0);
+}

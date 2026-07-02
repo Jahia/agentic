@@ -34,6 +34,6 @@ All components (hero section, section, testimonial, text card, image with captio
 
 Populate the pages with realistic content, including images, text, and links. All pages must have a hero section, at least 3 sections and 1 testimonial. Sectioning layouts must be varied across the pages.
 
-Publish the 4 pages, then invoke `/jahia-review` to run a full code and site review via subagents. Fix every reported violation and iterate until the review passes. Only then create `pages.json` as a string array of public page URLs.
+Publish the 4 pages, then write their public URLs to `pages-to-review.json` as a JSON string array. Invoke `/jahia-review` to run a full code and site review via subagents. Fix every reported violation, redeploy, and iterate until the review passes.
 
 This is a very complex task you have to complete in full autonomy: make a detailed plan and ensure steps are executed in the correct order. Use subagents with specific skills.
