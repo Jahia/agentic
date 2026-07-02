@@ -1,5 +1,9 @@
 # `@jahia/agentic`
 
+## 0.5.1
+
+* Improved SEO and review skills.
+
 ## 0.5.0
 
 * Added support for Antigravity and Kiro agents.
