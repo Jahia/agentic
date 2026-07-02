@@ -1730,5 +1730,58 @@
       }
     ],
     "cndQualityScore": 1
+  },
+  {
+    "id": "run-2026-07-02T10-08-34",
+    "date": "2026-07-02T10:09:18.271Z",
+    "durationSeconds": 2889,
+    "costUSD": 10.06976090000001,
+    "tokens": {
+      "input": 1794,
+      "output": 157732,
+      "cached": 14448465
+    },
+    "githubRunUrl": "https://github.com/Jahia/agentic/actions/runs/28579166345",
+    "branch": "main",
+    "pages": [
+      {
+        "url": "http://localhost:8080/cms/render/live/en/sites/forsure/home.html",
+        "title": "Home | For Sure Insurance",
+        "screenshot": "screenshot-0.png",
+        "accessibilityScore": 0.6065306597126334,
+        "seoScore": 0.92
+      },
+      {
+        "url": "http://localhost:8080/cms/render/live/en/sites/forsure/home/car-insurance.html",
+        "title": "Car Insurance | For Sure Insurance",
+        "screenshot": "screenshot-1.png",
+        "accessibilityScore": 0.6065306597126334,
+        "seoScore": 0.92
+      },
+      {
+        "url": "http://localhost:8080/cms/render/live/en/sites/forsure/home/health-insurance.html",
+        "title": "Health Insurance | For Sure Insurance",
+        "screenshot": "screenshot-2.png",
+        "accessibilityScore": 0.6065306597126334,
+        "seoScore": 0.92
+      },
+      {
+        "url": "http://localhost:8080/cms/render/live/en/sites/forsure/home/home-insurance.html",
+        "title": "Home Insurance | For Sure Insurance",
+        "screenshot": "screenshot-3.png",
+        "accessibilityScore": 0.6065306597126334,
+        "seoScore": 0.92
+      }
+    ],
+    "cndQualityScore": 0.6065306597126334,
+    "cndIssues": [
+      {
+        "file": "/home/runner/work/agentic/agentic/agentic-benchmark-gxJHLF/forsure/src/components/Shared/Cta/definition.cnd",
+        "line": 7,
+        "pattern": "weakrefNoConstraint",
+        "message": "Unconstrained weakreference — add a type constraint",
+        "fix": "Add e.g. (weakreference, picker[type='image']) < jmix:image"
+      }
+    ]
   }
 ]
