@@ -25,7 +25,7 @@ p.log.message(
 
 if (!target) {
   p.log.info(
-    `You skip this prompt by running ${styleText("blueBright", "npx @jahia/agentic@latest <agent>")}`,
+    `You can skip this prompt by running ${styleText("blueBright", "npx @jahia/agentic@latest <agent>")}`,
   );
 
   // Check if the workspace is git clean beforehand
@@ -115,7 +115,7 @@ for (const { src, dst } of filesToCopy) {
 
 if (interactive && overwriteCount > 0) {
   const confirm = await p.confirm({
-    message: `There are ${overwriteCount} file${overwriteCount >= 2 ? "s" : ""} that will be overwritten. Do you want to continue?`,
+    message: overwriteCount > 1 ? `There are ${overwriteCount} files that will be overwritten. Do you want to continue?` : "There is 1 file that will be overwritten. Do you want to continue?",
   });
   if (!confirm || p.isCancel(confirm)) {
     p.cancel("Come back soon!");
@@ -128,9 +128,6 @@ if (interactive && overwriteCount > 0) {
 }
 
 // All good, do the actual copying
-// mkdirSync(resolve(dst, relativePath), { recursive: true });
-// copyFileSync(resolve(entry.parentPath, entry.name), resolve(dst, relativePath, entry.name));
-
 for (const dir of dirsToCreate) {
   mkdirSync(dir, { recursive: true });
 }
