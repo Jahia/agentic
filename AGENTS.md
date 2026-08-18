@@ -58,14 +58,16 @@ Key skills:
 
 | Skill | Purpose |
 |---|---|
-| `jahia` | Universal entry point — classifies the request and delegates |
-| `jahia-dev` | Development GPS — detects project state, recommends next step |
+| `jahia-cnd-author` | Authors a CND content type definition + TypeScript props |
 | `jahia-dev-build-component` | Builds a complete component (CND + view + CSS) |
-| `jahia-dev-define-content-type` | Authors a CND content type definition |
 | `jahia-dev-create-view` | Implements a React view (`.server.tsx` + CSS Module) |
 | `jahia-dev-create-page-template` | Creates a page template with Areas |
+| `jahia-dev-create-template-set` | Scaffolds a new template set |
+| `jahia-dev-migrate-jsp` | Migrates a JSP/Java template set to a JavaScript module |
+| `jahia-dev-query-content` | Designs JCR-SQL2 queries and wires `useJCRQuery` |
+| `jahia-dev-debug` | Debugs build, deploy and runtime errors end to end |
 | `jahia-dev-accessibility` | WCAG 2.1 AA audit with axe-core + fixes |
-| `jahia-content-create-content` | Creates Jahia sites, pages, and content via MCP tools |
+| `jahia-review` | Full quality review — code + live site, in parallel |
 
 ---
 
