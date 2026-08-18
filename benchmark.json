@@ -1880,5 +1880,58 @@
         "fix": "Remove imageAlt. In the view, use image.getPropertyAsString(\"jcr:title\") for alt text"
       }
     ]
+  },
+  {
+    "id": "run-2026-08-18T08-33-51",
+    "date": "2026-08-18T08:34:20.330Z",
+    "durationSeconds": 2759,
+    "costUSD": 8.857638450000005,
+    "tokens": {
+      "input": 1787,
+      "output": 128381,
+      "cached": 12016712
+    },
+    "githubRunUrl": "https://github.com/Jahia/agentic/actions/runs/32112854344",
+    "branch": "main",
+    "pages": [
+      {
+        "url": "http://localhost:8080/cms/render/live/en/sites/forsure/home.html",
+        "title": "Home | forsure",
+        "screenshot": "screenshot-0.png",
+        "accessibilityScore": 1,
+        "seoScore": 1
+      },
+      {
+        "url": "http://localhost:8080/cms/render/live/en/sites/forsure/home/car-insurance.html",
+        "title": "Car Insurance | forsure",
+        "screenshot": "screenshot-1.png",
+        "accessibilityScore": 1,
+        "seoScore": 1
+      },
+      {
+        "url": "http://localhost:8080/cms/render/live/en/sites/forsure/home/health-insurance.html",
+        "title": "Health Insurance | forsure",
+        "screenshot": "screenshot-2.png",
+        "accessibilityScore": 1,
+        "seoScore": 1
+      },
+      {
+        "url": "http://localhost:8080/cms/render/live/en/sites/forsure/home/home-insurance.html",
+        "title": "Home Insurance | forsure",
+        "screenshot": "screenshot-3.png",
+        "accessibilityScore": 1,
+        "seoScore": 1
+      }
+    ],
+    "cndQualityScore": 0.6065306597126334,
+    "cndIssues": [
+      {
+        "file": "/home/runner/work/agentic/agentic/agentic-benchmark-K3npF1/forsure/src/components/Shared/Cta/definition.cnd",
+        "line": 5,
+        "pattern": "weakrefNoConstraint",
+        "message": "Unconstrained weakreference — add a type constraint",
+        "fix": "Add e.g. (weakreference, picker[type='image']) < jmix:image"
+      }
+    ]
   }
 ]
