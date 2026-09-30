@@ -1933,5 +1933,65 @@
         "fix": "Add e.g. (weakreference, picker[type='image']) < jmix:image"
       }
     ]
+  },
+  {
+    "id": "run-2026-09-30T14-39-47",
+    "date": "2026-09-30T14:40:17.866Z",
+    "durationSeconds": 3241,
+    "costUSD": 13.4688336,
+    "tokens": {
+      "input": 322,
+      "output": 160209,
+      "cached": 29286611
+    },
+    "githubRunUrl": "https://github.com/Jahia/agentic/actions/runs/36723539603",
+    "branch": "main",
+    "pages": [
+      {
+        "url": "http://localhost:8080/en/sites/forsure/home.html",
+        "title": "Home | For Sure Insurance",
+        "screenshot": "screenshot-0.png",
+        "accessibilityScore": 1,
+        "seoScore": 1
+      },
+      {
+        "url": "http://localhost:8080/en/sites/forsure/home/car-insurance.html",
+        "title": "Car Insurance | For Sure Insurance",
+        "screenshot": "screenshot-1.png",
+        "accessibilityScore": 1,
+        "seoScore": 1
+      },
+      {
+        "url": "http://localhost:8080/en/sites/forsure/home/health-insurance.html",
+        "title": "Health Insurance | For Sure Insurance",
+        "screenshot": "screenshot-2.png",
+        "accessibilityScore": 1,
+        "seoScore": 1
+      },
+      {
+        "url": "http://localhost:8080/en/sites/forsure/home/home-insurance.html",
+        "title": "Home Insurance | For Sure Insurance",
+        "screenshot": "screenshot-3.png",
+        "accessibilityScore": 1,
+        "seoScore": 1
+      }
+    ],
+    "cndQualityScore": 0.36787944117144233,
+    "cndIssues": [
+      {
+        "file": "/home/runner/work/agentic/agentic/agentic-benchmark-gzEC1M/forsure/settings/definitions.cnd",
+        "line": 19,
+        "pattern": "rawStringLink",
+        "message": "\"ctaUrl\" uses (string) for a link/url — use choicelist[linkTypeInitializer]",
+        "fix": "Replace with: - j:linkType (string, choicelist[linkTypeInitializer]) mandatory"
+      },
+      {
+        "file": "/home/runner/work/agentic/agentic/agentic-benchmark-gzEC1M/forsure/settings/definitions.cnd",
+        "line": 17,
+        "pattern": "singleHardcodedCta",
+        "message": "forsure:cta: flat ctaText+ctaLink forces a single CTA — model as child nodes",
+        "fix": "Remove ctaText and ctaLink. Add: + * (ns:cta). Create a [ns:cta] type with label + j:linkType"
+      }
+    ]
   }
 ]
