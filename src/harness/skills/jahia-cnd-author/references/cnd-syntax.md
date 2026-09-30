@@ -16,6 +16,15 @@ Jahia built-in namespaces:
 
 Module convention: declare two namespaces — one for node types (`ns`), one for mixins (`nsmix`). The prefix is read from the first `<…>` line in `settings/definitions.cnd`.
 
+**Declare a namespace once, in `settings/definitions.cnd`, and nowhere else.** A component
+`definition.cnd` starts with its first `[ns:type]` line and carries no `<prefix = 'uri'>` line.
+The JavaScript modules engine merges every `.cnd` file of the module into one file at deploy
+time: it lifts each line that starts with `<` into one set of declarations and appends the rest.
+Two spellings of the same prefix (a different URI, or the same URI written differently) reach
+the parser as two declarations, the merged file fails to parse, and the module installs and never
+starts. `jnt`, `jmix`, `j`, `mix` and `nt` are known to Jahia and need no declaration, so
+`mix:title` works in a component file that declares nothing.
+
 ---
 
 ## Node type definition

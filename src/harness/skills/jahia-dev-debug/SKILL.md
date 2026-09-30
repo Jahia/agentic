@@ -114,11 +114,24 @@ Repeat until `yarn jahia-deploy` succeeds and the module loads cleanly (no error
 
 ## Common fixes by error type
 
+### CND: a change is not applied after `yarn jahia-deploy`
+
+**Symptom:** the build and the deploy succeed, but `content.type` still shows the previous definition, and `content.create` under the changed type answers `Constraint violation: No child node definition` for a child the new CND allows.
+
+**What worked in the benchmark:** uninstall the module, then deploy again. Through the provisioning API:
+
+```bash
+curl -s -u root:root1234 -F 'script=[{"uninstallModule":"<module>/<version>"}]' http://localhost:8080/modules/api/provisioning
+yarn jahia-deploy
+```
+
+`yarn jahia-deploy` already passes `ignoreChecks: true`, so the CND breaking-change check is not what held the old definition. Verify with `content.type` after the deploy, before you create content. Do not "fix" the CND in the dark: three different models tried in a row cost more than one uninstall.
+
 ### CND: `j:linknode` or `j:url` declared explicitly
 These fields are injected by Jahia's `linkTypeInitializer` mixin. Remove them from the CND.
 
 ### CND: unknown mixin or type
-Check that the namespace is declared at the top of `settings/definitions.cnd` and that all referenced types exist.
+Check that the namespace is declared at the top of `settings/definitions.cnd` and that all referenced types exist. A namespace declared a second time in a component `definition.cnd` breaks the merged CND file instead: every `<prefix = 'uri'>` line belongs in `settings/definitions.cnd` only.
 
 ### import.xml: reference to a non-existent type
 Any `jcr:primaryType` or `jcr:mixinTypes` value in `import.xml` must exist in the deployed CND. Check for typos.

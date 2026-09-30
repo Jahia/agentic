@@ -57,10 +57,10 @@ Load reference files as needed for the syntax you require:
 - **Which Jahia native mixins to extend** (`mix:title`, `jmix:mainResource`, etc.) → [references/cnd-jahia-mixins.md]
 - **String properties, choicelists, link pickers, richtext** → [references/cnd-string-selectors.md]
 - **Numeric, boolean, and date properties** → [references/cnd-numbers-dates.md]
-- **Child nodes, CTAs, orderable containers** → [references/cnd-child-nodes.md]
+- **Child nodes, CTAs, orderable containers, sectioning components whose items editors drop inside** → [references/cnd-child-nodes.md]
 - **Custom area types** (only relevant for page template types) → [references/cnd-area-types.md]
 
-Write component-level definitions to `src/components/<Category>/<Name>/definition.cnd`. Module-level mixins belong in `settings/definitions.cnd`.
+Write component-level definitions to `src/components/<Category>/<Name>/definition.cnd`. Module-level mixins belong in `settings/definitions.cnd`, and so does every namespace declaration: a component file never starts with a `<prefix = 'uri'>` line (see the namespace rule in cnd-syntax.md).
 
 ## Step 4: write `types.ts`
 
@@ -81,6 +81,8 @@ Write to:
 Before returning, verify:
 
 - [ ] Namespace prefix matches `settings/definitions.cnd`
+- [ ] No `<prefix = 'uri'>` line in any component `definition.cnd`; declarations live in `settings/definitions.cnd` only
+- [ ] A component whose items editors drop inside it has a hidden list child type and an `<AbsoluteArea>` in its view, not `+ *` on the component itself
 - [ ] All component types extend `nsmix:component` (or `nsmix:pageComponent` if page-area only)
 - [ ] No `- title (string) i18n mandatory` — use `mix:title` instead
 - [ ] No `imageAlt (string)` — the image node's `jcr:title` serves as alt text

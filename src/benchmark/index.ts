@@ -444,6 +444,20 @@ for (const [i, rawUrl] of urls.entries()) {
   console.log(`Taking a screenshot of ${title}...`);
   const screenshot = `screenshot-${i}.png`;
   await page.screenshot({ fullPage: true, path: join(runDir, screenshot) });
+  console.log(`Counting images of ${title}...`);
+  // decode() fetches a lazy image too, so an image below the fold is not reported broken
+  const images = await page.$$eval("img", async (imgs) => {
+    const loaded: boolean[] = await Promise.all(
+      imgs.map((img) =>
+        img.decode().then(
+          () => img.naturalWidth > 0,
+          () => false,
+        ),
+      ),
+    );
+    return { total: imgs.length, broken: loaded.filter((ok) => !ok).length };
+  });
+  const imageScore = images.total === 0 ? 0 : (images.total - images.broken) / images.total;
   console.log(`Analyzing accessibility of ${title}...`);
   const axe = new AxeBuilder({ page });
   const results = await axe.analyze();
@@ -458,7 +472,7 @@ for (const [i, rawUrl] of urls.entries()) {
   });
   const seoScore = result?.lhr.categories.seo?.score ?? 0;
   console.log(
-    `Results for ${title}: Accessibility Score = ${accessibilityScore.toFixed(2)}, SEO Score = ${seoScore.toFixed(2)}`,
+    `Results for ${title}: Accessibility Score = ${accessibilityScore.toFixed(2)}, SEO Score = ${seoScore.toFixed(2)}, Images = ${images.total - images.broken}/${images.total} (score ${imageScore.toFixed(2)})`,
   );
   pages.push({
     url: url.toString(),
@@ -466,6 +480,9 @@ for (const [i, rawUrl] of urls.entries()) {
     screenshot,
     accessibilityScore,
     seoScore,
+    imageCount: images.total,
+    brokenImageCount: images.broken,
+    imageScore,
   });
 }
 

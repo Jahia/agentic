@@ -324,6 +324,7 @@ function runCard(run: BenchmarkRun): string {
       ? [
           scoreBadge("A11y", home.accessibilityScore),
           scoreBadge("SEO", home.seoScore),
+          scoreBadge("Img", home.imageScore ?? null),
           scoreBadge("CND", run.cndQualityScore ?? null),
         ].join("")
       : scoreBadge("CND", run.cndQualityScore ?? null);
@@ -444,6 +445,7 @@ function detailPage(run: BenchmarkRun): string {
   const firstPageBadges = firstPage
     ? scoreBadge("A11y", firstPage.accessibilityScore) +
       scoreBadge("SEO", firstPage.seoScore) +
+      scoreBadge("Img", firstPage.imageScore ?? null) +
       scoreBadge("CND", run.cndQualityScore ?? null)
     : scoreBadge("CND", run.cndQualityScore ?? null);
 

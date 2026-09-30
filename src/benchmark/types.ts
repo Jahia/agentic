@@ -7,6 +7,12 @@ export interface PageResult {
   screenshot: string | null; // filename relative to run dir in results/
   accessibilityScore: number | null; // 0–1
   seoScore: number | null; // 0–1
+  /** Number of <img> elements on the page; absent on runs recorded before the metric existed */
+  imageCount?: number;
+  /** <img> elements that failed to load (decode() rejected or naturalWidth is 0) */
+  brokenImageCount?: number;
+  /** 0–1: share of images that load, and 0 when the page has none. The prompt asks for images */
+  imageScore?: number | null;
 }
 
 export interface BenchmarkRun {
