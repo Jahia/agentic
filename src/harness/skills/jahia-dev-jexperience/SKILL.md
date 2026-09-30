@@ -1,6 +1,6 @@
 ---
 name: jahia-dev-jexperience
-description: Integrate a Jahia JavaScript module with jExperience and jCustomer — set up the local stack, push visitor events from client components, visualize data in Kibana, and package dashboards for deployment.
+description: Integrate a Jahia JavaScript module with jExperience and jCustomer — push visitor events from client components, verify them in Kibana, build a dashboard and package it in the module for the jExperience tab. The stack itself (Elasticsearch, jCustomer, jExperience) comes from jahia-dev-setup-environment; this skill adds Kibana on top and the dashboards modules once a release accepts the installed jExperience.
 allowed-tools: Bash, Read, Write, Edit
 ---
 
@@ -12,109 +12,90 @@ Together they form Jahia's **DXP** (Digital Experience Platform). You only need 
 
 ---
 
-## Step 1 — Set up jCustomer locally
+## Step 1 — Get the stack running
 
-### 1a — Update `docker-compose.yml`
+### 1a — jCustomer and jExperience: use `jahia-dev-setup-environment`
 
-Give the `jahia` service a static IP, add three containers, and declare the subnet:
+The stack is one Elasticsearch, one jCustomer and jExperience installed and enabled on the site.
+`jahia-dev-setup-environment` step 6 carries the Compose blocks and the manifest blocks, validated
+against jCustomer 3.0.0 and jExperience 4.2.1, and the `context.json` check that proves Jahia
+reaches jCustomer. Run it first, in the project's existing layout (`docker-compose.yml` and
+`docker/provisioning.yml` for a scaffolded module). Do not write the stack by hand here: the two
+skills would drift.
+
+### 1b — Add Kibana on the same Elasticsearch
+
+Kibana reads the jCustomer indices, and must run the same major version as the Elasticsearch of
+the stack. Merge into `docker-compose.yml`:
 
 ```yaml
 services:
-  jahia:
-    # ... existing config ...
-    networks:
-      default:
-        ipv4_address: 172.16.1.100
-
-  elasticsearch:
-    image: elasticsearch:7.17.28
-    ports:
-      - 9200:9200
-    environment:
-      discovery.type: single-node
-      cluster.name: jahia-es-cluster
-
   kibana:
-    image: kibana:7.17.28
-    ports:
-      - 5601:5601
-    environment:
-      discovery.type: single-node
-      elasticsearch.hosts: http://elasticsearch:9200
-
-  jcustomer:
-    image: jahia/jcustomer:2.6
+    image: docker.elastic.co/kibana/kibana:9.5.3 # same version as the elasticsearch service
     depends_on:
-      - elasticsearch
+      elasticsearch:
+        condition: service_healthy
     ports:
-      - 9443:9443
-      - 8181:8181
-      - 8102:8102
+      - '5601:5601'
     environment:
-      UNOMI_ELASTICSEARCH_ADDRESSES: elasticsearch:9200
-      UNOMI_ELASTICSEARCH_CLUSTERNAME: jahia-es-cluster
-      UNOMI_CLUSTER_PUBLIC_ADDRESS: http://localhost:8181
-      UNOMI_CLUSTER_INTERNAL_ADDRESS: https://jcustomer:9443
-      UNOMI_THIRDPARTY_PROVIDER1_IPADDRESSES: 172.16.1.100
-      UNOMI_THIRDPARTY_PROVIDER1_ALLOWEDEVENTS: login,updateProperties
-      UNOMI_ROOT_PASSWORD: karaf
-      UNOMI_HAZELCAST_TCPIP_MEMBERS: jcustomer
-
-networks:
-  default:
-    ipam:
-      config:
-        - subnet: 172.16.1.0/24
+      ELASTICSEARCH_HOSTS: http://elasticsearch:9200
+    healthcheck:
+      test: ['CMD-SHELL', 'curl -sf http://localhost:5601/api/status || exit 1']
+      interval: 10s
+      timeout: 5s
+      retries: 30
+      start_period: 30s
 ```
 
-### 1b — Update `docker/provisioning.yml`
+The Elasticsearch of the stack runs without security for local development, so Kibana needs no
+credentials. Steps 2 and 3 need nothing more.
 
-Append at the end of the file:
+### 1c — The dashboards modules, when a release accepts your jExperience
 
-```yaml
-# Install and start jExperience
-- installModule:
-    - "mvn:org.jahia.modules/jexperience/3.6.2"
-    - "mvn:org.jahia.modules/jexperience-dashboards/1.0.0"
-  autoStart: true
-  uninstallPreviousVersion: true
+Steps 4 and 5 show a Kibana dashboard inside the jExperience tab of jContent, through two modules:
+`kibana-dashboards-provider` (the proxy to Kibana) and `jexperience-dashboards` (the tab). Both
+declare the jExperience line they accept in `Jahia-Depends`, and a module outside that line installs
+and never starts (`unresolved dependency jexperience`, see `jahia-dev-run-module` step 6).
 
-# Connect jExperience to jCustomer
-- editConfiguration: "org.jahia.modules.jexperience.settings"
-  configIdentifier: "global"
-  properties:
-    jexperience.jCustomerURL: "https://jcustomer:9443"
-    jexperience.jCustomerUsername: "karaf"
-    jexperience.jCustomerPassword: "karaf"
-    jexperience.jCustomerTrustAllCertificates: "true"
-    jexperience.jCustomerUsePublicAddressesForAdmin: "false"
-    jexperience.jCustomerKey: "670c26d1cc413346c3b2fd9ce65dab41"
-
-# Configure Kibana dashboards proxy
-- editConfiguration: "org.jahia.modules.kibana_dashboards_provider"
-  properties:
-    kibana_dashboards_provider.kibanaURL: "http://kibana:5601"
-    kibana_dashboards_provider.kibanaUser: "elastic"
-    kibana_dashboards_provider.kibanaPassword: "ELASTIC_PASSWORD"
-    kibana_dashboards_provider.KibanaProxy.enable: "true"
-    kibana_dashboards_provider.KibanaProxy.cloud: "true"
-- installModule:
-    - "mvn:org.jahia.modules/kibana-dashboards-provider/1.4.0"
-  autoStart: true
-  uninstallPreviousVersion: true
-```
-
-### 1c — Start the stack
+As of jExperience 4.2.1, every published release of both modules (2.1.0 and 2.0.1) accepts
+`jexperience=[3.7.0,4)` only. The next line (2.2.0, on `main`) widens it to `[3.7.0,5)`. Read the
+store before you pin:
 
 ```bash
-docker compose down jahia && docker compose up --wait
+curl -s https://devtools.jahia.com/nexus/content/repositories/jahia-public-app-store/org/jahia/modules/jexperience-dashboards/maven-metadata.xml | grep '<version>'
 ```
 
-### 1d — Enable jExperience on the site
+Once a version exists that accepts the installed jExperience, append to the manifest:
 
-1. Open **Administration → Modules → jExperience → Usage in sites**
-2. Check the box next to your site. Repeat for **jExperience Dashboards**.
-3. Open jContent — a new **jExperience** tab should appear in the vertical bar (refresh if needed).
+```yaml
+# Configure the Kibana proxy BEFORE installing the provider, so it starts already pointed at Kibana
+- editConfiguration: 'org.jahia.modules.kibana_dashboards_provider'
+  properties:
+    kibana_dashboards_provider.kibanaURL: 'http://kibana:5601'
+    kibana_dashboards_provider.KibanaProxy.enable: 'true'
+
+- installOrUpgradeModule:
+    - 'mvn:org.jahia.modules/kibana-dashboards-provider/<version>'
+    - 'mvn:org.jahia.modules/jexperience-dashboards/<version>'
+  autoStart: true
+
+# The dashboards tab shows on the sites the module is enabled on, and on no others
+- enable: 'jexperience-dashboards'
+  site: '<siteKey>'
+```
+
+Then verify both bundles answer `ACTIVE`, and that the site node lists `jexperience-dashboards` in
+`j:installedModules`. A missing tab in jContent is one of those two checks failing.
+
+### 1d — Apply the change
+
+The manifest runs when the container is created, so a manifest change needs the Jahia container
+recreated. Ask the developer first, because the data volume is theirs:
+
+```bash
+docker compose up --wait          # picks up the new kibana service
+docker compose down --volumes && docker compose up --wait   # only to re-run the manifest
+```
 
 ---
 
@@ -209,7 +190,7 @@ dataLayer.push({ event: "feedback", happy });
 ## Step 3 — Verify events in Kibana
 
 1. Open [localhost:5601](http://localhost:5601)
-2. Go to **Discover**, select the `*-event` index, and expand the time range
+2. Go to **Discover**, create a data view on `context-event*` (the jCustomer event indices), and expand the time range
 3. Browse an event — confirm the `source.properties.pageInfo.pagePath` and `target.properties.happy` fields are present
 
 ---
@@ -254,12 +235,12 @@ Dashboards exported from Kibana are automatically imported when the module is de
 ---
 
 ## Validation checklist
-- [ ] `docker compose up --wait` completed with elasticsearch, kibana, jcustomer healthy
-- [ ] jExperience and jExperience Dashboards enabled on the target site
+- [ ] The stack from `jahia-dev-setup-environment` passes its own checks, and the `kibana` service is healthy
+- [ ] jExperience enabled on the target site; jExperience Dashboards too, when a release accepts the installed jExperience
 - [ ] jExperience tab visible in jContent
 - [ ] Client component uses `.client.tsx` extension and `Island clientOnly`
 - [ ] `wem.collectEvents` called with a valid event (source + target)
-- [ ] Events visible in Kibana Discover under `*-event` index
+- [ ] Events visible in Kibana Discover under the `context-event*` data view
 - [ ] Dashboard saved and visible under the jExperience tab in Jahia
 - [ ] Dashboard `.ndjson` saved to `settings/kibana-dashboard/dashboards/` for packaging
 

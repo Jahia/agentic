@@ -1,0 +1,17 @@
+# Runs once, when the container is created. Operations run in order.
+
+# Register a private corporate Maven repository, when the project has one
+- addMavenRepository: 'https://example.com/nexus'
+
+# The modules the project needs and does not build itself. Pin every version
+- installOrUpgradeModule: 'mvn:org.jahia.modules/javascript-modules-engine/1.2.0'
+
+# Import a staging website from an export
+- importSite: 'file:/opt/provisioning/export.zip'
+
+# Create an empty site from a template set, if you don't have an export.
+- createSite:
+  siteKey: 'myproject'
+  templateSet: 'my-template-set'
+  locale: 'en'
+  serverName: 'localhost'

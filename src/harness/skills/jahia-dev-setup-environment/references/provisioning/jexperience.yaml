@@ -1,0 +1,21 @@
+# Append to bootstrap.yaml. Needs the jcustomer service, and a license with the jExperience
+# entitlement. jExperience 4.2 requires Jahia 8.2.2.0, jCustomer 3.0.0 and jContent 3.7.0 or later.
+- installOrUpgradeModule:
+    - 'mvn:org.jahia.modules/jcontent/3.7.1'
+    - 'mvn:org.jahia.modules/jexperience/4.2.1'
+  autoStart: true
+
+- editConfiguration: 'org.jahia.modules.jexperience.settings'
+  configIdentifier: 'global'
+  properties:
+    jexperience.jCustomerURL: 'https://jcustomer:9443'
+    jexperience.jCustomerUsername: 'karaf'
+    jexperience.jCustomerPassword: 'karaf'
+    jexperience.jCustomerTrustAllCertificates: 'true'
+    jexperience.jCustomerUsePublicAddressesForAdmin: 'false'
+    # Must hold the same value as UNOMI_THIRDPARTY_PROVIDER1_KEY in the Compose file
+    jexperience.jCustomerKey: '670c26d1cc413346c3b2fd9ce65dab41'
+
+# jExperience works on the sites it is enabled on, and on no others
+- enable: 'jexperience'
+  site: 'myproject'

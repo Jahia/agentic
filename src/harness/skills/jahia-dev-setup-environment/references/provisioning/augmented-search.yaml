@@ -1,0 +1,24 @@
+# Append to bootstrap.yaml. Needs the elasticsearch service, and a license with the Augmented
+# Search entitlement.
+
+# The Jahia public app store serves these bundles, and needs no credentials
+- addMavenRepository: 'https://devtools.jahia.com/nexus/content/repositories/jahia-public-app-store@id=JahiaStore'
+
+# Configure the connector BEFORE installing it. Jahia keeps configuration
+# independently of the bundle, so the connector starts already pointed at Elasticsearch
+- editConfiguration: 'org.jahia.modules.elasticsearchConnector'
+  properties:
+    elasticsearchConnector.host: 'elasticsearch'
+    elasticsearchConnector.port: '9200'
+    elasticsearchConnector.useXPackSecurity: 'false'
+    elasticsearchConnector.useEncryption: 'false'
+
+- installOrUpgradeModule:
+    - 'mvn:org.jahia.modules/elasticsearch-connector/4.1.0'
+    - 'mvn:org.jahia.modules/augmented-search/4.1.0'
+  autoStart: true
+
+# Register the site with Augmented Search and index it. The sleep gives the
+# connector time to reach Elasticsearch
+- sleep: 15000
+- executeScript: 'file:/opt/provisioning/index-site.graphql'

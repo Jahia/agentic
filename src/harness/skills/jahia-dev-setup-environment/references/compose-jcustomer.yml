@@ -1,0 +1,42 @@
+# Merge into docker-compose.yml, after compose-elasticsearch.yml.
+services:
+  jahia:
+    # Merge with your existing `jahia:` block
+    networks:
+      default:
+        ipv4_address: 172.16.1.100
+
+  jcustomer:
+    image: jahia/jcustomer:3.0.0
+    depends_on:
+      elasticsearch:
+        condition: service_healthy
+    ports:
+      - '8181:8181' # HTTP
+      - '9443:9443' # HTTPS
+      - '8102:8102' # Karaf SSH shell
+    environment:
+      UNOMI_ELASTICSEARCH_ADDRESSES: elasticsearch:9200
+      UNOMI_CLUSTER_PUBLIC_ADDRESS: http://localhost:8181
+      UNOMI_CLUSTER_INTERNAL_ADDRESS: https://jcustomer:9443
+      # The address given to Jahia above, the only sender these events are accepted from
+      UNOMI_THIRDPARTY_PROVIDER1_IPADDRESSES: 172.16.1.100
+      # Must hold the same value as jexperience.jCustomerKey in the manifest
+      UNOMI_THIRDPARTY_PROVIDER1_KEY: 670c26d1cc413346c3b2fd9ce65dab41
+      UNOMI_THIRDPARTY_PROVIDER1_ALLOWEDEVENTS: login,updateProperties
+      UNOMI_ROOT_PASSWORD: karaf
+    # The image has no healthcheck of its own, so without this block `up --wait`
+    # returns before jCustomer answers
+    healthcheck:
+      test: ['CMD-SHELL', 'curl -sfk -u karaf:karaf https://localhost:9443/cxs/cluster || exit 1']
+      interval: 10s
+      timeout: 5s
+      retries: 60
+      start_period: 60s
+
+# The fixed address above needs a subnet to belong to
+networks:
+  default:
+    ipam:
+      config:
+        - subnet: 172.16.1.0/24

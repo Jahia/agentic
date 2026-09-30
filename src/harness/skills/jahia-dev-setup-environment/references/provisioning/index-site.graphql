@@ -1,0 +1,14 @@
+# Registers the site with Augmented Search and starts its first indexation. Asynchronous: the
+# answer is a job id, and the jahia_as* indices are the end state to check.
+mutation {
+  admin {
+    search {
+      addSite(siteKey: "myproject")
+      startIndex(siteKeys: ["myproject"]) {
+        jobs {
+          id
+        }
+      }
+    }
+  }
+}

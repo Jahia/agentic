@@ -1,0 +1,55 @@
+# Jahia and its database. The manifest under ./provisioning puts the instance in the state the
+# project needs, the first time the container starts (and again when it is recreated).
+services:
+  jahia:
+    image: jahia/jahia-ee:8.2.3.2
+    depends_on:
+      db:
+        condition: service_healthy
+    ports:
+      - '8080:8080' # HTTP
+      - '8000:8000' # Java debugger
+      - '8101:8101' # Karaf SSH shell
+    environment:
+      DB_VENDOR: mariadb
+      DB_HOST: db
+      DB_NAME: jahia
+      DB_USER: jahia
+      DB_PASS: jahia
+      SUPER_USER_PASSWORD: root1234
+      JPDA: 'true'
+      # Base64 content of the license file, from the shell or the CI secrets; empty runs a 30-day trial
+      JAHIA_LICENSE: ${JAHIA_LICENSE:-}
+      # The file: scheme is required, Jahia does not resolve a bare path
+      EXECUTE_PROVISIONING_SCRIPT: 'file:/opt/provisioning/bootstrap.yaml'
+    volumes:
+      - jahia-data:/var/jahia
+      - ./provisioning:/opt/provisioning:ro
+    healthcheck:
+      test: ['CMD-SHELL', 'curl -sf http://localhost:8080/cms/login || exit 1']
+      interval: 10s
+      timeout: 5s
+      retries: 60
+      start_period: 60s
+
+  db:
+    image: mariadb:10-focal
+    command: --max_allowed_packet=234217728 --transaction-isolation=READ-UNCOMMITTED
+    # Not exposed but you can add ports: ['3306:3306'] to make it accessible
+    environment:
+      MARIADB_ROOT_PASSWORD: root
+      MARIADB_DATABASE: jahia
+      MARIADB_USER: jahia
+      MARIADB_PASSWORD: jahia
+    volumes:
+      - db-data:/var/lib/mysql
+    healthcheck:
+      test: ['CMD-SHELL', 'MYSQL_PWD=root healthcheck.sh --connect --innodb_initialized']
+      interval: 10s
+      retries: 12
+      start_period: 30s
+
+# Preserve data across restarts
+volumes:
+  db-data:
+  jahia-data:

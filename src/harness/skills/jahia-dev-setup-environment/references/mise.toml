@@ -1,0 +1,7 @@
+# The programs a Jahia project builds with, each at one version. `mise install` gets them.
+# Take the JDK from maven.compiler.release in pom.xml, and Node.js / Yarn from package.json.
+[tools]
+java = "temurin-17"
+maven = "3"
+node = "26"
+yarn = "4.18"

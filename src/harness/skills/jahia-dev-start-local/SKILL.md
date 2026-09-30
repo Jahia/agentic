@@ -1,9 +1,14 @@
 ---
 name: jahia-dev-start-local
-description: Starts a local Jahia instance for development and guides the user through creating their first site. Use this after creating a template set to get a running Jahia environment.
+description: Starts a local Jahia instance for a project you just scaffolded, and guides the user through creating their first site. Use this after @jahia/create-module produced a module, or after jahia-dev-create-template-set, to get a running Jahia and a site built with that template set. Do NOT use it for a repository somebody else wrote: an existing module needs its Jahia version, its dependencies and its JDK read out of the repository first, and a broken local environment needs repair rather than a first site. Use jahia-dev-run-module for both of those.
 ---
 
 ## Overview
+
+**Scope.** This skill covers a module that was just scaffolded in this repository. For a module
+somebody else wrote, and for a local environment that must be repaired (a port or a mounted
+directory to change, a forgotten `root` password, an empty Jahia to start again from, a build that
+passes here and fails in the continuous integration), use `jahia-dev-run-module` instead.
 
 This skill starts a local Jahia instance for development. Two approaches are available depending on the environment. Try Docker first; fall back to bare metal only if Docker is not an option.
 
@@ -116,6 +121,11 @@ Then open **Page Builder** at http://localhost:8080/jahia/page-builder to start 
 
 ## Troubleshooting
 
-If anything goes wrong during setup or startup, refer to the official Jahia front-end developer setup guide:
+A deployed module that does not appear is a bundle that did not reach `ACTIVE`. `jahia-dev-run-module`
+carries the state check and the log lines that name each cause.
+
+For the human-facing guides:
 
 > https://academy.jahia.com/tutorials-get-started/front-end-developer/setting-up-your-dev-environment
+>
+> https://academy.jahia.com/documentation/jahia-cms/jahia-8.2/developer/introducing-jahia-technical-concepts/setting-up-your-local-dev-environment-and-starting-jahia

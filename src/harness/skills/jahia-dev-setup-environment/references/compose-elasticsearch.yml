@@ -1,0 +1,33 @@
+# Merge into docker-compose.yml. One Elasticsearch serves Augmented Search and jCustomer.
+services:
+  jahia:
+    # Merge with your existing `jahia:` block
+    depends_on:
+      db:
+        condition: service_healthy
+      elasticsearch:
+        condition: service_healthy
+
+  elasticsearch:
+    build: ./elasticsearch
+    mem_limit: 2g
+    ports:
+      - '9200:9200'
+    volumes:
+      - es-data:/usr/share/elasticsearch/data
+    environment:
+      discovery.type: single-node
+      # Local development only. A deployed Elasticsearch needs TLS and authentication
+      xpack.security.enabled: 'false'
+      xpack.security.http.ssl.enabled: 'false'
+      ES_JAVA_OPTS: '-Xms1g -Xmx1g'
+    healthcheck:
+      test: ['CMD-SHELL', 'curl -sf http://localhost:9200/_cluster/health || exit 1']
+      interval: 10s
+      timeout: 5s
+      retries: 30
+      start_period: 30s
+
+# Without this volume, recreating the container empties the search index
+volumes:
+  es-data:
