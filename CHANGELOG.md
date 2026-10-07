@@ -1,5 +1,11 @@
 # `@jahia/agentic`
 
+## 0.8.0
+
+* New `jahia-dev-migrate-ui-extension` skill to help migrate from webpack to Vite. (#17)
+
+* Added the Java skills back: `jahia-dev-java` writes a Java module with an Action (a `.do` endpoint) from the POM to deployment, and `jahia-java-osgi`, `jahia-java-jcr`, `jahia-java-security` and `jahia-review-java` cover OSGi components, JCR access, access control and review. A new Java benchmark scenario checks that an agent can write and deploy such a module.
+
 ## 0.7.0
 
 ### New Features
