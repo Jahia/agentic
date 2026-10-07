@@ -1,0 +1,10 @@
+services:
+  jahia:
+    image: jahia/jahia-ee:8.2
+    ports:
+      - 8080:8080
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/start"]
+      interval: 5s
+      timeout: 1s
+      retries: 60

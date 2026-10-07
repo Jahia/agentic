@@ -14,6 +14,7 @@
   "type": "module",
   "scripts": {
     "benchmark": "node src/benchmark/index.ts",
+    "benchmark:java": "node src/benchmark/java/index.ts",
     "build": "node src/build/index.ts",
     "build:website": "node src/benchmark/build-website.ts",
     "format": "oxfmt",
