@@ -40,7 +40,7 @@ yarn install            # install dependencies
 yarn build              # compile harness + bundle CLI → dist/
 yarn lint               # tsc --noEmit + oxlint
 yarn benchmark          # run the full benchmark (requires COPILOT_TOKEN env var + running Jahia)
-yarn benchmark:java     # run the Java scenario (Docker, JDK 17 and Maven)
+yarn benchmark:java     # run the Java scenario (Docker; mise provides JDK 17 and Maven)
 ```
 
 > `yarn build` calls `node src/build/index.ts` which runs APM for each target and bundles `src/cli/index.ts` with rolldown.

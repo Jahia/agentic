@@ -3,3 +3,6 @@ node = "lts"
 yarn = "4.15"
 claude = "latest"
 "github:microsoft/apm" = "latest"
+# The Java benchmark builds the module that the agent writes
+java = "temurin-17"
+maven = "3.9"
