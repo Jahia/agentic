@@ -20,6 +20,8 @@ src/
   benchmark/            ← Automated benchmark: scaffolds a Jahia project, runs the agent, scores the output
     prompt.md           ← Task given to the agent during the benchmark run
     index.ts            ← Benchmark runner (Node.js script)
+    claude.ts           ← Runs Claude Code on a prompt and prints its stream; shared by both scenarios
+    java/               ← Java scenario: prompt, Jahia compose file, runner, and score.ts (HTTP checks)
     types.ts            ← BenchmarkRun / PageResult types
   build/
     index.ts            ← Build script: compiles harness for all targets via APM, then bundles the CLI
@@ -38,6 +40,7 @@ yarn install            # install dependencies
 yarn build              # compile harness + bundle CLI → dist/
 yarn lint               # tsc --noEmit + oxlint
 yarn benchmark          # run the full benchmark (requires COPILOT_TOKEN env var + running Jahia)
+yarn benchmark:java     # run the Java scenario (Docker, JDK 17 and Maven)
 ```
 
 > `yarn build` calls `node src/build/index.ts` which runs APM for each target and bundles `src/cli/index.ts` with rolldown.
@@ -68,6 +71,11 @@ Key skills:
 | `jahia-dev-debug` | Debugs build, deploy and runtime errors end to end |
 | `jahia-dev-accessibility` | WCAG 2.1 AA audit with axe-core + fixes |
 | `jahia-review` | Full quality review — code + live site, in parallel |
+| `jahia-dev-java` | Writes a Java module: pom.xml, an Action (`.do` endpoint), configuration, tests, deployment |
+| `jahia-java-osgi` | OSGi Declarative Services and configuration in a Java module |
+| `jahia-java-jcr` | JCR sessions, queries and writes from Java |
+| `jahia-java-security` | Who may call an Action, a servlet or a GraphQL field, and how Jahia checks it |
+| `jahia-review-java` | Prioritised review of a Java module |
 
 ---
 
@@ -91,6 +99,12 @@ A score of `1.0` means zero violations; `0.607` ≈ one serious violation; `0.36
 **Failure condition:** If the agent does not produce a `pages.json` file within the 60-minute CI timeout, the benchmark job fails with no score.
 
 **Benchmark history:** Stored as JSON in the `results` branch (`results/benchmark.json`) and visualised at [jahia.github.io/agentic](https://jahia.github.io/agentic/).
+
+### Java scenario
+
+`.github/workflows/benchmark-java.yml` runs `yarn benchmark:java` on a push to `main` that changes the Java skills or `src/benchmark/java/**`, and on demand. The agent writes and deploys the `forsure-quote` module of `src/benchmark/java/prompt.md`. Then `score.ts` builds it and checks the action over HTTP: the prices, the errors, the refused `POST`, logged-in calls in the live and default workspaces, and a configuration change. The job fails when one check fails. The JavaScript benchmark ignores these paths.
+
+To score a module without running the agent: `JAHIA_URL=http://localhost:8080 node src/benchmark/java/score.ts <directory that holds forsure-quote>`.
 
 ---
 

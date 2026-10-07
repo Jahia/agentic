@@ -3,7 +3,14 @@ name: Benchmark
 on:
   push:
     branches: [main]
-    paths: [src/benchmark/**, src/harness/**]
+    paths:
+      - src/benchmark/**
+      - src/harness/**
+      # The Java skills and their scenario run in benchmark-java.yml
+      - "!src/benchmark/java/**"
+      - "!src/harness/skills/jahia-dev-java/**"
+      - "!src/harness/skills/jahia-java-*/**"
+      - "!src/harness/skills/jahia-review-java/**"
   workflow_dispatch: {}
 
 permissions:
