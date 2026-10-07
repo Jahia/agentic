@@ -141,6 +141,9 @@ and the presets of the Babel config (usually `@babel/preset-react`) in `devDepen
 - Rename each stylesheet imported as an object to `*.module.css` / `*.module.scss`, and update the
   imports. Leave the stylesheets imported for their side effect (`import './X.css'`).
 - `pom.xml`: if the build runs `yarn ${yarn.arguments}`, set `<yarn.arguments>build</yarn.arguments>`.
+- `pom.xml`: set `app-shell=4.0` in `<jahia-depends>` (add it, or raise the existing entry). A
+  bare version is a minimum. Without it the module starts on app-shell 3, which cannot load a Vite
+  remote.
 - `.gitignore`: add `.__*`.
 
 ## Step 6 — Prepare for app-shell 5
