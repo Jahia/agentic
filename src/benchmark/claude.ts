@@ -139,6 +139,8 @@ function prettyPrintLine(line: string): void {
 
 /** Runs Claude Code in `cwd` on `prompt`, prints its stream live, and returns the raw stream-json output. */
 export async function runClaude(cwd: string, prompt: string): Promise<string> {
+  _lastTime = Date.now();
+  _toolNames.clear();
   const claudeProc = spawn(
     "claude",
     [
@@ -177,7 +179,8 @@ export async function runClaude(cwd: string, prompt: string): Promise<string> {
     process.stderr.write(chunk);
   });
 
-  await once(claudeProc, "exit");
+  // "close" waits for stdout to drain; "exit" can come before the final result line
+  await once(claudeProc, "close");
   return claudeOutput;
 }
 

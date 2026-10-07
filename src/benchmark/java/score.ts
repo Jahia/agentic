@@ -17,8 +17,15 @@ interface Answer {
 }
 
 async function call(url: string, init: RequestInit = {}): Promise<Answer> {
-  const response = await fetch(url, { redirect: "manual", signal: AbortSignal.timeout(15_000), ...init });
-  const text = await response.text();
+  let response: Response;
+  let text: string;
+  try {
+    response = await fetch(url, { redirect: "manual", signal: AbortSignal.timeout(15_000), ...init });
+    text = await response.text();
+  } catch (error) {
+    // A timeout or a refused connection fails this check only
+    return { status: 0, contentType: String(error), json: undefined };
+  }
   let json: Record<string, unknown> | undefined;
   try {
     json = JSON.parse(text);
@@ -60,7 +67,10 @@ export async function scoreQuoteModule(projectDir: string, jahiaUrl: string): Pr
   checks.push({
     name: "mvn package passes",
     passed: build.status === 0,
-    detail: build.status === 0 ? "ok" : (build.stdout + build.stderr).slice(-500),
+    detail:
+      build.status === 0
+        ? "ok"
+        : `${build.error ?? ""}${build.stdout ?? ""}${build.stderr ?? ""}`.slice(-500),
   });
 
   const quotes: Array<[string, number, number]> = [
@@ -98,8 +108,8 @@ export async function scoreQuoteModule(projectDir: string, jahiaUrl: string): Pr
 
   const post = await call(`${action}?product=car&age=30`, { method: "POST" });
   checks.push({
-    name: "POST gets no quote",
-    passed: post.json?.["monthlyPremium"] === undefined,
+    name: "POST is refused",
+    passed: post.status >= 400 && post.status < 500 && post.json?.["monthlyPremium"] === undefined,
     detail: describe(post),
   });
 
@@ -110,12 +120,21 @@ export async function scoreQuoteModule(projectDir: string, jahiaUrl: string): Pr
     detail: describe(editor),
   });
 
+  const preview = await call(`${jahiaUrl}/cms/render/default/en/sites/systemsite/home.quote.do?product=car&age=30`, {
+    headers: { Authorization: AUTHORIZATION },
+  });
+  checks.push({
+    name: "logged-in GET in the default workspace = 45",
+    passed: isQuote(preview, "car", 30, 45),
+    detail: describe(preview),
+  });
+
   const provisioning = await fetch(`${jahiaUrl}/modules/api/provisioning`, {
     method: "POST",
     headers: { Authorization: AUTHORIZATION, "Content-Type": "application/yaml" },
     body: '- editConfiguration: "org.forsure.quote"\n  properties:\n    car: "50"\n',
     signal: AbortSignal.timeout(30_000),
-  });
+  }).catch((error: unknown) => ({ ok: false, status: String(error) }));
   let reloaded: Answer | undefined;
   for (let attempt = 0; attempt < 15 && provisioning.ok; attempt++) {
     await setTimeout(2000);

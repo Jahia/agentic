@@ -117,6 +117,10 @@ my-module/
 
 Rules that a build does not check:
 
+- **The parent version is the oldest Jahia the module supports.** It becomes the
+  `Jahia-Required-Version` of the bundle. Use `8.2.1.0` for a module that must run on any Jahia
+  8.2: it runs on every later 8.2 release. Do not query the running Jahia for its version.
+
 - **The parent brings the Jahia API.** `jahia-impl`, the servlet API, the OSGi annotations and
   SLF4J arrive `provided` from the parent. Do not declare them again.
 - **`<_dsannotations>*</_dsannotations>` is required.** Without it the classes compile, but no
@@ -271,8 +275,9 @@ salutation = Welcome
 - Without a `.cfg` file, the component starts with an empty configuration, and `getOrDefault`
   returns your defaults. Do not use `configurationPolicy = REQUIRE` unless the module must not
   start without a configuration.
-- `@Modified` on the same method applies a change without a restart of the component. Assign the
-  new values in one write each (`volatile` fields, or one immutable record in a `volatile` field).
+- `@Modified` on the same method applies a change without a restart of the component. Build all
+  the values into one immutable object (a record), and assign it to one `volatile` field. Several
+  `volatile` fields assigned one by one can be read half updated by a concurrent request.
 - Values arrive as strings from a `.cfg` file. Parse them:
   `Long.parseLong(String.valueOf(config.getOrDefault("ttlSeconds", 600)))`.
 - To ship a default file with the module, put it in `src/main/resources/META-INF/configurations/`.

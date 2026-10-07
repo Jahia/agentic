@@ -102,7 +102,7 @@ A score of `1.0` means zero violations; `0.607` ≈ one serious violation; `0.36
 
 ### Java scenario
 
-`.github/workflows/benchmark-java.yml` runs `yarn benchmark:java` on a push to `main` that changes the Java skills or `src/benchmark/java/**`, and on demand. The agent writes and deploys the `forsure-quote` module of `src/benchmark/java/prompt.md`. Then `score.ts` builds it and checks the action over HTTP: the prices, the errors, the refused `POST`, a logged-in call, and a configuration change. The job fails when one check fails. The JavaScript benchmark ignores these paths.
+`.github/workflows/benchmark-java.yml` runs `yarn benchmark:java` on a push to `main` that changes the Java skills or `src/benchmark/java/**`, and on demand. The agent writes and deploys the `forsure-quote` module of `src/benchmark/java/prompt.md`. Then `score.ts` builds it and checks the action over HTTP: the prices, the errors, the refused `POST`, logged-in calls in the live and default workspaces, and a configuration change. The job fails when one check fails. The JavaScript benchmark ignores these paths.
 
 To score a module without running the agent: `JAHIA_URL=http://localhost:8080 node src/benchmark/java/score.ts <directory that holds forsure-quote>`.
 
