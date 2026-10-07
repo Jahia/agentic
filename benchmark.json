@@ -2137,5 +2137,84 @@
         "fix": "Add i18n keyword after the type declaration"
       }
     ]
+  },
+  {
+    "id": "run-2026-10-07T08-50-21",
+    "date": "2026-10-07T08:50:53.623Z",
+    "durationSeconds": 1787,
+    "costUSD": 7.0240010999999924,
+    "tokens": {
+      "input": 145,
+      "output": 73410,
+      "cached": 12527106
+    },
+    "githubRunUrl": "https://github.com/Jahia/agentic/actions/runs/37592751728",
+    "branch": "main",
+    "pages": [
+      {
+        "url": "http://localhost:8080/en/sites/forsure/home.html",
+        "title": "Home | For Sure Insurance",
+        "screenshot": "screenshot-0.png",
+        "accessibilityScore": 1,
+        "seoScore": 0.92,
+        "imageCount": 1,
+        "brokenImageCount": 0,
+        "imageScore": 1
+      },
+      {
+        "url": "http://localhost:8080/en/sites/forsure/home/car-insurance.html",
+        "title": "Car Insurance | For Sure Insurance",
+        "screenshot": "screenshot-1.png",
+        "accessibilityScore": 1,
+        "seoScore": 0.92,
+        "imageCount": 2,
+        "brokenImageCount": 0,
+        "imageScore": 1
+      },
+      {
+        "url": "http://localhost:8080/en/sites/forsure/home/health-insurance.html",
+        "title": "Health Insurance | For Sure Insurance",
+        "screenshot": "screenshot-2.png",
+        "accessibilityScore": 1,
+        "seoScore": 0.92,
+        "imageCount": 2,
+        "brokenImageCount": 0,
+        "imageScore": 1
+      },
+      {
+        "url": "http://localhost:8080/en/sites/forsure/home/home-insurance.html",
+        "title": "Home Insurance | For Sure Insurance",
+        "screenshot": "screenshot-3.png",
+        "accessibilityScore": 1,
+        "seoScore": 0.92,
+        "imageCount": 2,
+        "brokenImageCount": 0,
+        "imageScore": 1
+      }
+    ],
+    "cndQualityScore": 0.22313016014842982,
+    "cndIssues": [
+      {
+        "file": "/home/runner/work/agentic/agentic/agentic-benchmark-jCpqvT/forsure/src/components/Common/CTA/definition.cnd",
+        "line": 3,
+        "pattern": "weakrefNoConstraint",
+        "message": "Unconstrained weakreference — add a type constraint",
+        "fix": "Add e.g. (weakreference, picker[type='image']) < jmix:image"
+      },
+      {
+        "file": "/home/runner/work/agentic/agentic/agentic-benchmark-jCpqvT/forsure/src/components/Common/CTA/definition.cnd",
+        "line": 4,
+        "pattern": "rawStringLink",
+        "message": "\"externalUrl\" uses (string) for a link/url — use choicelist[linkTypeInitializer]",
+        "fix": "Replace with: - j:linkType (string, choicelist[linkTypeInitializer]) mandatory"
+      },
+      {
+        "file": "/home/runner/work/agentic/agentic/agentic-benchmark-jCpqvT/forsure/src/components/PageComponents/Section/definition.cnd",
+        "line": 7,
+        "pattern": "missingI18n",
+        "message": "User-visible string property missing i18n",
+        "fix": "Add i18n keyword after the type declaration"
+      }
+    ]
   }
 ]
