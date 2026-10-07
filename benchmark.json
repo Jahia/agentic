@@ -2216,5 +2216,126 @@
         "fix": "Add i18n keyword after the type declaration"
       }
     ]
+  },
+  {
+    "id": "run-2026-10-07T09-02-18",
+    "date": "2026-10-07T09:02:52.503Z",
+    "durationSeconds": 244,
+    "costUSD": 8.692559850000004,
+    "tokens": {
+      "input": 15,
+      "output": 9984,
+      "cached": 1067204
+    },
+    "githubRunUrl": "https://github.com/Jahia/agentic/actions/runs/37592744310",
+    "branch": "main",
+    "pages": [
+      {
+        "url": "http://localhost:8080/cms/render/live/en/sites/forsure/home.html",
+        "title": "Home | For Sure",
+        "screenshot": "screenshot-0.png",
+        "accessibilityScore": 1,
+        "seoScore": 1,
+        "imageCount": 3,
+        "brokenImageCount": 0,
+        "imageScore": 1
+      },
+      {
+        "url": "http://localhost:8080/cms/render/live/en/sites/forsure/home/car-insurance.html",
+        "title": "Car Insurance | For Sure",
+        "screenshot": "screenshot-1.png",
+        "accessibilityScore": 1,
+        "seoScore": 1,
+        "imageCount": 4,
+        "brokenImageCount": 0,
+        "imageScore": 1
+      },
+      {
+        "url": "http://localhost:8080/cms/render/live/en/sites/forsure/home/health-insurance.html",
+        "title": "Health Insurance | For Sure",
+        "screenshot": "screenshot-2.png",
+        "accessibilityScore": 1,
+        "seoScore": 1,
+        "imageCount": 4,
+        "brokenImageCount": 0,
+        "imageScore": 1
+      },
+      {
+        "url": "http://localhost:8080/cms/render/live/en/sites/forsure/home/home-insurance.html",
+        "title": "Home Insurance | For Sure",
+        "screenshot": "screenshot-3.png",
+        "accessibilityScore": 1,
+        "seoScore": 1,
+        "imageCount": 1,
+        "brokenImageCount": 0,
+        "imageScore": 1
+      }
+    ],
+    "cndQualityScore": 0.011108996538242306,
+    "cndIssues": [
+      {
+        "file": "/home/runner/work/agentic/agentic/agentic-benchmark-VK4ITM/forsure/src/components/Content/Hero/definition.cnd",
+        "line": 2,
+        "pattern": "rawTitleProp",
+        "message": "\"title\" is a plain string — extend mix:title instead",
+        "fix": "Add mix:title to the type declaration and remove this property"
+      },
+      {
+        "file": "/home/runner/work/agentic/agentic/agentic-benchmark-VK4ITM/forsure/src/components/Content/Hero/definition.cnd",
+        "line": 4,
+        "pattern": "rawStringLink",
+        "message": "\"backgroundImageUrl\" uses (string) for a link/url — use choicelist[linkTypeInitializer]",
+        "fix": "Replace with: - j:linkType (string, choicelist[linkTypeInitializer]) mandatory"
+      },
+      {
+        "file": "/home/runner/work/agentic/agentic/agentic-benchmark-VK4ITM/forsure/src/components/Content/Hero/definition.cnd",
+        "line": 5,
+        "pattern": "redundantImageAlt",
+        "message": "\"imageAlt\" is redundant — the image node's jcr:title (mix:title) serves as alt text",
+        "fix": "Remove imageAlt. In the view, use image.getPropertyAsString(\"jcr:title\") for alt text"
+      },
+      {
+        "file": "/home/runner/work/agentic/agentic/agentic-benchmark-VK4ITM/forsure/src/components/Content/ImageCaption/definition.cnd",
+        "line": 2,
+        "pattern": "rawStringLink",
+        "message": "\"imageUrl\" uses (string) for a link/url — use choicelist[linkTypeInitializer]",
+        "fix": "Replace with: - j:linkType (string, choicelist[linkTypeInitializer]) mandatory"
+      },
+      {
+        "file": "/home/runner/work/agentic/agentic/agentic-benchmark-VK4ITM/forsure/src/components/Content/ImageCaption/definition.cnd",
+        "line": 3,
+        "pattern": "redundantImageAlt",
+        "message": "\"imageAlt\" is redundant — the image node's jcr:title (mix:title) serves as alt text",
+        "fix": "Remove imageAlt. In the view, use image.getPropertyAsString(\"jcr:title\") for alt text"
+      },
+      {
+        "file": "/home/runner/work/agentic/agentic/agentic-benchmark-VK4ITM/forsure/src/components/Content/Section/definition.cnd",
+        "line": 2,
+        "pattern": "rawTitleProp",
+        "message": "\"title\" is a plain string — extend mix:title instead",
+        "fix": "Add mix:title to the type declaration and remove this property"
+      },
+      {
+        "file": "/home/runner/work/agentic/agentic/agentic-benchmark-VK4ITM/forsure/src/components/Content/Section/definition.cnd",
+        "line": 4,
+        "pattern": "missingI18n",
+        "message": "User-visible string property missing i18n",
+        "fix": "Add i18n keyword after the type declaration"
+      },
+      {
+        "file": "/home/runner/work/agentic/agentic/agentic-benchmark-VK4ITM/forsure/src/components/Content/Testimonial/definition.cnd",
+        "line": 4,
+        "pattern": "rawStringLink",
+        "message": "\"authorImageUrl\" uses (string) for a link/url — use choicelist[linkTypeInitializer]",
+        "fix": "Replace with: - j:linkType (string, choicelist[linkTypeInitializer]) mandatory"
+      },
+      {
+        "file": "/home/runner/work/agentic/agentic/agentic-benchmark-VK4ITM/forsure/src/components/Content/TextCard/definition.cnd",
+        "line": 2,
+        "pattern": "rawTitleProp",
+        "message": "\"title\" is a plain string — extend mix:title instead",
+        "fix": "Add mix:title to the type declaration and remove this property"
+      }
+    ]
   }
 ]
