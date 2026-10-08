@@ -1,6 +1,6 @@
 ---
 name: jahia-dev-setup-environment
-description: Writes the development environment of a Jahia project into its repository, so that every developer and the continuous integration start the same Jahia with one command. Use when a project has no docker-compose.yml, when its Jahia lives in a docker run command or a README of manual steps, when a developer asks to add a database, Elasticsearch, Augmented Search, jExperience or jCustomer to a local stack, when the toolchain (JDK, Maven, Node.js, Yarn) must be pinned with mise, or when modules installed by hand must become a provisioning manifest. Produces mise.toml, the Compose file, the provisioning manifest and the CI wait snippet. Use jahia-dev-run-module to run or repair an environment that already exists, and jahia-dev-start-local for a project just scaffolded.
+description: Writes the development environment of a Jahia project into its repository, so that every developer and the continuous integration start the same Jahia with one command. Use when a project has no docker-compose.yml, when its Jahia lives in a docker run command or a README of manual steps, when a developer asks to add a database, Elasticsearch, Augmented Search, jExperience or jCustomer to a local stack, when the toolchain (JDK, Maven, Node.js, Yarn) must be pinned with mise, when modules installed by hand must become a provisioning manifest, or when a site and the modules it runs on live in several repositories that must be built from source and started together. Produces mise.toml, the Compose file, the provisioning manifest and the CI wait snippet. Use jahia-dev-run-module to run or repair an environment that already exists, and jahia-dev-start-local for a project just scaffolded.
 allowed-tools: Bash, Read, Write, Edit, Glob, Grep
 ---
 
@@ -42,13 +42,19 @@ Decide three things and report them in one line before you write anything:
   root. When the repositories cannot merge now, propose a `<project>-meta` repository that holds the
   environment, the manifest, the developer documentation and optionally the module repositories as
   git submodules.
+- **Whether the stack spans several repositories.** A site that runs on modules nobody released
+  for this Jahia version, or a task to build "the site and its dependencies" from source, needs
+  each repository cloned and built together. `references/multi-repo-stack.md` finds the
+  repositories, builds them in one command and provisions the instance from the local builds.
 
 ## Step 2 — Pin the toolchain
 
 Tools installed at the machine level give every developer a different version, and the pipeline a
 third one. Write `mise.toml` at the root (see `references/mise.toml`), with the JDK the POM names
-(`maven.compiler.release`) and the Node.js and Yarn `package.json` names. Everyone then runs
-`mise install`. On GitHub Actions, `jdx/mise-action` installs the same set.
+(`maven.compiler.release`) and the Node.js and Yarn `package.json` names. Pin Maven to `3.8`: under
+Maven 3.9 or later, a module builds with wrong imports, the taglibs of its JSP views missing and the
+optional imports of its embedded libraries mandatory (`jahia-dev-run-module` step 4). Everyone then runs `mise install`. A script that builds runs
+`mise exec -- mvn`, so it gets the pinned versions from whichever directory it starts in. On GitHub Actions, `jdx/mise-action` installs the same set.
 
 ## Step 3 — Choose the image and the database
 
@@ -104,6 +110,14 @@ A failed operation writes its own `.failed` line and leaves the verdict of the m
 `.installed`, so read both. Then ask the module manager for the state of every module the manifest
 installed, exactly as `jahia-dev-run-module` step 6 does. `ACTIVE` is the only answer that means
 the module runs, and that skill carries the table that names each other state.
+
+`ACTIVE` does not prove that a page renders. Request the home page of the site the manifest
+imported or created, and every page under it, and expect `200` with no `ERROR` in the log:
+
+```bash
+curl -s -o /dev/null -w '%{http_code}\n' http://localhost:8080/sites/<site>/home.html
+docker compose logs --since 1m jahia | grep -E "ERROR|Exception"
+```
 
 ## Step 6 — Optional services
 
@@ -201,6 +215,7 @@ and the repair recipes for a broken environment:
 - [ ] `docker compose up --wait` returned, the manifest logged `.installed`, and no `.failed` line
       follows it.
 - [ ] Every module the manifest installed answers `ACTIVE`.
+- [ ] The pages of the site answer `200`, and the log of those requests holds no error.
 - [ ] With Augmented Search: `jahia_as*` indices exist with a non-zero document count.
 - [ ] With jExperience: the `context.json` check answers a `profileId`.
 - [ ] No container and no volume was deleted without the developer's agreement.
