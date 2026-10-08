@@ -2416,5 +2416,61 @@
         "fix": "Add mix:title to the type declaration and remove this property"
       }
     ]
+  },
+  {
+    "id": "run-2026-10-08T15-47-12",
+    "date": "2026-10-08T15:47:43.972Z",
+    "durationSeconds": 477,
+    "costUSD": 7.3405112999999975,
+    "tokens": {
+      "input": 41,
+      "output": 17329,
+      "cached": 3505694
+    },
+    "githubRunUrl": "https://github.com/Jahia/agentic/actions/runs/37798695732",
+    "branch": "main",
+    "pages": [
+      {
+        "url": "http://localhost:8080/sites/forsure/home.html",
+        "title": "For Sure Insurance | For Sure Insurance",
+        "screenshot": "screenshot-0.png",
+        "accessibilityScore": 1,
+        "seoScore": 1,
+        "imageCount": 0,
+        "brokenImageCount": 0,
+        "imageScore": 0
+      },
+      {
+        "url": "http://localhost:8080/sites/forsure/home/car-insurance.html",
+        "title": "Car Insurance | For Sure Insurance",
+        "screenshot": "screenshot-1.png",
+        "accessibilityScore": 1,
+        "seoScore": 1,
+        "imageCount": 0,
+        "brokenImageCount": 0,
+        "imageScore": 0
+      },
+      {
+        "url": "http://localhost:8080/sites/forsure/home/health-insurance.html",
+        "title": "Health Insurance | For Sure Insurance",
+        "screenshot": "screenshot-2.png",
+        "accessibilityScore": 1,
+        "seoScore": 1,
+        "imageCount": 0,
+        "brokenImageCount": 0,
+        "imageScore": 0
+      },
+      {
+        "url": "http://localhost:8080/sites/forsure/home/home-insurance.html",
+        "title": "Home Insurance | For Sure Insurance",
+        "screenshot": "screenshot-3.png",
+        "accessibilityScore": 1,
+        "seoScore": 1,
+        "imageCount": 0,
+        "brokenImageCount": 0,
+        "imageScore": 0
+      }
+    ],
+    "cndQualityScore": 1
   }
 ]
