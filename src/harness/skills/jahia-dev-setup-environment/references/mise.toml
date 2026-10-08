@@ -2,6 +2,7 @@
 # Take the JDK from maven.compiler.release in pom.xml, and Node.js / Yarn from package.json.
 [tools]
 java = "temurin-17"
-maven = "3"
+# 3.8, not 3: under Maven 3.9+, jahia-maven-plugin computes wrong imports for the bundles
+maven = "3.8"
 node = "26"
 yarn = "4.18"

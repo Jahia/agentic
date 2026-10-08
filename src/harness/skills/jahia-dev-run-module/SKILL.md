@@ -1,6 +1,6 @@
 ---
 name: jahia-dev-run-module
-description: Runs a Jahia module that already exists, on a local Jahia, when nobody documented how. Use when you are handed a repository and asked to start it, deploy it, redeploy it after a change, or find out why it does not start — including a monorepo with several modules to deploy in dependency order. Also the recovery skill for a broken local environment: change the published port or a mounted directory after the container exists, reset the root password, start again from an empty Jahia, install the same modules every time, and explain a build that passes locally and fails in the continuous integration. Reads the repository to tell a Java module from a JavaScript module and to find the Jahia version, the dependencies and the JDK it needs. For a NEW project scaffolded with @jahia/create-module, use jahia-dev-start-local instead.
+description: Runs a Jahia module that already exists, on a local Jahia, when nobody documented how. Use when you are handed a repository and asked to start it, deploy it, redeploy it after a change, or find out why it does not start — including a monorepo with several modules to deploy in dependency order, and a module that is ACTIVE while its pages fail. Also the recovery skill for a broken local environment: change the published port or a mounted directory after the container exists, reset the root password, start again from an empty Jahia, install the same modules every time, and explain a build that passes locally and fails in the continuous integration. Reads the repository to tell a Java module from a JavaScript module and to find the Jahia version, the dependencies and the JDK it needs. For a NEW project scaffolded with @jahia/create-module, use jahia-dev-start-local instead.
 allowed-tools: Bash, Read, Edit, Glob, Grep
 ---
 
@@ -43,6 +43,9 @@ Report the classification to the developer in one line before you continue.
   every entry of `tests/provisioning-manifest*.yml`.
 - Toolchain: `maven.compiler.release` in `pom.xml` (11 or 17), and `packageManager` plus
   `engines.node` in `package.json`.
+- A dependency that lives in another repository of the project, and that you must build too: the
+  stack spans several repositories. `jahia-dev-setup-environment` has the procedure in
+  `references/multi-repo-stack.md`.
 
 ## Step 3 — Get a Jahia running
 
@@ -106,6 +109,27 @@ A `ConcurrentModificationException` from `maven-bundle-plugin` at the packaging 
 is too new. The failure is deterministic, so do not retry on the same JDK. Export `JAVA_HOME` for
 the JDK the POM names and build once more.
 
+**Build a Jahia module with Maven 3.8.** The dependency scan of `jahia-maven-plugin` reads the local
+Maven repository, and Maven 3.9 or later refuses that read. The build logs
+`[ERROR] Error resolving dependencies … (present, but unavailable)` and still ends with
+`BUILD SUCCESS`, but the `Import-Package` header of the bundle is wrong in two ways:
+
+- The imports of the JSP taglibs are missing. The bundle goes `ACTIVE`, and every page that uses it
+  fails with `Unable to load tag handler class`.
+- The imports of a library embedded in the module lose `resolution:=optional`. The bundle stays
+  `INSTALLED` on a package version Jahia does not ship.
+
+Compare the `Import-Package` header of the JAR with a released version of the module to confirm it.
+Do not change the module to satisfy such an import: build it with Maven 3.8 first.
+
+**A pinned plugin version can be broken.** `jahia-maven-plugin` 6.7 fails with
+`NoClassDefFoundError: org/jahia/utils/osgi/parsers/ParsingContext`. Override the version of the
+module without editing it: `mvn -Djahia.plugin.version=<the version of the parent> …`. Read the version of
+the parent with `mvn help:effective-pom` on a module that does not pin it.
+
+Build with `clean`. A JAR of an earlier version stays in `target/` otherwise, and a script that
+copies `target/*.jar` deploys the wrong one.
+
 ### A JavaScript module
 
 ```bash
@@ -150,7 +174,11 @@ curl -u root:root1234 \
   http://localhost:8080/modules/api/provisioning
 ```
 
-The value of `installOrUpgradeModule` is the file name of the uploaded part. Install a dependency
+The value of `installOrUpgradeModule` is the file name of the uploaded part. To redeploy a build of
+the version that is already installed, a SNAPSHOT for one, use `installModule` with
+`forceUpdate: true` and `autoStart: true`. Upload the JAR with the script, as above, rather than
+naming a path on the server: recent Jahia versions refuse a `file:` URL in a script sent to the API.
+Install a dependency
 you do not build with `installModule` and a Maven URL:
 
 ```yaml
@@ -183,10 +211,20 @@ docker logs jahia-dev --since 5m | grep -iE "error|unresolved|exception"
 | State or log line | Cause | Action |
 |---|---|---|
 | `INSTALLED`, and `Unresolved requirement: Import-Package: <p>` | No installed bundle exports a package this module imports. | Install the module that provides the package. |
+| `INSTALLED`, and the unresolved import is a library Jahia does not ship in that version, such as `groovy.lang;version>=2.5.0, !version>=3.0.0` | A build with Maven 3.9 or later made an optional import of an embedded library mandatory. | Build with Maven 3.8 (step 4), and check that the import now carries `resolution:=optional`. |
 | `RESOLVED` | OSGi resolved the bundle and the bundle did not start. | Read the activation error in the log. |
 | `Skipping installation of <jar>, a more recent version is already installed` | Jahia does not replace a module with an older version, and the request still succeeds. | Uninstall first with `- uninstallModule: "<symbolic-name>/<version>"`, then install. |
-| `Invalid license check`, and the bundle stops itself | The module signature no longer matches its version. A signature covers one `major.minor` line. | Report it to the developer. You cannot sign a module. |
+| `Invalid license check`, and the module is uninstalled: `_localState` answers `404` | The module signature (`jahia-module-signature` in `pom.xml`) no longer matches its version. A signature covers one `major.minor` line. The log line does not name the module: the `Uninstalling DX OSGi bundle` line just before it does. | You cannot sign a module. When the version is the only change since the last release tag (`git diff <tag> HEAD`), build the tag. Otherwise report it to the developer. |
+| `ACTIVE`, and a page answers `500` with `Unable to load tag handler class` | The JAR lacks the imports of its JSP taglibs. | Build with Maven 3.8 (step 4). |
 | `unreachable` | The instance did not answer. | Check the published port and that the container is running. |
+
+`ACTIVE` proves that the module starts, and not that it renders. When the module carries views,
+request a page that uses them, and read the log of that request:
+
+```bash
+curl -s -o /dev/null -w '%{http_code}\n' http://localhost:8080/sites/<site>/home.html
+docker logs jahia-dev --since 1m | grep -E "ERROR|Exception"
+```
 
 ## Step 7 — Repair the local environment
 
@@ -212,7 +250,7 @@ manifest and the Compose file to keep; the bare form is:
 docker run -d --name jahia-dev -p 8080:8080 \
   -v jahia-data:/var/jahia \
   -v "$PWD/provisioning:/opt/provisioning:ro" \
-  -e EXECUTE_PROVISIONING_SCRIPT=/opt/provisioning/modules.yaml \
+  -e EXECUTE_PROVISIONING_SCRIPT=file:/opt/provisioning/modules.yaml \
   jahia/jahia-discovery:8.2.3.2
 ```
 
@@ -247,6 +285,8 @@ of a multi-module project, the editor setup and the full provisioning manifest:
 - [ ] Every module of the repository is built, including a test module under `tests/`.
 - [ ] The provisioning response body carries no error.
 - [ ] Every deployed bundle answers `ACTIVE` on `_localState`.
+- [ ] A page that uses the views of the modules answers `200`, and the log of that request holds no
+      error.
 - [ ] No container and no volume was deleted without the developer's agreement.
 - [ ] Anything you set up by hand was offered back as a change to the compose file, the
       provisioning manifest or `mise.toml`.

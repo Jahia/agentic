@@ -1,0 +1,5 @@
+---
+"@jahia/agentic": patch
+---
+
+The harness can now start a stack that spans several repositories: a site and the modules it runs on, cloned, built from source with one command and provisioned into an empty Jahia. `jahia-dev-setup-environment` carries the procedure in `references/multi-repo-stack.md`, and both environment skills now check that the pages of the site render, because a module can be `ACTIVE` while every page that uses it fails. The skills also cover three failures of modules older than the instance. Under Maven 3.9 or later, `jahia-maven-plugin` computes wrong imports: a JSP module loses its taglib imports, and the optional imports of an embedded library become mandatory, so the reference `mise.toml` now pins Maven 3.8. A pinned `jahia-maven-plugin` 6.7 cannot run. A signature that no longer covers the version uninstalls the module. The provisioning reference of `jahia-dev-ops` now uses the operations Jahia accepts, and the startup command of `jahia-dev-run-module` keeps the `file:` scheme.
