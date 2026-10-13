@@ -60,6 +60,8 @@ Load reference files as needed for the syntax you require:
 - **Child nodes, CTAs, orderable containers, sectioning components whose items editors drop inside** → [references/cnd-child-nodes.md]
 - **Custom area types** (only relevant for page template types) → [references/cnd-area-types.md]
 
+If the type was already released to an instance whose content must be kept (production), changing one of its existing properties (type, name, `internationalized`, `mandatory`, a removed choicelist value) cancels the deployment there: follow `jahia-dev-change-cnd` instead. During development, change it freely.
+
 Write component-level definitions to `src/components/<Category>/<Name>/definition.cnd`. Module-level mixins belong in `settings/definitions.cnd`, and so does every namespace declaration: a component file never starts with a `<prefix = 'uri'>` line (see the namespace rule in cnd-syntax.md).
 
 ## Step 4: write `types.ts`

@@ -22,6 +22,8 @@ This is a loop. Run the checker, fix every issue reported, run it again. Repeat 
 - **FAIL** — fix every issue, re-run. Do not proceed until exit code is 0.
 - **PASS** — clean. Continue.
 
+On a type that is already released to production, a fix that changes an existing property (its type, its name, `internationalized`, a weakreference constraint) is refused by Jahia at the next production deployment. Apply such a fix with `jahia-dev-change-cnd`, or report the issue without fixing it. A type that never left development can be fixed directly.
+
 ---
 
 ## Antipattern reference

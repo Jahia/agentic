@@ -62,6 +62,7 @@ Key skills:
 | Skill | Purpose |
 |---|---|
 | `jahia-cnd-author` | Authors a CND content type definition + TypeScript props |
+| `jahia-dev-change-cnd` | Changes a CND already in production without a refused deployment, and migrates its content |
 | `jahia-dev-build-component` | Builds a complete component (CND + view + CSS) |
 | `jahia-dev-create-view` | Implements a React view (`.server.tsx` + CSS Module) |
 | `jahia-dev-create-page-template` | Creates a page template with Areas |
