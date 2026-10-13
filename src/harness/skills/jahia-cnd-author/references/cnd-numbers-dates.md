@@ -28,7 +28,7 @@
 Always combine `autocreated` with `= 'value'`:
 
 ```cnd
-- columns (long) = '3' autocreated mandatory < '1', '2', '3', '4'
+- columns (long) = '3' autocreated mandatory < '[1,4]'
 - isHighlighted (boolean) = 'false' autocreated
 - country (string, choicelist[country]) = 'US' autocreated mandatory
 ```
@@ -49,6 +49,8 @@ Use `now()` (no quotes) to default a date to the current time at node creation:
 - longitude (double) mandatory < "[-180,180]"
 - rating (long) mandatory < "[1,5]"
 ```
+
+A `long`, `double` or `decimal` takes a range only. A list of values (`< '1', '2', '3'`) is not a valid numeric constraint: Jahia logs a warning and drops it, so any value is accepted. For a fixed set of values, use a `string` with a `choicelist`.
 
 **Star ratings always need a range constraint.** Never write `rating (long)` without `< "[1,5]"`:
 

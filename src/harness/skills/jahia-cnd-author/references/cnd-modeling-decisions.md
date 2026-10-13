@@ -65,12 +65,13 @@ Never extend anything other than `jnt:content` (or your base mixin). To add fiel
 
 | Mixin name | Properties | When to use |
 |---|---|---|
-| `nsmix:cta` | `label (string) i18n`, `j:linkType (string, choicelist[linkTypeInitializer])` | Any type with a button/link |
 | `nsmix:media` | `image (weakreference, picker[type='image']) < jmix:image` | Any type with an image |
 | `nsmix:seo` | `metaTitle (string) i18n`, `metaDescription (string, textarea) i18n` | Any `jmix:mainResource` type |
 | `nsmix:badge` | `badgeText (string) i18n`, `badgeColor (string, color)` | Cards, teasers |
 
 Always extract to a mixin when the same set of properties appears on 2+ types.
+
+A button or link is not a mixin: model it as a child node `+ * (ns:cta)`, with `label (string) i18n` and `j:linkType (string, choicelist[linkTypeInitializer])` on `ns:cta`, so a type can hold several (see `cnd-child-nodes.md`).
 
 ---
 

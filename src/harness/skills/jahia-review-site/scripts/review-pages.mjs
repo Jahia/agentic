@@ -1,10 +1,16 @@
 #!/usr/bin/env node
 // Reads URLs from pages-to-review.json, runs a11y (axe-core) + SEO (Lighthouse) checks.
 // On pass: writes pages.json and exits 0. On fail: exits 1 without writing pages.json.
-import { chromium } from "playwright";
-import { AxeBuilder } from "@axe-core/playwright";
-import lighthouse from "lighthouse";
 import { readFileSync, writeFileSync } from "fs";
+import { createRequire } from "module";
+import { join } from "path";
+import { pathToFileURL } from "url";
+
+// Resolve the tools from the module root, where Step 1 installs them, not from this file's folder
+const require = createRequire(join(process.cwd(), "package.json"));
+const { chromium } = require("playwright");
+const { AxeBuilder } = require("@axe-core/playwright");
+const { default: lighthouse } = await import(pathToFileURL(require.resolve("lighthouse")).href);
 
 const SCORED_MODES = new Set(["binary", "numeric"]);
 

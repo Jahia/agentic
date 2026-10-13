@@ -77,6 +77,7 @@ Key skills:
 | `jahia-java-jcr` | JCR sessions, queries and writes from Java |
 | `jahia-java-security` | Who may call an Action, a servlet or a GraphQL field, and how Jahia checks it |
 | `jahia-review-java` | Prioritised review of a Java module |
+| `jahia-capture` | Turns a task done twice in a session into a skill or an instruction stored in the user's project |
 
 ---
 

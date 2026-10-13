@@ -21,7 +21,7 @@ A component extending only `nsmix:component` cannot be dropped in areas that res
 Restricts what editors can drop into a given area:
 
 ```cnd
-[nsnt:pageArea] > jnt:content, jmix:list, jmix:studioOnly orderable
+[nsnt:pageArea] > jnt:content, jmix:list, jmix:hiddenType orderable
  + * (nsmix:pageComponent)
 ```
 
@@ -31,7 +31,7 @@ Use in a page template view:
 <Area name="main" nodeType="nsnt:pageArea" />
 ```
 
-`jmix:studioOnly` on the area type prevents it from appearing in the content picker. Use `jmix:hiddenType` for regular component types that should be hidden.
+`jmix:hiddenType` on the area type keeps it out of the content picker. Never use `jmix:studioOnly`: `check-cnd.mjs` rejects it.
 
 ## Escape hatch component
 

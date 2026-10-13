@@ -70,38 +70,29 @@ function checkFile(filePath, content) {
       });
     }
 
-    // weakrefWrongConstraint
-    if (/< ['"]jnt:file['"]/.test(trimmed)) {
+    // weakrefWrongConstraint: an image picker constrained to jnt:file, quoted or not
+    if (/picker\[type=['"]?image\b/.test(trimmed) && /<\s*['"]?jnt:file\b/.test(trimmed)) {
       issues.push({
         file: filePath, line: lineNum,
         pattern: "weakrefWrongConstraint",
-        message: "< 'jnt:file' (quoted) does not enforce image type",
+        message: "An image picker constrained to jnt:file accepts any file, not only images",
         fix: "Replace with < jmix:image for images",
       });
     }
 
     // missingI18n: user-visible string without i18n
+    // The name decides whether the text is user-visible: the selector (textarea, richtext) does not
+    const i18nPropName = trimmed.match(/^-\s+(\w+)\s+\(string(,\s*(textarea|richtext))?[,)]/)?.[1];
     if (
-      /^-\s+\w+\s+\(string(,\s*(textarea|richtext))?[,)]/.test(trimmed) &&
-      !/ i18n/.test(trimmed) &&
-      !/^-\s+j:/.test(trimmed) &&
-      /(title|text|label|description|subtitle|caption|alt|heading|summary|excerpt|body)/i.test(trimmed)
+      i18nPropName &&
+      !/\s(i18n|internationalized)\b/.test(trimmed) &&
+      /(title|text|label|description|subtitle|caption|alt|heading|summary|excerpt|body)/i.test(i18nPropName)
     ) {
       issues.push({
         file: filePath, line: lineNum,
         pattern: "missingI18n",
         message: "User-visible string property missing i18n",
         fix: "Add i18n keyword after the type declaration",
-      });
-    }
-
-    // directDroppable: concrete type (not mixin) extending jmix:droppableContent
-    if (trimmed.startsWith("[") && /jmix:droppableContent/.test(trimmed) && !/\bmixin\b/.test(trimmed)) {
-      issues.push({
-        file: filePath, line: lineNum,
-        pattern: "directDroppable",
-        message: "Extends jmix:droppableContent directly — always extend the module component mixin",
-        fix: "Replace jmix:droppableContent with nsmix:component (or your module's equivalent)",
       });
     }
 
@@ -121,12 +112,12 @@ function checkFile(filePath, content) {
         file: filePath, line: lineNum,
         pattern: "redundantImageAlt",
         message: '"imageAlt" is redundant — the image node\'s jcr:title (mix:title) serves as alt text',
-        fix: 'Remove imageAlt. In the view, use image.getPropertyAsString("jcr:title") for alt text',
+        fix: 'Remove imageAlt. In the view, call server.render.addCacheDependency({ node: image }, renderContext), then use image.getPropertyAsString("jcr:title") for alt text',
       });
     }
 
     // missingRatingConstraint: rating (long) without a range constraint
-    if (/^-\s+rating\s+\(long[,)]/i.test(trimmed) && !/<\s*"?\[/.test(trimmed)) {
+    if (/^-\s+rating\s+\(long[,)]/i.test(trimmed) && !/<\s*['"]?\[/.test(trimmed)) {
       issues.push({
         file: filePath, line: lineNum,
         pattern: "missingRatingConstraint",
@@ -140,12 +131,30 @@ function checkFile(filePath, content) {
   const typeBlocks = content.split(/(?=^\[)/m);
   for (const block of typeBlocks) {
     if (!block.trim().startsWith("[")) continue;
-    const hasCtaLabel = /^\s*-\s+cta(Text|Label|ButtonText|ButtonLabel)\s+\(/im.test(block);
-    const hasCtaLink = /^\s*-\s+cta(Link|Url|Href|ButtonLink|ButtonUrl)\s+\(/im.test(block);
-    const hasChildNodes = /^\s*\+\s+/.test(block);
+    const typeName = block.match(/^\[(\S+)\]/m)?.[1] ?? "unknown";
+    const typeLineIdx = lines.findIndex((l) => l.includes(`[${typeName}]`));
+
+    // directDroppable: concrete type (not mixin) extending jmix:droppableContent. The supertypes
+    // and options may span several lines, up to the first property or child node
+    const header = block
+      .split("\n")
+      .filter((l) => !l.trim().startsWith("//"))
+      .join("\n")
+      .split(/^\s*[-+]/m)[0];
+    if (/jmix:droppableContent/.test(header) && !/\bmixin\b/.test(header)) {
+      issues.push({
+        file: filePath,
+        ...(typeLineIdx >= 0 ? { line: typeLineIdx + 1 } : {}),
+        pattern: "directDroppable",
+        message: "Extends jmix:droppableContent directly — always extend the module component mixin",
+        fix: "Replace jmix:droppableContent with nsmix:component (or your module's equivalent)",
+      });
+    }
+
+    const hasCtaLabel = /^\s*-\s+(cta(Text|Label|ButtonText|ButtonLabel)|button(Text|Label))\s+\(/im.test(block);
+    const hasCtaLink = /^\s*-\s+(cta(Link|Url|Href|ButtonLink|ButtonUrl)|button(Link|Url|Href))\s+\(/im.test(block);
+    const hasChildNodes = /^\s*\+\s+/m.test(block);
     if (hasCtaLabel && hasCtaLink && !hasChildNodes) {
-      const typeName = block.match(/^\[(\S+)\]/m)?.[1] ?? "unknown";
-      const typeLineIdx = lines.findIndex((l) => l.includes(`[${typeName}]`));
       issues.push({
         file: filePath,
         ...(typeLineIdx >= 0 ? { line: typeLineIdx + 1 } : {}),
