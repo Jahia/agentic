@@ -88,6 +88,38 @@ export type Props =
 
 In the view, switch on `props["j:linkType"]`.
 
+### Creating a link through the MCP tools
+
+The picker's choice stores its target on a **mixin** the Content Editor adds for the chosen
+value: `internal` puts `j:linknode` on `jmix:internalLink`, `external` puts `j:url` and
+`j:linkTitle` on `jmix:externalLink`. The type itself declares `j:linkType` only, which is why
+the CND above declares nothing else. A tool call that writes those companions must add the
+mixin, or the server has no definition to write them into.
+
+`content.create` takes `mixins`, at the top level and on each child, and adds them before the
+properties. One call creates a CTA with its target:
+
+```json
+{"parentPath": "/sites/<site>/home/main/hero", "nodeType": "ns:callToAction", "name": "quote",
+ "locale": "en",
+ "mixins": ["jmix:internalLink"],
+ "properties": {"label": "Get a quote", "j:linkType": "internal", "j:linknode": "/sites/<site>/home/quote"}}
+```
+
+An external link is the same call with `"mixins": ["jmix:externalLink"]`, `"j:linkType": "external"`,
+`"j:url"` and `"j:linkTitle"`. In a `children` entry, `mixins` sits next to `nodeType`.
+
+On a server whose `content.create` schema has no `mixins` input (any mcp-servlet before 0.5.0),
+create the node with `j:linkType`, then call `content.update` with `addMixins: ["jmix:internalLink"]`
+and `j:linknode`, then read the node back.
+
+**Read `propertiesSkipped` in every answer.** A skipped `j:linknode` or `j:url` means the mixin
+is missing, and the answer names it. It does not mean links do not work through the API, and it
+is never a reason to model the link as string properties: `rawStringLink` in the review is the
+score that pays for that shortcut. The error `Couldn't find definition for property j:linkType`
+is different again: the deployed type does not declare `j:linkType`. Fix the CND, redeploy, and
+check with `content.type` before creating content.
+
 ## Weakreference picker variants
 
 | Initializer | What it picks |

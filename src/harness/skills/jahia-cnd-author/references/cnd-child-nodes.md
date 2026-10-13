@@ -39,6 +39,9 @@ Model CTAs as child nodes — editors can then add multiple CTAs.
  - ctaLink (string) i18n       // also wrong type for links
 ```
 
+Through the MCP tools, each CTA child is created with its link mixin (`mixins` on the child
+entry), otherwise its target is skipped. The recipe is in cnd-string-selectors.md.
+
 ## Ordering
 
 Add `orderable` to the parent type when editors need to reorder children:
@@ -108,10 +111,15 @@ levels deep:
 {"parentPath": "/sites/<site>/home/main", "nodeType": "ns:section", "name": "products",
  "properties": {"jcr:title": "Our products", "layout": "3col"},
  "children": [{"name": "items", "nodeType": "ns:sectionItems", "children": [
-   {"name": "car", "nodeType": "ns:textCard", "properties": {"jcr:title": "Car", "body": "…"}},
+   {"name": "car", "nodeType": "ns:textCard", "properties": {"jcr:title": "Car", "body": "…"},
+    "children": [{"name": "cta", "nodeType": "ns:callToAction", "mixins": ["jmix:internalLink"],
+                  "properties": {"label": "Car insurance", "j:linkType": "internal", "j:linknode": "/sites/<site>/home/car-insurance"}}]},
    {"name": "home", "nodeType": "ns:textCard", "properties": {"jcr:title": "Home", "body": "…"}}
  ]}]}
 ```
+
+The `mixins` on the CTA child is what lets `j:linknode` be written; without it the answer lists
+the property under `propertiesSkipped` with the mixin to add.
 
 **What does not work, and what the refusal means.** `+ * (nsmix:sectionChild)` straight on a
 `jnt:content` section, with `<RenderChildren>` in the view, gives Page Builder nothing to drop
