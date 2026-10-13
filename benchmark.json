@@ -2472,5 +2472,91 @@
       }
     ],
     "cndQualityScore": 1
+  },
+  {
+    "id": "run-2026-10-13T09-55-34",
+    "date": "2026-10-13T09:56:05.859Z",
+    "durationSeconds": 507,
+    "costUSD": 6.524454450000001,
+    "tokens": {
+      "input": 49,
+      "output": 27447,
+      "cached": 6331553
+    },
+    "githubRunUrl": "https://github.com/Jahia/agentic/actions/runs/38377033445",
+    "branch": "main",
+    "pages": [
+      {
+        "url": "http://localhost:8080/en/sites/forsure/home.html",
+        "title": "Home | For Sure Insurance",
+        "screenshot": "screenshot-0.png",
+        "accessibilityScore": 1,
+        "seoScore": 1,
+        "imageCount": 0,
+        "brokenImageCount": 0,
+        "imageScore": 0
+      },
+      {
+        "url": "http://localhost:8080/en/sites/forsure/home/car-insurance.html",
+        "title": "Car Insurance | For Sure Insurance",
+        "screenshot": "screenshot-1.png",
+        "accessibilityScore": 1,
+        "seoScore": 1,
+        "imageCount": 0,
+        "brokenImageCount": 0,
+        "imageScore": 0
+      },
+      {
+        "url": "http://localhost:8080/en/sites/forsure/home/health-insurance.html",
+        "title": "Health Insurance | For Sure Insurance",
+        "screenshot": "screenshot-2.png",
+        "accessibilityScore": 1,
+        "seoScore": 1,
+        "imageCount": 0,
+        "brokenImageCount": 0,
+        "imageScore": 0
+      },
+      {
+        "url": "http://localhost:8080/en/sites/forsure/home/home-insurance.html",
+        "title": "Home Insurance | For Sure Insurance",
+        "screenshot": "screenshot-3.png",
+        "accessibilityScore": 1,
+        "seoScore": 1,
+        "imageCount": 0,
+        "brokenImageCount": 0,
+        "imageScore": 0
+      }
+    ],
+    "cndQualityScore": 0.1353352832366127,
+    "cndIssues": [
+      {
+        "file": "/home/runner/work/agentic/agentic/agentic-benchmark-GGoXVX/forsure/src/components/CTA/definition.cnd",
+        "line": 4,
+        "pattern": "weakrefNoConstraint",
+        "message": "Unconstrained weakreference — add a type constraint",
+        "fix": "Add e.g. (weakreference, picker[type='image']) < jmix:image"
+      },
+      {
+        "file": "/home/runner/work/agentic/agentic/agentic-benchmark-GGoXVX/forsure/src/components/CTA/definition.cnd",
+        "line": 5,
+        "pattern": "rawStringLink",
+        "message": "\"externalUrl\" uses (string) for a link/url — use choicelist[linkTypeInitializer]",
+        "fix": "Replace with: - j:linkType (string, choicelist[linkTypeInitializer]) mandatory"
+      },
+      {
+        "file": "/home/runner/work/agentic/agentic/agentic-benchmark-GGoXVX/forsure/src/components/ImageCaption/definition.cnd",
+        "line": 3,
+        "pattern": "redundantImageAlt",
+        "message": "\"imageAlt\" is redundant — the image node's jcr:title (mix:title) serves as alt text",
+        "fix": "Remove imageAlt. In the view, use image.getPropertyAsString(\"jcr:title\") for alt text"
+      },
+      {
+        "file": "/home/runner/work/agentic/agentic/agentic-benchmark-GGoXVX/forsure/src/components/Section/definition.cnd",
+        "line": 3,
+        "pattern": "missingI18n",
+        "message": "User-visible string property missing i18n",
+        "fix": "Add i18n keyword after the type declaration"
+      }
+    ]
   }
 ]
