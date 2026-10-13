@@ -55,7 +55,7 @@ Access in view: `props["jcr:title"]`
 
 ### `jmix:description` — description metadata
 
-Marker/metadata mixin for content descriptions.
+Adds `jcr:description` (string, textarea, i18n), shown in the metadata panel.
 
 ### `jmix:tagged` — free-form tagging
 
@@ -92,11 +92,11 @@ CND definition:
 
 ### `jmix:keywords` — keyword metadata
 
-Marker mixin for keyword support.
+Adds `j:keywords` (string, multiple), shown in the metadata panel.
 
 ### `jmix:thumbnail` — thumbnail support
 
-Marker mixin for thumbnail images.
+Allows `jnt:resource` child nodes (`+ * (jnt:resource)`) that hold the thumbnail.
 
 ### `jmix:basemetadata` — standard metadata with versioning
 
@@ -136,7 +136,7 @@ Marker mixin. Node is skipped during content import/export operations.
 
 ### `jmix:lastPublished` — publication timestamp tracking
 
-Marker mixin for tracking last publication date.
+Adds `j:published`, `j:lastPublished` and `j:lastPublishedBy`, which Jahia sets on publication. Do not extend it manually.
 
 ---
 
@@ -396,7 +396,7 @@ Marker mixin for file type extension tracking.
 
 ### `jmix:link` — built-in link type
 
-Provides `j:linkType`, `j:linknode`, `j:url`, `j:linkTitle`. Extend this mixin for types that need link behaviour without declaring `j:linkType` directly.
+Extends `mix:title` and adds `j:target` (`_blank`, `_parent`, `_self`, `_top`) only. It does not provide a link: `j:linknode` comes from `jmix:internalLink`, and `j:url` and `j:linkTitle` from `jmix:externalLink`, which Jahia adds when the editor picks a link type in `j:linkType (string, choicelist[linkTypeInitializer])`. Declare `j:linkType` on the type for a link.
 
 ### `jmix:nodeReference` — node reference support
 
@@ -440,7 +440,7 @@ Marker mixin. Makes nodes visible in the content tree navigation.
 
 ### `jmix:cache` — cache configuration
 
-Marker mixin for configuring component-level caching behaviour.
+Adds `j:expiration` (long, seconds) and `j:perUser` (boolean), the cache options editors set on a component.
 
 ---
 

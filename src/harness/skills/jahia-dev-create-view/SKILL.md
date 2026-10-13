@@ -101,8 +101,11 @@ Every `<img>` must have an `alt` attribute. Decorative images use `alt=""`. Info
 <img src={buildNodeUrl(props.image)} />
 
 // ✅ Alt from the image node's title (no extra CND property needed)
+if (props.image) server.render.addCacheDependency({ node: props.image }, renderContext);
 <img src={buildNodeUrl(props.image)} alt={props.image?.getPropertyAsString("jcr:title") ?? ""} />
 ```
+
+Reading `jcr:title` reads a property of the referenced node, so the view declares a cache dependency on it (see the caching rule below); a renamed image then updates the alt text.
 
 The image node already has `jcr:title` (from `mix:title`). **Do not add `imageAlt (string) i18n`** to the CND — it forces editors to enter duplicate data.
 
@@ -213,14 +216,18 @@ import { buildNodeUrl } from "@jahia/javascript-modules-library";
 > style={background ? { backgroundImage: `url(${buildNodeUrl(background)})` } : undefined}
 > ```
 
-> ⚠️ **Caching rule**: Never render properties of a **weakreference** node directly in the same view. Doing so will produce stale output because Jahia's cache is based on the referencing node, not the referenced one. Instead, render the referenced node using `<RenderChild>` (or a dedicated sub-view), or call `addCacheDependency` explicitly. Example:
+> ⚠️ **Caching rule**: Never render properties of a **weakreference** node directly in the same view. Doing so will produce stale output because Jahia's cache is based on the referencing node, not the referenced one. Instead, render the referenced node with `<Render node={...} />` (or a dedicated sub-view), or call `server.render.addCacheDependency({ node }, renderContext)` before reading it. `<RenderChild>` does not work here: it renders a child node, and a weakreference is a property. Example:
 >
 > ```tsx
 > // ❌ Don't do this — stale on referenced node change
 > <img src={buildNodeUrl(background)} alt={background.getProperty('jcr:title').getString()} />
 >
 > // ✅ Do this — render the referenced node as its own view
-> <RenderChild name="background" />
+> <Render node={background} />
+>
+> // ✅ Or this — declare the dependency, then read the node
+> server.render.addCacheDependency({ node: background }, renderContext);
+> <img src={buildNodeUrl(background)} alt={background.getPropertyAsString("jcr:title") ?? ""} />
 > ```
 
 ### `RenderChildren` — render child nodes with optional pagination and filtering
@@ -264,10 +271,10 @@ import { Render } from "@jahia/javascript-modules-library";
 
 // Render a virtual node — no JCR storage, no editor interaction needed
 // Use for components that take no parameters and need no per-page configuration
-<Render content={{ nodeType: "namespace:navBar" }} />
+<Render content={{ name: "navBar", nodeType: "namespace:navBar" }} />
 ```
 
-**Virtual nodes** (`content={{ nodeType }}`) render a component inline without creating a JCR node. This is the right pattern for parameterless structural components like a nav bar that is always the same on every page. Unlike `<AbsoluteArea>`, virtual nodes require zero editor interaction.
+**Virtual nodes** (`content={{ name, nodeType }}`, both required) render a component inline without creating a JCR node. This is the right pattern for parameterless structural components like a nav bar that is always the same on every page. Unlike `<AbsoluteArea>`, virtual nodes require zero editor interaction.
 
 > **Why `<Render node={...} />` solves the cache issue**: When you render a weakreference node via `<Render>`, its fragment is cached separately. If the referenced node changes, its fragment is invalidated and Jahia propagates that invalidation upward to any parent fragment that included it.
 
@@ -336,7 +343,7 @@ jahiaComponent(
 import { buildModuleFileUrl, AddResources } from "@jahia/javascript-modules-library";
 
 // Inject a vendor CSS file into the page head
-<AddResources type="css" url={buildModuleFileUrl("css/vendor.min.css")} />
+<AddResources type="css" resources={buildModuleFileUrl("css/vendor.min.css")} />
 
 // Reference a bundled image
 <img src={buildModuleFileUrl("images/placeholder.svg")} alt="" />
@@ -355,8 +362,8 @@ import type { JCRNodeWrapper } from "org.jahia.services.content";
 jahiaComponent(
   { componentType: "view", nodeType: "namespace:navBar" },
   (_, { renderContext, mainNode }) => {
-    // Get all child pages of the site root
-    const pages = getChildNodes(renderContext.getSite(), -1, 0,
+    // Get all child pages of the home page (pages live under `home`, not under the site node)
+    const pages = getChildNodes(renderContext.getSite().getNode("home"), -1, 0,
       (node: JCRNodeWrapper) => node.isNodeType("jnt:page")
     );
     return (
@@ -450,7 +457,7 @@ The `target` string format is `"<phase>:<priority>"`. Filters with priority < 16
 
 ### `useGQLQuery` — server-side GraphQL
 
-Executes a GraphQL query **synchronously** using the current user's credentials. Returns the `data` portion of the response.
+Executes a GraphQL query **synchronously** using the current user's credentials. Takes one object (`query`, `variables`, `operationName`) and returns `{ data, errors }`.
 
 ```tsx
 import { useGQLQuery, jahiaComponent } from "@jahia/javascript-modules-library";
@@ -470,7 +477,7 @@ jahiaComponent(
   { componentType: "view", nodeType: "ns:listing" },
   (_, { renderContext }) => {
     const siteKey = renderContext.getSite().getName();
-    const data = useGQLQuery(QUERY, { path: `/sites/${siteKey}/contents` });
+    const { data } = useGQLQuery({ query: QUERY, variables: { path: `/sites/${siteKey}/contents` } });
     const nodes = data?.jcr?.nodeByPath?.children?.nodes ?? [];
     return <ul>{nodes.map((n: any) => <li key={n.path}>{n.displayName}</li>)}</ul>;
   },
@@ -500,23 +507,26 @@ Use `useGQLQuery` when you need field-level projection, joins across nodes, or c
 
 ### `readOnly` prop for shared/structural nodes
 
-Use `readOnly` when rendering a node that editors should not edit in-place (e.g. a shared footer, a system-level navigation area):
+Use `readOnly` when rendering a node that editors should not edit in-place (e.g. a system-level navigation area). `Render` takes it, `RenderChild` does not:
 
 ```tsx
-<RenderChild name="footer" readOnly={true} />
+<Render node={currentNode.getNode("footer")} readOnly />
 ```
 
-For `AbsoluteArea`, use `readOnly="children"` to allow editing only from the owning page:
+For `AbsoluteArea`, `readOnly="children"` makes the area editable only on the page whose node is its `parent`, and read-only everywhere else:
 
 ```tsx
+// Editable from every page — the default, and the right choice for a site-wide nav or footer
+<AbsoluteArea name="footer" parent={renderContext.getSite()} />
+
+// Editable from the home page only, read-only on every other page
+<AbsoluteArea name="footer" parent={renderContext.getSite().getNode("home")} readOnly="children" />
+
 // Fully read-only — editors cannot edit the footer from any page
 <AbsoluteArea name="footer" parent={renderContext.getSite()} readOnly={true} />
-
-// Read-only everywhere EXCEPT the designated "footer management" page
-<AbsoluteArea name="footer" parent={renderContext.getSite()} readOnly="children" />
 ```
 
-`readOnly="children"` is the recommended pattern: the footer is manageable from one page, but other page templates just include it without showing edit handles.
+Never combine `parent={renderContext.getSite()}` with `readOnly="children"`: the owner is then the site node, which is never the page being edited, so the area is read-only on every page and editors cannot reach its content.
 
 ---
 
@@ -824,18 +834,19 @@ import { getSiteLocales, buildNodeUrl, jahiaComponent } from "@jahia/javascript-
 
 jahiaComponent(
   { componentType: "view", nodeType: "ns:languageSwitcher" },
-  (_, { renderContext, currentNode }) => {
-    const locales = getSiteLocales(renderContext.getSite());
+  (_, { currentNode }) => {
+    // Record of language code ("en", "fr_FR") to java.util.Locale
+    const locales = getSiteLocales();
     const invalidLanguages: string[] = currentNode.getPropertyAsString("j:invalidLanguages")?.split(" ") ?? [];
 
     return (
       <ul>
-        {locales
-          .filter(locale => !invalidLanguages.includes(locale))
-          .filter(locale => currentNode.hasI18N(renderContext.getSite().getLocale(locale)))
-          .map(locale => (
-            <li key={locale}>
-              <a href={buildNodeUrl(currentNode, { language: locale })}>{locale.toUpperCase()}</a>
+        {Object.entries(locales)
+          .filter(([language]) => !invalidLanguages.includes(language))
+          .filter(([, locale]) => currentNode.hasI18N(locale))
+          .map(([language]) => (
+            <li key={language}>
+              <a href={buildNodeUrl(currentNode, { language })}>{language.toUpperCase()}</a>
             </li>
           ))}
       </ul>
@@ -863,7 +874,7 @@ yarn build && yarn jahia-deploy
 - [ ] `jahiaComponent` registered with correct `nodeType` (matches CND)
 - [ ] `Props` imported from `./types.js`
 - [ ] `buildNodeUrl` used for any image or node URL
-- [ ] Weakreference-backed content rendered via sub-view (`RenderChild`), not inline property access
+- [ ] Weakreference-backed content rendered with `<Render node={...} />`, or read after `server.render.addCacheDependency({ node }, renderContext)`
 - [ ] Interactive UI (carousels, tabs) flattened in edit mode with editor hints
 - [ ] Structural/shared nodes rendered with `readOnly` prop
 - [ ] Semantic HTML used (`<article>`, `<section>`, `<nav>`, `<header>`, `<footer>`)

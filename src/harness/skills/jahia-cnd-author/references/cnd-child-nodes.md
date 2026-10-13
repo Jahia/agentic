@@ -69,8 +69,8 @@ A section, a grid, a row: a component whose items the editor drops **inside the 
 nowhere else. Two rules decide the shape:
 
 - Editors drop content into an **Area**, so the items live in a list child that the view renders
-  with `<AbsoluteArea>`. `<RenderChildren>` on the section itself renders nodes but offers no drop
-  zone in Page Builder, and a child type created there by hand is a node no editor can add.
+  with `<AbsoluteArea>`. The area gives the items their own container, with its own type and
+  ordering, apart from the section's other children.
 - The list child is a **type of its own**, hidden from the picker, that names the item types it
   accepts. That restriction is what keeps the items "contributable on the sectioning component
   only".
@@ -113,9 +113,10 @@ levels deep:
  ]}]}
 ```
 
-**What does not work, and what the refusal means.** `+ * (nsmix:sectionChild)` straight on a
-`jnt:content` section, with `<RenderChildren>` in the view, gives Page Builder nothing to drop
-into. And a `content.create` refused with `Constraint violation: No child node definition` after
+**The other shape, and what the refusal means.** `+ * (ns:textCard)` straight on the section,
+with `<RenderChildren>` in the view, also works: `RenderChildren` renders an "Add content" button
+after the children, and it is the right shape for children created with the parent (CTAs, the
+fixed parts of a card). Do not rewrite an existing type from one shape to the other. A `content.create` refused with `Constraint violation: No child node definition` after
 you changed the CND means the instance still holds the previous definition of the parent: verify
 with `content.type` before you create anything, and see `jahia-dev-debug` for the redeploy that
 applies a CND change.
@@ -124,7 +125,7 @@ applies a CND change.
 
 ```cnd
 [ns:gridRow] > jnt:content, nsmix:component
- - columns (long) = '3' autocreated mandatory < '1', '2', '3', '4'
+ - columns (long) = '3' autocreated mandatory < '[1,4]'
  + * (jmix:droppableContent)
 ```
 

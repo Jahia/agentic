@@ -28,13 +28,13 @@ jahiaComponent(
     displayName: "Default Template",
     name: "default",
   },
-  ({ "jcr:title": title }, { renderContext, mainNode }) => {
+  ({ "jcr:title": title }, { renderContext, currentResource, mainNode }) => {
     // Pages live under /sites/<key>/home — not directly under the site node
     const siteHome = renderContext.getSite().getNode("home");
     const navPages = getChildNodes(siteHome, -1, 0, n => n.isNodeType("jnt:page"));
-    const siteName = renderContext.getSite().getPropertyAsString("j:siteTitle") ?? renderContext.getSite().getName();
+    const siteName = renderContext.getSite().getPropertyAsString("j:title") ?? renderContext.getSite().getName();
     return (
-      <html lang="en">
+      <html lang={currentResource.getLocale().toLanguageTag()}>
         <head>
           <meta charSet="UTF-8" />
           <meta name="viewport" content="width=device-width, initial-scale=1" />

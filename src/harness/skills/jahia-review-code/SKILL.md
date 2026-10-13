@@ -56,8 +56,8 @@ Check: any `.server.tsx` or `.client.tsx` file that uses `props["j:linkType"]` o
 Fix: use a `switch (props["j:linkType"])` with `buildNodeUrl(props["j:linknode"])` for internal and `props["j:url"]` for external.
 
 **C5 — Weakreference node properties read directly in a view (cache issue)**
-Check: views that access `.getPropertyAsString()`, `.getProperty(...)`, or property destructuring from a weakreference prop (other than `buildNodeUrl`).
-Fix: render the referenced node via `<Render node={refNode} view="..." />` to get proper cache invalidation.
+Check: views that access `.getPropertyAsString()`, `.getProperty(...)`, or property destructuring from a weakreference prop (other than `buildNodeUrl`), with no `server.render.addCacheDependency({ node: refNode }, renderContext)` call for that node.
+Fix: render the referenced node via `<Render node={refNode} view="..." />`, or declare the dependency before reading it. Reading the image `jcr:title` for alt text is correct once the dependency is declared.
 
 **C6 — Client component imports server-only APIs**
 Check: any `.client.tsx` file that imports from `@jahia/javascript-modules-library` (except `Island` which is re-exported).
@@ -141,7 +141,7 @@ Common issues in Jahia modules:
 - `landmark-one-main`: page template missing a `<main>` wrapper
 - `page-has-heading-one`: no `<h1>` rendered on any page
 - `heading-order`: skipped heading levels between components (e.g. h1 → h3)
-- `html-has-lang`: template not setting `lang` via `useServerContext().currentLanguage`
+- `html-has-lang`: template not setting `lang` from `currentResource.getLocale().toLanguageTag()`
 - `focus-visible` suppressed: global `* { outline: none }` in CSS kills keyboard navigation
 
 Fix: identify each violating component by matching the axe target selector to a `.server.tsx` file, apply the fix, rebuild, and re-run the audit.

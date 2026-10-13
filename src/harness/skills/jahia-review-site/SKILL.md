@@ -17,8 +17,8 @@ Reads URLs from `pages-to-review.json`, runs automated a11y and SEO checks, and 
 ## Step 1 — Ensure tooling is installed
 
 ```bash
-node -e "require('@axe-core/playwright'); require('playwright')" 2>/dev/null || \
-  npm install --no-save @axe-core/playwright playwright && npx playwright install chromium --with-deps
+node -e "require('@axe-core/playwright'); require('playwright'); require.resolve('lighthouse')" 2>/dev/null || \
+  npm install --no-save @axe-core/playwright playwright lighthouse && npx playwright install chromium --with-deps
 ```
 
 ---
@@ -26,8 +26,9 @@ node -e "require('@axe-core/playwright'); require('playwright')" 2>/dev/null || 
 ## Step 2 — Run the review
 
 ```bash
-SCRIPT=$(find .claude .agents -name "review-pages.mjs" 2>/dev/null | head -1)
-node "$SCRIPT" 2>&1 | tee /tmp/site-review.txt
+ROOT=$(git rev-parse --show-toplevel 2>/dev/null || pwd)
+SCRIPT=$(find .claude .agents "$ROOT/.claude" "$ROOT/.agents" -name "review-pages.mjs" 2>/dev/null | head -1)
+node "${SCRIPT:?review-pages.mjs not found}" 2>&1 | tee /tmp/site-review.txt
 ```
 
 ---

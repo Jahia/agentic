@@ -199,8 +199,8 @@ Update the module's `Layout` template (`src/templates/Layout.server.tsx` or `src
 import { AddResources, buildModuleFileUrl } from "@jahia/javascript-modules-library";
 
 // In the <head> section:
-<AddResources type="css" url={buildModuleFileUrl("static/css/vendor.css")} />
-<AddResources type="javascript" url={buildModuleFileUrl("static/js/aos.js")} />
+<AddResources type="css" resources={buildModuleFileUrl("static/css/vendor.css")} />
+<AddResources type="javascript" resources={buildModuleFileUrl("static/js/aos.js")} />
 ```
 
 Update `package.json` → `jahia.static-resources` to expose the static directories:

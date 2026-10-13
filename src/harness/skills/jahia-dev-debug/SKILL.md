@@ -143,7 +143,7 @@ Any `jcr:primaryType` or `jcr:mixinTypes` value in `import.xml` must exist in th
 Every `jcr:mixinTypes` value in `import.xml` is scanned by the OSGi bundle resolver. If the mixin is not declared in the module's own CND and is not provided by a resolvable dependency, the bundle will not start. Correct spelling is `jmix:nolive` (all lowercase). Verify the mixin exists in your Jahia instance before using it in `import.xml`.
 
 ### View: module loads but page is blank
-Run `yarn dev` and check the Vite / SSR console for a React render error.
+Stream the Docker logs (Step 3), redeploy with `yarn build && yarn jahia-deploy`, and load the page: a React render error is logged with the view that threw it. Never run `yarn dev` from an agent.
 
 ---
 

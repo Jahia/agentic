@@ -78,7 +78,6 @@ All component node types must extend `nsmix:component`:
 | Type | Notes |
 |---|---|
 | `string` | Plain text |
-| `richtext` | HTML rich text |
 | `boolean` | `true` / `false` |
 | `long` | Integer |
 | `double` | Floating point |
@@ -109,7 +108,6 @@ All component node types must extend `nsmix:component`:
 | `picker` | Content picker |
 | `color` | Color picker |
 | `checkbox` | Checkbox |
-| `radio` | Radio buttons |
 | `choicelist` | Drop-down list |
 
 ---
@@ -120,9 +118,11 @@ All component node types must extend `nsmix:component`:
 <ns = 'http://www.example.org/ns/1.0'>
 <nsmix = 'http://www.example.org/nsmix/1.0'>
 
-[ns:card] > jnt:content, nsmix:component
- - title (string, text) = '' i18n
+[nsmix:component] > jmix:droppableContent mixin
+
+[ns:card] > jnt:content, nsmix:component, mix:title
  - body (string, richtext) i18n
- - ctaLabel (string, text) i18n
- - ctaLink (weakreference, picker[type='page'])
+ - image (weakreference, picker[type='image']) < jmix:image
 ```
+
+Rich text is a `string` with the `richtext` selector: `richtext` is not a property type. For radio buttons, there is no selector: use `choicelist`. The CND reader refuses an unknown type or selector, and the whole file stops loading.
