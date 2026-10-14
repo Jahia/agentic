@@ -15,7 +15,9 @@ export interface PageResult {
   imageScore?: number | null;
   /** `<h2>` elements in `<main>`: one per section title. Absent on runs recorded before the metric existed */
   sectionCount?: number;
-  /** 0–1: section titles against the 3 sections the prompt asks for on every page */
+  /** `<article>`, `<figure>` and other `<h3>` elements in `<main>`: the cards and captioned images of the sections */
+  itemCount?: number;
+  /** 0–1: section titles and section items, each against the 3 the prompt asks for on every page */
   contentScore?: number | null;
 }
 

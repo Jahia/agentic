@@ -62,6 +62,6 @@ If the verdict is ❌ FAIL:
 2. Redeploy: `yarn build && yarn jahia-deploy`, and publish the content you changed.
 3. Run the review again. The code review runs at most twice in total. After its second run, the verdict depends on the site review alone: re-run only `/jahia-review-site`, and list the 🔴 Critical code issues that remain in the final report.
 
-A review round never restructures what holds existing content, whatever the severity of the issue. Do not rename or split an area, change the area types of a template, change the child node types of a content type, or move content between areas: list such an issue in the final report instead. `/jahia-review-site` fails when a page lost content since its last pass.
+A review round never restructures what holds existing content, whatever the severity of the issue. Do not rename or split an area, change the area types of a template, change the child node types of a content type, or move content between areas: list such an issue in the final report instead. A fix that renders content where it already lives is not a restructuring: the C8 fix, `<AbsoluteArea parent={currentNode}>` instead of `<Area>` in a view, makes hidden children appear without moving them. `/jahia-review-site` fails when a page lost content since its last pass.
 
 Only mark work complete once the review passes. The `/jahia-review-site` script writes `pages.json` on pass: never write it by hand.
