@@ -13,6 +13,10 @@ export interface PageResult {
   brokenImageCount?: number;
   /** 0–1: share of images that load, and 0 when the page has none. The prompt asks for images */
   imageScore?: number | null;
+  /** `<h2>` elements in `<main>`: one per section title. Absent on runs recorded before the metric existed */
+  sectionCount?: number;
+  /** 0–1: section titles against the 3 sections the prompt asks for on every page */
+  contentScore?: number | null;
 }
 
 export interface BenchmarkRun {

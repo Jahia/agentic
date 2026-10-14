@@ -288,6 +288,11 @@ for (const [i, rawUrl] of urls.entries()) {
     return { total: imgs.length, broken: loaded.filter((ok) => !ok).length };
   });
   const imageScore = images.total === 0 ? 0 : (images.total - images.broken) / images.total;
+  // The prompt asks for at least 3 sections per page, and the harness gives each section title an <h2>.
+  // A page whose content went missing passes every a11y and SEO check: this score is what drops.
+  // A hero or testimonial title in <h2> counts too, so a page that lost only some sections can still score 1
+  const sectionCount = await page.$$eval("main h2", (headings) => headings.length);
+  const contentScore = Math.min(1, sectionCount / 3);
   console.log(`Analyzing accessibility of ${title}...`);
   const axe = new AxeBuilder({ page });
   const results = await axe.analyze();
@@ -302,7 +307,7 @@ for (const [i, rawUrl] of urls.entries()) {
   });
   const seoScore = result?.lhr.categories.seo?.score ?? 0;
   console.log(
-    `Results for ${title}: Accessibility Score = ${accessibilityScore.toFixed(2)}, SEO Score = ${seoScore.toFixed(2)}, Images = ${images.total - images.broken}/${images.total} (score ${imageScore.toFixed(2)})`,
+    `Results for ${title}: Accessibility Score = ${accessibilityScore.toFixed(2)}, SEO Score = ${seoScore.toFixed(2)}, Images = ${images.total - images.broken}/${images.total} (score ${imageScore.toFixed(2)}), Sections = ${sectionCount} (score ${contentScore.toFixed(2)})`,
   );
   pages.push({
     url: url.toString(),
@@ -313,6 +318,8 @@ for (const [i, rawUrl] of urls.entries()) {
     imageCount: images.total,
     brokenImageCount: images.broken,
     imageScore,
+    sectionCount,
+    contentScore,
   });
 }
 
