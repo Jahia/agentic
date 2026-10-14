@@ -261,6 +261,24 @@ import { RenderChild } from "@jahia/javascript-modules-library";
 <RenderChild name="hero" view="small" />       // named view
 ```
 
+### Children that editors add inside the component — `AbsoluteArea` on the current node
+
+The cards of a section, the cells of a grid: render the hidden list child with `AbsoluteArea` and the current node as parent. Never use `<Area>` in a view: it resolves its name against the page, so the children are not rendered.
+
+```tsx
+import { AbsoluteArea, jahiaComponent } from "@jahia/javascript-modules-library";
+
+jahiaComponent(
+  { componentType: "view", nodeType: "ns:section" },
+  ({ "jcr:title": title }, { currentNode }) => (
+    <section>
+      <h2>{title}</h2>
+      <AbsoluteArea name="items" parent={currentNode} nodeType="ns:sectionItems" />
+    </section>
+  ),
+);
+```
+
 ### `Render` — render any arbitrary JCR node or virtual node
 
 ```tsx

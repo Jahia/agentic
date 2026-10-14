@@ -67,6 +67,13 @@ Fix: move server-side logic to the `.server.tsx` wrapper and pass results as ser
 Check: any `jahiaComponent` call with `properties: { "cache.expiration": "0" }`.
 Fix: never set expiration to 0. If truly fresh data is needed, use a small value like `"5"` (5 seconds) to still protect under load.
 
+**C8 — `<Area>` in a component view**
+Check: a view under `src/components/` that renders `<Area`. `<Area name="items">` resolves its name against the page, not the component, so the children that editors add inside the component (the cards of a section) are never rendered: the page shows the component without them.
+```bash
+grep -rnE '<Area[[:space:]/>]' src/components
+```
+Fix: `<AbsoluteArea name="items" parent={currentNode} nodeType="ns:sectionItems" />`, with `currentNode` from the second argument of the component (see `jahia-dev-build-component`, "Nested components"). The content stays where it is.
+
 ---
 
 ### 🟡 WARNING — Will likely cause editor confusion, stale content, or runtime errors
