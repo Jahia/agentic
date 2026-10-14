@@ -2799,5 +2799,73 @@
       }
     ],
     "cndQualityScore": 1
+  },
+  {
+    "id": "run-2026-10-14T14-10-05",
+    "date": "2026-10-14T14:10:34.892Z",
+    "durationSeconds": 1416,
+    "costUSD": 7.9281923999999995,
+    "tokens": {
+      "input": 1810,
+      "output": 96709,
+      "cached": 16424103
+    },
+    "githubRunUrl": "https://github.com/Jahia/agentic/actions/runs/38574208966",
+    "branch": "main",
+    "pages": [
+      {
+        "url": "http://localhost:8080/cms/render/live/en/sites/forsure/home.html",
+        "title": "Home | For Sure Insurance",
+        "screenshot": "screenshot-0.png",
+        "accessibilityScore": 1,
+        "seoScore": 1,
+        "imageCount": 0,
+        "brokenImageCount": 0,
+        "imageScore": 0,
+        "sectionCount": 4,
+        "itemCount": 11,
+        "contentScore": 1
+      },
+      {
+        "url": "http://localhost:8080/cms/render/live/en/sites/forsure/home/car-insurance.html",
+        "title": "Car Insurance | For Sure Insurance",
+        "screenshot": "screenshot-1.png",
+        "accessibilityScore": 1,
+        "seoScore": 1,
+        "imageCount": 0,
+        "brokenImageCount": 0,
+        "imageScore": 0,
+        "sectionCount": 4,
+        "itemCount": 11,
+        "contentScore": 1
+      },
+      {
+        "url": "http://localhost:8080/cms/render/live/en/sites/forsure/home/health-insurance.html",
+        "title": "Health Insurance | For Sure Insurance",
+        "screenshot": "screenshot-2.png",
+        "accessibilityScore": 1,
+        "seoScore": 1,
+        "imageCount": 0,
+        "brokenImageCount": 0,
+        "imageScore": 0,
+        "sectionCount": 4,
+        "itemCount": 11,
+        "contentScore": 1
+      },
+      {
+        "url": "http://localhost:8080/cms/render/live/en/sites/forsure/home/home-insurance.html",
+        "title": "Home Insurance | For Sure Insurance",
+        "screenshot": "screenshot-3.png",
+        "accessibilityScore": 1,
+        "seoScore": 1,
+        "imageCount": 0,
+        "brokenImageCount": 0,
+        "imageScore": 0,
+        "sectionCount": 4,
+        "itemCount": 16,
+        "contentScore": 1
+      }
+    ],
+    "cndQualityScore": 1
   }
 ]
