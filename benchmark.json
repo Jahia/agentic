@@ -1997,12 +1997,12 @@
   {
     "id": "run-2026-09-30T16-00-28",
     "date": "2026-09-30T16:01:00.221Z",
-    "durationSeconds": 44,
+    "durationSeconds": 2230,
     "costUSD": 8.963442449999997,
     "tokens": {
-      "input": 6,
-      "output": 2075,
-      "cached": 341846
+      "input": 198,
+      "output": 99045,
+      "cached": 15784846
     },
     "githubRunUrl": "https://github.com/Jahia/agentic/actions/runs/36735904643",
     "branch": "main",
@@ -2076,12 +2076,12 @@
   {
     "id": "run-2026-10-07T08-45-23",
     "date": "2026-10-07T08:45:55.346Z",
-    "durationSeconds": 65,
+    "durationSeconds": 1982,
     "costUSD": 9.358916100000004,
     "tokens": {
-      "input": 6,
-      "output": 3134,
-      "cached": 255279
+      "input": 197,
+      "output": 82213,
+      "cached": 17014279
     },
     "githubRunUrl": "https://github.com/Jahia/agentic/actions/runs/37591854714",
     "branch": "main",
@@ -2220,12 +2220,12 @@
   {
     "id": "run-2026-10-07T09-02-18",
     "date": "2026-10-07T09:02:52.503Z",
-    "durationSeconds": 244,
+    "durationSeconds": 2495,
     "costUSD": 8.692559850000004,
     "tokens": {
-      "input": 15,
-      "output": 9984,
-      "cached": 1067204
+      "input": 168,
+      "output": 115135,
+      "cached": 13039204
     },
     "githubRunUrl": "https://github.com/Jahia/agentic/actions/runs/37592744310",
     "branch": "main",
@@ -2341,12 +2341,12 @@
   {
     "id": "run-2026-10-07T09-19-00",
     "date": "2026-10-07T09:19:31.072Z",
-    "durationSeconds": 37,
+    "durationSeconds": 1417,
     "costUSD": 5.1062213999999955,
     "tokens": {
-      "input": 3,
-      "output": 1984,
-      "cached": 129796
+      "input": 117,
+      "output": 62036,
+      "cached": 7988796
     },
     "githubRunUrl": "https://github.com/Jahia/agentic/actions/runs/37596647166",
     "branch": "main",
@@ -2420,12 +2420,12 @@
   {
     "id": "run-2026-10-08T15-47-12",
     "date": "2026-10-08T15:47:43.972Z",
-    "durationSeconds": 477,
+    "durationSeconds": 1748,
     "costUSD": 7.3405112999999975,
     "tokens": {
-      "input": 41,
-      "output": 17329,
-      "cached": 3505694
+      "input": 164,
+      "output": 84329,
+      "cached": 13905694
     },
     "githubRunUrl": "https://github.com/Jahia/agentic/actions/runs/37798695732",
     "branch": "main",
@@ -2476,12 +2476,12 @@
   {
     "id": "run-2026-10-13T09-55-34",
     "date": "2026-10-13T09:56:05.859Z",
-    "durationSeconds": 507,
+    "durationSeconds": 1191,
     "costUSD": 6.524454450000001,
     "tokens": {
-      "input": 49,
-      "output": 27447,
-      "cached": 6331553
+      "input": 161,
+      "output": 66447,
+      "cached": 13231553
     },
     "githubRunUrl": "https://github.com/Jahia/agentic/actions/runs/38377033445",
     "branch": "main",
@@ -2562,12 +2562,12 @@
   {
     "id": "run-2026-10-13T09-59-52",
     "date": "2026-10-13T10:00:22.836Z",
-    "durationSeconds": 12,
+    "durationSeconds": 1376,
     "costUSD": 5.623174199999996,
     "tokens": {
-      "input": 3,
-      "output": 566,
-      "cached": 127145
+      "input": 114,
+      "output": 49566,
+      "cached": 8072145
     },
     "githubRunUrl": "https://github.com/Jahia/agentic/actions/runs/38377175213",
     "branch": "main",
@@ -2627,12 +2627,12 @@
   {
     "id": "run-2026-10-14T07-53-31",
     "date": "2026-10-14T07:54:04.440Z",
-    "durationSeconds": 108,
+    "durationSeconds": 1840,
     "costUSD": 7.460502449999999,
     "tokens": {
-      "input": 17,
-      "output": 6532,
-      "cached": 944508
+      "input": 160,
+      "output": 88632,
+      "cached": 11600508
     },
     "githubRunUrl": "https://github.com/Jahia/agentic/actions/runs/38527548690",
     "branch": "main",
