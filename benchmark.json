@@ -2867,5 +2867,89 @@
       }
     ],
     "cndQualityScore": 1
+  },
+  {
+    "id": "run-2026-10-14T16-38-50",
+    "date": "2026-10-14T16:39:20.551Z",
+    "durationSeconds": 2170,
+    "costUSD": 6.968418749999997,
+    "tokens": {
+      "input": 1746,
+      "output": 128254,
+      "cached": 11851645
+    },
+    "githubRunUrl": "https://github.com/Jahia/agentic/actions/runs/38594171117",
+    "branch": "main",
+    "pages": [
+      {
+        "url": "http://localhost:8080/sites/forsure/home.html",
+        "title": "Home | For Sure Insurance",
+        "screenshot": "screenshot-0.png",
+        "accessibilityScore": 1,
+        "seoScore": 1,
+        "imageCount": 2,
+        "brokenImageCount": 0,
+        "imageScore": 1,
+        "sectionCount": 4,
+        "itemCount": 11,
+        "contentScore": 1
+      },
+      {
+        "url": "http://localhost:8080/sites/forsure/home/car-insurance.html",
+        "title": "Car Insurance | For Sure Insurance",
+        "screenshot": "screenshot-1.png",
+        "accessibilityScore": 1,
+        "seoScore": 1,
+        "imageCount": 3,
+        "brokenImageCount": 0,
+        "imageScore": 1,
+        "sectionCount": 4,
+        "itemCount": 11,
+        "contentScore": 1
+      },
+      {
+        "url": "http://localhost:8080/sites/forsure/home/health-insurance.html",
+        "title": "Health Insurance | For Sure Insurance",
+        "screenshot": "screenshot-2.png",
+        "accessibilityScore": 1,
+        "seoScore": 1,
+        "imageCount": 3,
+        "brokenImageCount": 0,
+        "imageScore": 1,
+        "sectionCount": 4,
+        "itemCount": 13,
+        "contentScore": 1
+      },
+      {
+        "url": "http://localhost:8080/sites/forsure/home/home-insurance.html",
+        "title": "Home Insurance | For Sure Insurance",
+        "screenshot": "screenshot-3.png",
+        "accessibilityScore": 1,
+        "seoScore": 1,
+        "imageCount": 3,
+        "brokenImageCount": 0,
+        "imageScore": 1,
+        "sectionCount": 4,
+        "itemCount": 9,
+        "contentScore": 1
+      }
+    ],
+    "cndQualityScore": 0.36787944117144233,
+    "cndIssues": [
+      {
+        "file": "/home/runner/work/agentic/agentic/agentic-benchmark-IYvT1C/forsure/settings/definitions.cnd",
+        "line": 12,
+        "pattern": "rawStringLink",
+        "message": "\"ctaUrl\" uses (string) for a link/url — use choicelist[linkTypeInitializer]",
+        "fix": "Replace with: - j:linkType (string, choicelist[linkTypeInitializer]) mandatory"
+      },
+      {
+        "file": "/home/runner/work/agentic/agentic/agentic-benchmark-IYvT1C/forsure/settings/definitions.cnd",
+        "line": 10,
+        "pattern": "singleHardcodedCta",
+        "message": "forsuremix:withCta: flat ctaText+ctaLink forces a single CTA — model as child nodes",
+        "fix": "Remove ctaText and ctaLink. Add: + * (ns:cta). Create a [ns:cta] type with label + j:linkType"
+      }
+    ]
   }
 ]
