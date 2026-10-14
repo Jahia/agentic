@@ -67,18 +67,6 @@ Fix: move server-side logic to the `.server.tsx` wrapper and pass results as ser
 Check: any `jahiaComponent` call with `properties: { "cache.expiration": "0" }`.
 Fix: never set expiration to 0. If truly fresh data is needed, use a small value like `"5"` (5 seconds) to still protect under load.
 
-**C8 — Generic area type used for every Area**
-Check: page templates where every `<Area>` uses the same generic area type (e.g. `nodeType="namespace:pageArea"` everywhere). This means editors see ALL `pageComponent` types as droppable options in every area — a hero section will appear as an option in a feature card grid.
-Fix: create **one typed area node per section** in `settings/definitions.cnd`, each with a tight child constraint:
-```cnd
-[namespace:heroArea] > jnt:content, jmix:list, jmix:hiddenType orderable
- + * (namespace:heroSection)
-
-[namespace:featuresArea] > jnt:content, jmix:list, jmix:hiddenType orderable
- + * (namespace:featureCard)
-```
-Only use a generic `pageArea` for flexible areas (e.g. footer) where any component is valid.
-
 ---
 
 ### 🟡 WARNING — Will likely cause editor confusion, stale content, or runtime errors
@@ -119,6 +107,19 @@ Fix: extend only `jnt:content` (or `jnt:page` for page types). To add fields to 
 Check: any `.server.tsx`, `.client.tsx`, or template file containing a literal `href="http`, `href="/"`, or `href="/en/` (except in edit-mode chrome helpers). Also flag plain string `src="http` for non-bundled assets. Also flag any content data with `j:linkType: "external"` pointing to a path that looks like an internal Jahia URL (e.g. `/sites/`, `/cms/`, `/en/`).
 Fix: **All navigable URLs must come from contributed content.** Use `j:linkType`/`j:linknode`/`j:url` props for editorial links, `buildNodeUrl(node)` for JCR node links.
 🚫 **NEVER use `j:linkType: "external"` to link to an internal Jahia page** — use `"internal"` + `j:linknode`. An external URL pointing internally breaks on environment changes, language switches, live/preview workspace toggling, and vanity URL rewrites. If no target page exists yet, omit the link; do not substitute an external workaround.
+
+**W10 — Generic area type used for every Area**
+Check: page templates where every `<Area>` uses the same generic area type (e.g. `nodeType="namespace:pageArea"` everywhere). This means editors see ALL `pageComponent` types as droppable options in every area — a hero section will appear as an option in a feature card grid.
+Fix: create **one typed area node per section** in `settings/definitions.cnd`, each with a tight child constraint:
+```cnd
+[namespace:heroArea] > jnt:content, jmix:list, jmix:hiddenType orderable
+ + * (namespace:heroSection)
+
+[namespace:featuresArea] > jnt:content, jmix:list, jmix:hiddenType orderable
+ + * (namespace:featureCard)
+```
+Only use a generic `pageArea` for flexible areas (e.g. footer) where any component is valid.
+On pages that already hold content, the fix moves that content: report it, and apply it only while the pages are still empty.
 
 ---
 
@@ -213,7 +214,7 @@ If no issues found in a category, print `✅ None`.
 
 ## Step 5 — Ask to fix
 
-After the report, ask: **"Would you like me to fix any of these issues?"**
+When another skill or agent invoked this review (for instance `/jahia-review`), end with the report: that caller decides what to fix. Otherwise, after the report, ask: **"Would you like me to fix any of these issues?"**
 
 If yes, fix them — use the guidance from the relevant skill (`jahia-cnd-author`, `jahia-dev-create-view`) and run `yarn build && yarn jahia-deploy` to push changes.
 
