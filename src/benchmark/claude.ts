@@ -137,9 +137,16 @@ function prettyPrintLine(line: string): void {
   }
 }
 
-/** Runs Claude Code in `cwd` on `prompt`, prints its stream live, and returns the raw stream-json output. */
-export async function runClaude(cwd: string, prompt: string): Promise<string> {
-  _lastTime = Date.now();
+/**
+ * Runs Claude Code in `cwd` on `prompt` and prints its stream live.
+ * Returns the raw stream-json output and the wall-clock time of the run.
+ */
+export async function runClaude(
+  cwd: string,
+  prompt: string,
+): Promise<{ output: string; durationSeconds: number }> {
+  const start = Date.now();
+  _lastTime = start;
   _toolNames.clear();
   const claudeProc = spawn(
     "claude",
@@ -181,34 +188,38 @@ export async function runClaude(cwd: string, prompt: string): Promise<string> {
 
   // "close" waits for stdout to drain; "exit" can come before the final result line
   await once(claudeProc, "close");
-  return claudeOutput;
+  return { output: claudeOutput, durationSeconds: Math.round((Date.now() - start) / 1000) };
 }
 
-// Parse token usage, cost, and duration from claude's stream-json output.
-// The final line has type "result" with duration_ms, total_cost_usd, and usage fields.
+// Parse token usage and cost from claude's stream-json output.
+// A session that starts background agents ends with one "result" event per resumption.
+// Their usage covers the main agent's own segment only, but modelUsage and total_cost_usd
+// add up the whole session, subagents included: the last event holds the totals.
+// The duration_ms of each event leaves out the time spent waiting on those agents,
+// hence the wall clock in runClaude.
 export function parseStats(output: string): {
-  durationSeconds: number;
   costUSD: number;
   tokens: BenchmarkRun["tokens"];
 } {
   for (const line of output.trim().split("\n").reverse()) {
     try {
       const event = JSON.parse(line) as Record<string, unknown>;
-      if (event["type"] === "result") {
-        const usage = (event["usage"] as Record<string, number>) ?? {};
-        return {
-          durationSeconds: Math.round(((event["duration_ms"] as number) ?? 0) / 1000),
-          costUSD: (event["total_cost_usd"] as number) ?? 0,
-          tokens: {
-            input: usage["input_tokens"] ?? 0,
-            output: usage["output_tokens"] ?? 0,
-            cached: usage["cache_read_input_tokens"] ?? 0,
-          },
-        };
-      }
+      if (event["type"] !== "result") continue;
+      const models = Object.values(
+        (event["modelUsage"] as Record<string, Record<string, number>>) ?? {},
+      );
+      const sum = (key: string) => models.reduce((total, model) => total + (model[key] ?? 0), 0);
+      return {
+        costUSD: (event["total_cost_usd"] as number) ?? 0,
+        tokens: {
+          input: sum("inputTokens"),
+          output: sum("outputTokens"),
+          cached: sum("cacheReadInputTokens"),
+        },
+      };
     } catch {
       // not a JSON line
     }
   }
-  return { durationSeconds: 0, costUSD: 0, tokens: { input: 0, output: 0, cached: 0 } };
+  return { costUSD: 0, tokens: { input: 0, output: 0, cached: 0 } };
 }

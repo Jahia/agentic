@@ -96,6 +96,21 @@ function checkFile(filePath, content) {
       });
     }
 
+    // childNodeOrderable: orderable is a type option. On a child node line, Jahia refuses to parse the
+    // CND at install, and the provisioning API reports it as an empty install list.
+    // The default type (= ns:ord) and a trailing comment are not options
+    if (
+      trimmed.startsWith("+") &&
+      /\)(?:\s*=\s*[\w:]+)?.*(?<![\w:])(orderable|ord|o)\b/.test(trimmed.replace(/\/\/.*$/, ""))
+    ) {
+      issues.push({
+        file: filePath, line: lineNum,
+        pattern: "childNodeOrderable",
+        message: "orderable on a child node line: Jahia cannot parse the CND, and yarn jahia-deploy installs nothing",
+        fix: "Move orderable to the type line, after the supertypes: [ns:list] > jnt:content, jmix:list orderable",
+      });
+    }
+
     // studioOnly
     if (/jmix:studioOnly/.test(trimmed)) {
       issues.push({

@@ -8,7 +8,7 @@ allowed-tools: Bash
 
 ```bash
 ROOT=$(git rev-parse --show-toplevel 2>/dev/null || pwd)
-CND_SCRIPT=$(find .claude .agents "$ROOT/.claude" "$ROOT/.agents" -name "check-cnd.mjs" 2>/dev/null | head -1)
+CND_SCRIPT=$(find .claude .agents .kiro "$ROOT/.claude" "$ROOT/.agents" "$ROOT/.kiro" -name "check-cnd.mjs" -print -quit 2>/dev/null)
 node "${CND_SCRIPT:?check-cnd.mjs not found}" <path-to-file-or-directory>
 # or, to check all CND files in the module:
 node "${CND_SCRIPT:?check-cnd.mjs not found}" src/
@@ -76,6 +76,21 @@ An image picker (`picker[type='image']`) constrained to `jnt:file`, quoted or no
 ### `missingI18n`
 String property whose name contains `title`, `text`, `label`, `description`, `subtitle`, `caption`, `alt`, `heading`, `summary`, `excerpt` or `body`, without `i18n` (or `internationalized`).
 **Fix**: Add `i18n` after the type declaration.
+
+### `childNodeOrderable`
+`orderable` (or its short forms `ord` and `o`) on a `+` child node line. `orderable` is an option of
+the type, after its supertypes.
+The build accepts it, but Jahia cannot parse the CND at install, and `yarn jahia-deploy` installs
+nothing.
+**Fix**: Move `orderable` to the type line.
+```cnd
+// ❌
+[ns:sectionItems] > jnt:content, jmix:list, jmix:hiddenType
+ + * (ns:textCard) orderable
+// ✅
+[ns:sectionItems] > jnt:content, jmix:list, jmix:hiddenType orderable
+ + * (ns:textCard)
+```
 
 ### `studioOnly`
 Any use of `jmix:studioOnly`.

@@ -1,6 +1,6 @@
 ---
 name: jahia-dev-debug
-description: Debugs a Jahia JavaScript module end-to-end — build, deploy, and runtime errors. Finds the first error after deployment using live Docker logs.
+description: Debugs a Jahia JavaScript module end-to-end — build, deploy, and runtime errors. Finds the first error after deployment using live Docker logs. Use as soon as `yarn jahia-deploy` prints `{}` or `Jahia installed nothing`, or a CND change does not show in `content.type`.
 ---
 
 # Skill: jahia-dev-debug
@@ -30,7 +30,7 @@ yarn jahia-deploy
 
 Interpret the output:
 - `"Operation successful"` in the response → deployment was accepted. Proceed to Step 3 — the module may still fail at runtime.
-- `"{}"` or empty JSON → deployment was **rejected** (usually a CND parse error or missing dependency). Proceed to Step 3 to find the cause in the logs.
+- `{}`, or `Jahia installed nothing` (recent versions of the script also exit with code 1) → **nothing was installed**, and the previous version of the module is still running. The provisioning API answers `200` in that case. See "CND: a change is not applied" below before you look anywhere else.
 - Any other error → fix the connection issue (is Docker running?) then retry.
 
 ---
@@ -89,6 +89,9 @@ Scan the captured log output for the **first** error that appears **after** the 
 | Pattern | Likely cause |
 |---|---|
 | `CND parse error` / `invalid node type` | CND syntax error or illegal field declaration |
+| `Cannot install package.tgz = java.io.IOException` | Jahia could not read a CND (ignore the hint about Maven repositories): see "CND: a change is not applied" |
+| `Bundle package.tgz already installed, skip` | The same version without `-SNAPSHOT` is already installed: see "CND: a change is not applied" |
+| `Skipping installation of package.tgz, a more recent version is already installed` | The installed version is higher than `package.json`'s, for instance after you switched branches: see "CND: a change is not applied" |
 | `NoSuchNodeTypeException` | A referenced type doesn't exist (wrong namespace, typo, missing dependency) |
 | `ClassNotFoundException` / `NoClassDefFoundError` | Java dependency missing |
 | `Cannot set property` / `TypeError` in JS stack | View runtime error |
@@ -116,16 +119,39 @@ Repeat until `yarn jahia-deploy` succeeds and the module loads cleanly (no error
 
 ### CND: a change is not applied after `yarn jahia-deploy`
 
-**Symptom:** the build and the deploy succeed, but `content.type` still shows the previous definition, and `content.create` under the changed type answers `Constraint violation: No child node definition` for a child the new CND allows.
+**Symptom:** the build succeeds, `yarn jahia-deploy` prints `{}` (or `Jahia installed nothing`), `content.type` still shows the previous definition, and `content.create` under the changed type answers `Constraint violation: No child node definition` for a child the new CND allows.
 
-**What worked in the benchmark:** uninstall the module, then deploy again. Through the provisioning API:
+**Cause:** the package was not installed, and the provisioning API still answers `200`, with an empty `install` list. During development, the cause is almost always a CND that Jahia's reader refuses. `yarn build` does not parse the CND, but Jahia parses it at install. When the CND is the cause, raising the version, uninstalling the module, or redeploying the same package changes nothing.
+
+Tell the causes apart in the Jahia log (Step 3a gives `<container-name>`):
 
 ```bash
-curl -s -u root:root1234 -F 'script=[{"uninstallModule":"<module>/<version>"}]' http://localhost:8080/modules/api/provisioning
-yarn jahia-deploy
+docker logs <container-name> --since 5m 2>&1 | grep -E "Cannot install package.tgz|Skipping installation|already installed, skip"
 ```
 
-`yarn jahia-deploy` already passes `ignoreChecks: true`, so the CND breaking-change check is not what held the old definition. Verify with `content.type` after the deploy, before you create content. Do not "fix" the CND in the dark: three different models tried in a row cost more than one uninstall.
+- `Cannot install package.tgz = java.io.IOException`: a CND that Jahia refuses. Fix it as below.
+- `Bundle package.tgz already installed, skip`: the same version without `-SNAPSHOT` is already installed. Raise the version to a `-SNAPSHOT` version above it, such as `1.0.1-SNAPSHOT` after `1.0.0`, so that the next deploys install too.
+- `Skipping installation of package.tgz, a more recent version is already installed`: raise the version to a `-SNAPSHOT` version above the installed one. The Modules page of Jahia's Administration shows the installed version, and the history of `package.json` the versions committed in this repository: `git log --all -p -- package.json | grep '"version"'`.
+- No line: the deploy is older than 5 minutes. Deploy again, then run the command again.
+
+**Fix the CND, then deploy again:**
+
+1. Look for `orderable` on a child node line with the CND checker. Print only that pattern: the other patterns of the checker do not block the install. Do not run the fix loop of `jahia-dev-review-cnd` now, and never change a property of a type that is already released while you look for the parse error.
+
+   ```bash
+   ROOT=$(git rev-parse --show-toplevel 2>/dev/null || pwd)
+   CND_SCRIPT=$(find .claude .agents .kiro "$ROOT/.claude" "$ROOT/.agents" "$ROOT/.kiro" -name "check-cnd.mjs" -print -quit 2>/dev/null)
+   node "${CND_SCRIPT:?check-cnd.mjs not found}" . | grep -A2 childNodeOrderable
+   ```
+
+   No output means no `orderable` on a child node line.
+2. Read every line you changed since the last deploy that worked. Known refusals:
+   - `orderable` on a `+` child node line: `orderable` is an option of the type, after its supertypes (`[ns:list] > jnt:content, jmix:list orderable`), never of a child node.
+   - A property type or selector that does not exist, such as `(richtext)` instead of `(string, richtext)`.
+   - A namespace declared outside `settings/definitions.cnd` (see below).
+3. `yarn build && yarn jahia-deploy`, then check the definition with `content.type` before you create content.
+
+Do not work around a CND that Jahia refuses. Groovy console scripts, the JCR browser, uninstalling the module, deleting `/modules/<module>`, or `POST /modules/api/bundles` take an hour and fix nothing. `/modules/api/bundles` also runs the breaking-change check that `yarn jahia-deploy` skips, so it refuses every major change as `Major change in definition`.
 
 ### CND: `j:linknode` or `j:url` declared explicitly
 These fields are injected by Jahia's `linkTypeInitializer` mixin. Remove them from the CND.

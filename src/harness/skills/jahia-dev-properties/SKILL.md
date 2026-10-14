@@ -144,5 +144,5 @@ See [references/all-properties.md](references/all-properties.md) for all ~90 pro
 Search tip:
 ```bash
 ROOT=$(git rev-parse --show-toplevel 2>/dev/null || pwd)
-grep -i "keyword" "$(find .claude .agents "$ROOT/.claude" "$ROOT/.agents" -name "all-properties.md" 2>/dev/null | head -1)"
+grep -i "keyword" "$(find .claude .agents .kiro "$ROOT/.claude" "$ROOT/.agents" "$ROOT/.kiro" -name "all-properties.md" -print -quit 2>/dev/null)"
 ```

@@ -27,7 +27,7 @@ node -e "require('@axe-core/playwright'); require('playwright'); require.resolve
 
 ```bash
 ROOT=$(git rev-parse --show-toplevel 2>/dev/null || pwd)
-SCRIPT=$(find .claude .agents "$ROOT/.claude" "$ROOT/.agents" -name "review-pages.mjs" 2>/dev/null | head -1)
+SCRIPT=$(find .claude .agents .kiro "$ROOT/.claude" "$ROOT/.agents" "$ROOT/.kiro" -name "review-pages.mjs" -print -quit 2>/dev/null)
 node "${SCRIPT:?review-pages.mjs not found}" 2>&1 | tee /tmp/site-review.txt
 ```
 
@@ -41,8 +41,9 @@ After fixing, redeploy and re-run:
 
 ```bash
 yarn build && yarn jahia-deploy
-node "$SCRIPT"
 ```
+
+Then run the command of Step 2 again: `$SCRIPT` does not survive from one command to the next.
 
 Iterate until the script exits 0 and `pages.json` is written.
 

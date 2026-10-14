@@ -50,8 +50,11 @@ try {
   // Without the harness, the run would measure the bare model
   if (install.status !== 0) throw new Error("The harness install failed: run yarn build first");
 
-  const output = await runClaude(root, "Read ./prompt.md and follow the instructions.");
-  const { durationSeconds, costUSD } = parseStats(output);
+  const { output, durationSeconds } = await runClaude(
+    root,
+    "Read ./prompt.md and follow the instructions.",
+  );
+  const { costUSD } = parseStats(output);
 
   const checks = await scoreQuoteModule(root, JAHIA_URL);
   const report = `${printChecks(checks)}\n\nAgent: ${durationSeconds} s, $${costUSD.toFixed(2)}\n`;

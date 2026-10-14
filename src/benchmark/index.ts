@@ -236,7 +236,10 @@ spawnSync("node", [resolve(import.meta.dirname, "..", "..", "dist"), "claude"], 
 
 //#MARK: claude
 
-const claudeOutput = await runClaude(root, "Read ./prompt.md and follow the instructions.");
+const { output: claudeOutput, durationSeconds } = await runClaude(
+  root,
+  "Read ./prompt.md and follow the instructions.",
+);
 
 const runId = `run-${new Date().toISOString().replace(/[:.]/g, "-").slice(0, 19)}`;
 const runDir = join(resultsDir, runId);
@@ -330,7 +333,7 @@ spawnSync("docker", ["compose", "down", "--volumes"], {
   timeout: 60_000,
 });
 
-const { durationSeconds, tokens, costUSD } = parseStats(claudeOutput);
+const { tokens, costUSD } = parseStats(claudeOutput);
 
 // Extract branch name from GITHUB_REF (format: refs/heads/branch-name) or default to "main"
 function extractBranch(githubRef?: string): string {

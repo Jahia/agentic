@@ -14,8 +14,15 @@ const { default: lighthouse } = await import(pathToFileURL(require.resolve("ligh
 
 const SCORED_MODES = new Set(["binary", "numeric"]);
 
-const draft = readFileSync("pages-to-review.json", "utf-8");
-const urls = JSON.parse(draft);
+// A string array is expected; tolerate { url } objects, which agents write despite the instructions
+const entries = JSON.parse(readFileSync("pages-to-review.json", "utf-8"));
+const urls = Array.isArray(entries)
+  ? entries.map(entry => (typeof entry === "string" ? entry : entry?.url))
+  : [];
+if (urls.length === 0 || !urls.every(url => typeof url === "string")) {
+  console.error('pages-to-review.json must be a JSON array of URLs: ["http://localhost:8080/…", …]');
+  process.exit(1);
+}
 const port = 9222;
 const browser = await chromium.launch({
   args: ["--no-sandbox", `--remote-debugging-port=${port}`],
@@ -74,7 +81,7 @@ if (failed) {
   console.log("\n❌ FAIL — fix the issues above, redeploy, and re-run.");
   process.exit(1);
 } else {
-  writeFileSync("pages.json", draft);
+  writeFileSync("pages.json", JSON.stringify(urls, null, 2));
   console.log("\n✅ PASS — pages.json written.");
   process.exit(0);
 }

@@ -39,7 +39,7 @@ for (const target of targets) {
   );
   const opt = { cwd: join(dist, target), stdio: "inherit" } as const;
   spawnSync("apm", ["compile", "--target", target], opt);
-  spawnSync("apm", ["install", "--runtime", target, "--target", target], opt);
+  spawnSync("apm", ["install", "--no-policy", "--runtime", target, "--target", target], opt);
   rmSync(join(dist, target, ".apm"), { recursive: true, force: true });
   rmSync(join(dist, target, "apm_modules"), { recursive: true, force: true });
   rmSync(join(dist, target, ".gitignore"), { force: true });
