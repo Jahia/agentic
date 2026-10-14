@@ -1,6 +1,6 @@
 ---
 name: jahia-dev-change-cnd
-description: Changes a content type definition (CND) that is already deployed on an instance whose content must be kept — production, or any environment you cannot wipe — without a refused deployment, and migrates that content. Covers changing a property's type (string to boolean, string to long), renaming it, making it internationalized, removing a property or a choicelist value, and making a property mandatory. Jahia refuses these changes at install time, even when no content uses the property, and the provisioning API reports the refusal as an empty install list, not as an error. During development, with content you can throw away, change the CND freely and skip this skill. Use before a release that changes a deployed CND, when a deploy returns `"install":[]`, or when the Jahia log says "Major change in definition … cancel module deployment". Gives the table of accepted and refused changes, the new-property-with-fallback procedure, and a tested Groovy migration script.
+description: Changes a content type definition (CND) that is already deployed on an instance whose content must be kept — production, or any environment you cannot wipe — without a refused deployment, and migrates that content. Covers changing a property's type (string to boolean, string to long), renaming it, making it internationalized, removing a property or a choicelist value, and making a property mandatory. Jahia refuses these changes at install time, even when no content uses the property, and the provisioning API reports the refusal as an empty install list, not as an error. During development, with content you can throw away, change the CND freely and skip this skill. Use before a release that changes a deployed CND, when a deploy without `ignoreChecks` returns `"install":[]` (for `{}` from `yarn jahia-deploy`, use jahia-dev-debug), or when the Jahia log says "Major change in definition … cancel module deployment". Gives the table of accepted and refused changes, the new-property-with-fallback procedure, and a tested Groovy migration script.
 allowed-tools: Bash, Read, Edit, Grep
 ---
 
@@ -20,9 +20,9 @@ release and the content cannot be thrown away.
 **During development, breaking changes are fine.** Change the type, rename, remove: then make the
 local instance accept it and recreate the content you need.
 
-- **JavaScript modules** skip the breaking-change detection when Jahia runs in development mode
-  (`operatingMode=development`), so the deploy goes through. Content already stored keeps its old
-  values: update or recreate it.
+- **JavaScript modules** deployed with `yarn jahia-deploy` skip the breaking-change detection: the
+  script sends `ignoreChecks: true` unless `JAHIA_IGNORE_CHECKS=false`, so the deploy goes through.
+  Content already stored keeps its old values: update or recreate it.
 - **Java and JSP modules** (a bundle with `META-INF/*.cnd`) are checked even in development mode:
   the refusals in the table below were all observed on an instance in development mode. Start again
   from an empty Jahia (`docker compose down --volumes && docker compose up --wait`, which **deletes
@@ -64,7 +64,7 @@ instance, never on a shared one: a value you add to a choicelist there can never
 The provisioning API answers `200` for a refused module. Read the body:
 
 ```text
-[{"uninstall":[],"install":[],"start":[]}]                       ← refused, nothing changed
+[{"uninstall":[],"install":[],"start":[]}]                       ← nothing installed: refused or failed
 [{"install":[{… "message":"Operation successful"}], "start":[…]}]  ← accepted
 ```
 

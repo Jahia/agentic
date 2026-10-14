@@ -38,8 +38,9 @@ jahiaComponent(
         <head>
           <meta charSet="UTF-8" />
           <meta name="viewport" content="width=device-width, initial-scale=1" />
-          {/* jcr:title is the short page name — template appends site name for SEO */}
-          <title>{title}{siteName ? ` | ${siteName}` : ""}</title>
+          {/* jcr:title is the short page name — template appends site name for SEO.
+              One string: React renders a <title> with several children as an empty <title></title> */}
+          <title>{[title, siteName].filter(Boolean).join(" | ")}</title>
         </head>
         <body>
           <a href="#main-content" className={styles.skipLink}>Skip to main content</a>

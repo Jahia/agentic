@@ -48,6 +48,10 @@ Add `orderable` to the parent type when editors need to reorder children:
  + * (ns:featureItem)
 ```
 
+`orderable` belongs on the type declaration, after the supertypes. On a `+` line (`+ * (ns:featureItem) orderable`), the
+build still passes, but Jahia cannot parse the CND, and `yarn jahia-deploy` prints `{}` and
+installs nothing.
+
 ## Hidden structural nodes
 
 Child nodes that editors should never add manually (structural containers, auto-created nodes):

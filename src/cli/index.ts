@@ -50,11 +50,11 @@ if (!target) {
       { value: "claude", label: "Claude", hint: "Will create CLAUDE.md and .claude/" },
       { value: "codex", label: "Codex", hint: "Will create AGENTS.md and .agents/" },
       { value: "copilot", label: "Copilot", hint: "Will create AGENTS.md, .agents/ and .github/" },
-      { value: "cursor", label: "Cursor", hint: "Will create .agents/ and .cursor/" },
+      { value: "cursor", label: "Cursor", hint: "Will create AGENTS.md, .agents/ and .cursor/" },
       { value: "gemini", label: "Gemini", hint: "Will create AGENTS.md, GEMINI.md and .agents/" },
       { value: "kiro", label: "Kiro", hint: "Will create AGENTS.md and .kiro/" },
       { value: "opencode", label: "OpenCode", hint: "Will create AGENTS.md and .agents/" },
-      { value: "windsurf", label: "Windsurf", hint: "Will create AGENTS.md and .windsurf/" },
+      { value: "windsurf", label: "Windsurf", hint: "Will create AGENTS.md, .agents/ and .windsurf/" },
     ],
   });
 
