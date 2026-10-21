@@ -261,6 +261,30 @@ import { RenderChild } from "@jahia/javascript-modules-library";
 <RenderChild name="hero" view="small" />       // named view
 ```
 
+### Never put `RenderChild` or `RenderChildren` behind a condition
+
+In edit mode, `<RenderChild name="cta" />` renders the button that creates the `cta` child when it is missing, and `<RenderChildren />` renders an "Add content" button after the children. That button is the only way an editor adds the first child from Page Builder. A guard such as `currentNode.hasNode("cta") &&` or `children.length > 0 &&` removes it: a new component, or one whose child was deleted, can never get it back from the interface.
+
+Render them unconditionally. When the wrapper around them adds spacing that a live page without the child must not show, condition the wrapper, never the render:
+
+```tsx
+jahiaComponent(
+  { componentType: "view", nodeType: "ns:hero" },
+  ({ "jcr:title": title }, { currentNode, renderContext }) => (
+    <section>
+      <h2>{title}</h2>
+      {/* ✅ the wrapper is skipped on a live page without a CTA; the edit-mode button stays */}
+      {(currentNode.hasNode("cta") || renderContext.isEditMode()) && (
+        <div className={classes.action}>
+          <RenderChild name="cta" />
+        </div>
+      )}
+      {/* ❌ {currentNode.hasNode("cta") && <RenderChild name="cta" />} — editors cannot add a CTA */}
+    </section>
+  ),
+);
+```
+
 ### Children that editors add inside the component — `AbsoluteArea` on the current node
 
 The cards of a section, the cells of a grid: render the hidden list child with `AbsoluteArea` and the current node as parent. Never use `<Area>` in a view: it resolves its name against the page, so the children are not rendered.

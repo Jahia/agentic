@@ -1,6 +1,6 @@
 ---
 name: jahia-review-code
-description: Reviews a Jahia JavaScript module for generic and Jahia-specific best practices. Scans CND definitions, TypeScript views, and page templates. Reports issues in order of importance with fix suggestions. Covers 8 critical checks, 9 warnings, and 10 suggestions.
+description: Reviews a Jahia JavaScript module for generic and Jahia-specific best practices. Scans CND definitions, TypeScript views, and page templates. Reports issues in order of importance with fix suggestions. Covers 9 critical checks, 10 warnings, and 11 suggestions.
 allowed-tools: Bash, Read
 ---
 
@@ -73,6 +73,13 @@ Check: a view under `src/components/` that renders `<Area`. `<Area name="items">
 grep -rnE '<Area[[:space:]/>]' src/components
 ```
 Fix: `<AbsoluteArea name="items" parent={currentNode} nodeType="ns:sectionItems" />`, with `currentNode` from the second argument of the component (see `jahia-dev-build-component`, "Nested components"). The content stays where it is.
+
+**C9 — `<RenderChild>` or `<RenderChildren>` behind a condition**
+Check: a view that renders `RenderChild` or `RenderChildren` only when the child exists — `currentNode.hasNode("cta") && <RenderChild name="cta" />`, or a child count checked first. In edit mode these components render the button that adds a missing child; behind the guard, editors cannot add the first CTA or item from Page Builder.
+```bash
+grep -rnE -B4 '<RenderChild(ren)?[[:space:]/>]' src/components | grep -E 'hasNode|getNodes|\.length'
+```
+Fix: render the component unconditionally. If a wrapper must not appear on a live page without the child, condition the wrapper with `hasNode(…) || renderContext.isEditMode()` (see `jahia-dev-create-view`, "Never put `RenderChild` or `RenderChildren` behind a condition"). No content changes.
 
 ---
 
