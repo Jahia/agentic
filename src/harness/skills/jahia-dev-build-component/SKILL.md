@@ -106,7 +106,7 @@ Optional additions:
 
 If the component has child nodes, repeat Steps 2–4 for each child type, then wire the parent. Two cases:
 
-- **Children created with the parent** (CTA buttons under a hero, the fixed parts of a card): add `+ * (namespace:childType)` to the parent's `definition.cnd` and `<RenderChildren />` to its view where they appear.
+- **Children created with the parent** (CTA buttons under a hero, the fixed parts of a card): add `+ * (namespace:childType)` to the parent's `definition.cnd` and `<RenderChildren />` to its view where they appear. Render it without a condition, even when the content you create has no child: in edit mode it draws the button editors use to add the first one (see `jahia-dev-create-view`, "Never put `RenderChild` or `RenderChildren` behind a condition").
 - **Children the editor adds inside the component** (the cards of a section, the cells of a grid): give the parent a hidden list child type that names the allowed item types, and render it with `<AbsoluteArea name="items" parent={currentNode} nodeType="ns:sectionItems" />`. The full pattern is in `jahia-cnd-author/references/cnd-child-nodes.md`.
 
 After a CND change, redeploy and call `content.type` on the parent type before creating content under it. A `No child node definition` refusal means the instance still holds the previous definition (see `jahia-dev-debug`).

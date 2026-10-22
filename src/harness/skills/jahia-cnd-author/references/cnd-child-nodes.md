@@ -120,7 +120,9 @@ levels deep:
 **The other shape, and what the refusal means.** `+ * (ns:textCard)` straight on the section,
 with `<RenderChildren>` in the view, also works: `RenderChildren` renders an "Add content" button
 after the children, and it is the right shape for children created with the parent (CTAs, the
-fixed parts of a card). Do not rewrite an existing type from one shape to the other. A `content.create` refused with `Constraint violation: No child node definition` after
+fixed parts of a card). That button, like the one `<RenderChild name="…">` renders for a missing
+named child, only exists if the view renders the component unconditionally: never wrap it in a
+`hasNode(…)` or child-count check. Do not rewrite an existing type from one shape to the other. A `content.create` refused with `Constraint violation: No child node definition` after
 you changed the CND means the instance still holds the previous definition of the parent: verify
 with `content.type` before you create anything, and see `jahia-dev-debug` for the redeploy that
 applies a CND change.
