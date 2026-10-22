@@ -1,5 +1,17 @@
 # `@jahia/agentic`
 
+## 0.9.1
+
+* Agents now recognize a deploy that installed nothing, the page template example renders its `<title>`, and the review scripts run on Kiro.
+
+* Agents upload the images that the content needs with the `media.upload.url` tool of the Jahia MCP server.
+
+* Agents no longer hide `<RenderChild>` behind a condition, which removed the editor's add button.
+
+* `/jahia-review` stops once the site review passes and no critical code issue remains, and the site review fails when a page lost content.
+
+* The code review flags `<Area>` in a component view, which hides the children that editors add inside the component.
+
 ## 0.9.0
 
 ### New Features
