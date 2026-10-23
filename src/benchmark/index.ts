@@ -1,5 +1,4 @@
-import { spawn, spawnSync, execSync } from "node:child_process";
-import { once } from "node:events";
+import { spawnSync, execSync } from "node:child_process";
 import {
   appendFileSync,
   copyFileSync,
@@ -47,19 +46,12 @@ if (!existsSync(join(resultsDir, ".git"))) {
 const temp = mkdtempSync("agentic-benchmark-");
 console.log(`Running benchmark in ${temp}`);
 
-const child = spawn("npm", ["init", "@jahia/module@latest", "forsure"], {
-  cwd: temp,
-  stdio: ["pipe", "inherit", "inherit"],
-});
-
-await setTimeout(3000);
-child.stdin.write("\r"); // Module name
-await setTimeout(100);
-child.stdin.write("\r"); // Path
-await setTimeout(100);
-child.stdin.write("\x1B[B\r"); // Empty template set
-child.stdin.end();
-await once(child, "exit");
+const init = spawnSync(
+  "npm",
+  ["init", "@jahia/module@latest", "--", "forsure", "--template", "template-set", "--yes"],
+  { cwd: temp, stdio: "inherit" },
+);
+if (init.status !== 0) process.exit(init.status ?? 1);
 
 const root = resolve(temp, "forsure");
 
