@@ -36,14 +36,14 @@ The selector matches the named type and its subtypes.
 
 ### Common node types
 
-| Type | Meaning |
-|------|---------|
-| `jnt:page` | pages |
-| `jnt:content` | editorial content |
-| `jnt:file` | files |
-| `jnt:virtualsite` | sites |
-| `jmix:searchable` | general searchable content |
-| `nt:base` | all nodes — avoid unless paired with a strict path |
+| Type              | Meaning                                            |
+| ----------------- | -------------------------------------------------- |
+| `jnt:page`        | pages                                              |
+| `jnt:content`     | editorial content                                  |
+| `jnt:file`        | files                                              |
+| `jnt:virtualsite` | sites                                              |
+| `jmix:searchable` | general searchable content                         |
+| `nt:base`         | all nodes — avoid unless paired with a strict path |
 
 ---
 
@@ -151,13 +151,13 @@ WHERE CONTAINS(node.[jcr:title], 'welcome')
 
 ### Expression syntax
 
-| Syntax | Meaning |
-|--------|---------|
-| `term` | must contain the term |
-| `term1 term2` | implicit AND |
-| `term1 OR term2` | either term |
-| `"exact phrase"` | exact phrase |
-| `-term` | exclude term |
+| Syntax           | Meaning               |
+| ---------------- | --------------------- |
+| `term`           | must contain the term |
+| `term1 term2`    | implicit AND          |
+| `term1 OR term2` | either term           |
+| `"exact phrase"` | exact phrase          |
+| `-term`          | exclude term          |
 
 ### Relevance sort
 
@@ -254,4 +254,3 @@ If a user can choose the sort field, validate it against a whitelist before inte
 
 - `/jahia-dev-query-content` — apply SQL2 inside Page Builder queries and JS module views
 - `/jahia-cnd-author` — define the content types you will query
-

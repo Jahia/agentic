@@ -32,15 +32,19 @@ On a type that is already released to production, a fix that changes an existing
 The checker enforces these patterns. Use this as a guide when interpreting output or fixing issues manually.
 
 ### `rawStringLink`
+
 Property whose name ends with `link`, `url`, or `href` declared as `(string)`.
 **Fix**: Use the link picker:
+
 ```cnd
 - j:linkType (string, choicelist[linkTypeInitializer]) mandatory
 ```
 
 ### `singleHardcodedCta`
+
 A type with both a CTA label (`ctaText`, `ctaLabel`, `buttonText`, `buttonLabel`) and a CTA link (`ctaLink`, `ctaUrl`, `ctaHref`, `buttonLink`, `buttonUrl`) as flat properties, with no child node.
 **Fix**: Replace with a child node:
+
 ```cnd
 + * (ns:cta)
 
@@ -50,39 +54,48 @@ A type with both a CTA label (`ctaText`, `ctaLabel`, `buttonText`, `buttonLabel`
 ```
 
 ### `directDroppable`
+
 A concrete type extending `jmix:droppableContent` directly, also when the supertypes continue on the next line.
 **Fix**: Extend the module mixin: `[ns:hero] > jnt:content, nsmix:component`
 
 ### `missingRatingConstraint`
+
 `rating (long)` without a range constraint — unconstrained ratings cause data integrity issues.
 **Fix**: Add `< "[1,5]"`
 
 ### `redundantImageAlt`
+
 `imageAlt (string)` alongside an image weakreference. The image node already has `jcr:title`.
 **Fix**: Remove `imageAlt`. In the view: `<JImage src={image} />`, whose alt text defaults to the image's `jcr:title`. On JavaScript Modules 1.2 and earlier: `server.render.addCacheDependency({ node: image }, renderContext)`, then `image.getPropertyAsString("jcr:title") ?? ""`
 
 ### `rawTitleProp`
+
 Property named `title`, `heroTitle`, `pageTitle`, or `sectionTitle` typed as `(string)`.
 **Fix**: Remove it, extend `mix:title`. Access as `props["jcr:title"]`.
 
 ### `weakrefNoConstraint`
+
 `(weakreference)` with no `< ` type constraint.
 **Fix**: Add constraint — `< jmix:image` for images, `< jnt:file` for files.
 
 ### `weakrefWrongConstraint`
+
 An image picker (`picker[type='image']`) constrained to `jnt:file`, quoted or not: it accepts any file.
 **Fix**: `< jmix:image`.
 
 ### `missingI18n`
+
 String property whose name contains `title`, `text`, `label`, `description`, `subtitle`, `caption`, `alt`, `heading`, `summary`, `excerpt` or `body`, without `i18n` (or `internationalized`).
 **Fix**: Add `i18n` after the type declaration.
 
 ### `childNodeOrderable`
+
 `orderable` (or its short forms `ord` and `o`) on a `+` child node line. `orderable` is an option of
 the type, after its supertypes.
 The build accepts it, but Jahia cannot parse the CND at install, and `yarn jahia-deploy` installs
 nothing.
 **Fix**: Move `orderable` to the type line.
+
 ```cnd
 // ❌
 [ns:sectionItems] > jnt:content, jmix:list, jmix:hiddenType
@@ -93,5 +106,6 @@ nothing.
 ```
 
 ### `studioOnly`
+
 Any use of `jmix:studioOnly`.
 **Fix**: Replace with `jmix:hiddenType`.

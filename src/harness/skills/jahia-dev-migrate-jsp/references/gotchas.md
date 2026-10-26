@@ -46,7 +46,7 @@ legitimately serves both directories from the bundle root.
 
 ### Where the images a JSP served at runtime actually go
 
-The rule above is about *packaging*, but a Java template set also serves images to the browser from that same root
+The rule above is about _packaging_, but a Java template set also serves images to the browser from that same root
 `images/`, and those references have to keep working. Two cases, and they resolve differently — check which one
 you have before moving a file.
 
@@ -124,11 +124,11 @@ packaged to `META-INF/import.zip` by `jahia-maven-plugin`.
 
 These come from the old module's files still sitting in the repo.
 
-| Symptom | Cause | Fix |
-|---|---|---|
-| hundreds of `TS7005`/`TS2339` in vendored JS | scaffold `tsconfig` is `"include": ["src"]` with `allowJs` + `checkJs` | scope it: `"include": ["src/types.d.ts","src/templates","src/components"]`, `"exclude": ["src/main"]` |
-| `module is not defined in ES module scope` | a legacy CommonJS `*.config.js` under the new `"type": "module"` | delete it, or rename to `.cjs` |
-| every node type declared twice | `files: ["src/**/*.cnd"]` also matches the legacy `src/main/resources/META-INF/definitions.cnd`, and the engine merges **all** `.cnd` | narrow to `src/components/**/*.cnd` and `src/templates/**/*.cnd` |
+| Symptom                                      | Cause                                                                                                                                 | Fix                                                                                                   |
+| -------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------- |
+| hundreds of `TS7005`/`TS2339` in vendored JS | scaffold `tsconfig` is `"include": ["src"]` with `allowJs` + `checkJs`                                                                | scope it: `"include": ["src/types.d.ts","src/templates","src/components"]`, `"exclude": ["src/main"]` |
+| `module is not defined in ES module scope`   | a legacy CommonJS `*.config.js` under the new `"type": "module"`                                                                      | delete it, or rename to `.cjs`                                                                        |
+| every node type declared twice               | `files: ["src/**/*.cnd"]` also matches the legacy `src/main/resources/META-INF/definitions.cnd`, and the engine merges **all** `.cnd` | narrow to `src/components/**/*.cnd` and `src/templates/**/*.cnd`                                      |
 
 ## Tooling
 

@@ -1,6 +1,7 @@
 Build a Jahia website for "For Sure", a fictional B2C insurance company.
 
 Pages:
+
 - Homepage: hero section, product grid, testimonials
 - Car Insurance product page
 - Health Insurance product page
@@ -9,11 +10,13 @@ Pages:
 All pages share a common layout: generated navbar (from the page tree), content (contributable), footer (contributable).
 
 Page-level components (only contributable on the page itself):
+
 - Hero section
 - Sectioning component with title and subtitle
 - Full-width testimonial component with image, name and quote
 
 Available sectioning layouts:
+
 - 1 column
 - 2 columns
 - 3 columns
@@ -27,6 +30,7 @@ Available sectioning layouts:
   CC DD DD
 
 Sectioning component children (only contributable on the sectioning component):
+
 - Text card
 - Image with bottom caption
 

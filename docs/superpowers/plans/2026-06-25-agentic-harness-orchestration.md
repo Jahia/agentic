@@ -23,11 +23,13 @@
 ## File Map
 
 ### Created
+
 - `src/harness/agents/jahia-dev-worker/jahia-dev-worker.agent.md` — developer subagent; reads `PLAN.md`, builds components, deploys, creates content, writes `DEV_STATUS.md`
 - `src/harness/agents/jahia-reviewer/jahia-reviewer.agent.md` — reviewer subagent; reads source, applies `/jahia-dev-review` criteria, writes `REVIEW.md`
 - `src/harness/skills/jahia-orchestrate/SKILL.md` — orchestrator skill; writes `PLAN.md`, drives dev→review loop, writes `pages.json`
 
 ### Modified
+
 - `src/benchmark/prompt.md` — replace `/jahia` with `/jahia-orchestrate`; add module-path hint
 
 ---
@@ -37,21 +39,25 @@
 All files are written/read in the **project root** (the module being built, e.g. `/tmp/agentic-benchmark-XXXXX/forsure/`).
 
 ### `PLAN.md` — Orchestrator → Worker
+
 ```markdown
 # Build Plan — Round N
 
 ## Module
+
 - Path: <absolute path>
 - Site key: forsure
 - Namespace: <ns>
 
 ## Pages
+
 - Homepage: hero section + product grid + testimonials
 - Car Insurance product page
 - Health Insurance product page
 - Home Insurance product page
 
 ## Components
+
 - HeroSection: hero image, title (mix:title), subtitle, CTA
 - SectionContainer: 1/2/3 columns, accepts TextCard and MediaCard children
 - TextCard: title, body, CTA link
@@ -60,15 +66,18 @@ All files are written/read in the **project root** (the module being built, e.g.
 - Testimonial: quote, author name, author title
 
 ## Efficiency Rules
+
 - ONE build+deploy at the end — do not deploy after each component
 - Skip /jahia-dev-accessibility
 - Skip UI validation in Page Builder
 - CND: write directly, skip @jahia-cnd-author (follow CND patterns from .claude/agents/cnd-jahia-mixins.md)
 
 ## Round N Fix-Ups (only present from round 2+)
+
 <reviewer findings that must be fixed>
 
 ## Done when
+
 - All components have definition.cnd + default.server.tsx + component.module.css
 - `yarn build && yarn jahia-deploy` succeeded (exit 0)
 - All pages created via MCP and published
@@ -76,45 +85,57 @@ All files are written/read in the **project root** (the module being built, e.g.
 ```
 
 ### `DEV_STATUS.md` — Worker → Orchestrator
+
 ```markdown
 # Dev Status
 
 ## Status
+
 COMPLETE | FAILED
 
 ## Components built
+
 - forsure:heroSection ✓
 - forsure:sectionContainer ✓
-...
+  ...
 
 ## Deploy
+
 SUCCESS | FAILED
 
 ## Content
+
 - 4 pages created and published ✓ | SKIPPED | FAILED
 
 ## pages.json written
+
 YES | NO
 
 ## Notes
+
 <any errors or skipped items>
 ```
 
 ### `REVIEW.md` — Reviewer → Orchestrator
+
 ```markdown
 # Code Review — Round N
 
 ## Verdict
+
 PASS | NEEDS_WORK
 
 ## Critical Issues (must fix)
+
 - [C1] src/components/Hero/definition.cnd — jmix:droppableContent used directly
   Fix: extend namespacemix:component instead
 
 ## Warnings (fix if time allows)
+
 ...
 
 ## Suggestions (informational, do not re-deploy for these)
+
 ...
 ```
 
@@ -123,15 +144,17 @@ PASS | NEEDS_WORK
 ## Task 1: Developer Worker Agent
 
 **Files:**
+
 - Create: `src/harness/agents/jahia-dev-worker/jahia-dev-worker.agent.md`
 
 **Interfaces:**
+
 - Consumes: `PLAN.md` in the working directory
 - Produces: `DEV_STATUS.md` in the working directory; all source files; deployed module
 
 - [ ] **Step 1: Create the agent file**
 
-```markdown
+````markdown
 ---
 name: jahia-dev-worker
 description: Developer worker for the Jahia benchmark. Reads PLAN.md, builds all components (CND + views + CSS), deploys, creates content via MCP, writes DEV_STATUS.md. Invoked by the orchestrator.
@@ -150,8 +173,10 @@ You are the Jahia developer worker. You implement Jahia module components as dir
 ```bash
 cat PLAN.md
 ```
+````
 
 Parse the plan carefully. Note:
+
 - Module path
 - Components to build
 - Efficiency rules (follow them exactly)
@@ -228,15 +253,18 @@ If it fails, read the error, fix it, and retry. Record the outcome.
 ## Step 5 — Create content (only if deploy succeeded)
 
 Use MCP tools (the `jahia` MCP server) to:
+
 1. Discover the site key
 2. Create the 4 pages (homepage + 3 product pages) as specified in PLAN.md
 3. Create content nodes and populate them with realistic copy
 4. Publish all pages
 
 Verify pages are publicly accessible:
+
 ```bash
 curl -s -o /dev/null -w "%{http_code}" "http://localhost:8080/cms/render/live/en/sites/forsure/home.html"
 ```
+
 Expected: 200
 
 ---
@@ -278,14 +306,15 @@ YES | NO
 ```
 
 Set Status to FAILED if deploy or content creation failed and could not be recovered.
-```
+
+````
 
 - [ ] **Step 2: Verify the file exists and lint passes**
 
 ```bash
 ls src/harness/agents/jahia-dev-worker/jahia-dev-worker.agent.md
 yarn lint
-```
+````
 
 Expected: file exists, lint exits 0.
 
@@ -301,15 +330,17 @@ git commit -m "feat: add jahia-dev-worker agent for orchestrated benchmark"
 ## Task 2: Code Reviewer Agent
 
 **Files:**
+
 - Create: `src/harness/agents/jahia-reviewer/jahia-reviewer.agent.md`
 
 **Interfaces:**
+
 - Consumes: source files in `src/`, `settings/`; `DEV_STATUS.md` for context
 - Produces: `REVIEW.md` in the working directory
 
 - [ ] **Step 1: Create the agent file**
 
-```markdown
+````markdown
 ---
 name: jahia-reviewer
 description: Code review agent for the Jahia benchmark. Reads the module source and writes REVIEW.md with findings from the jahia-dev-review criteria. Invoked by the orchestrator after each dev cycle.
@@ -329,6 +360,7 @@ find src/ -name "*.server.tsx" | sort
 find src/ -name "types.ts" | sort
 cat settings/definitions.cnd
 ```
+````
 
 Read ALL of the above files before forming any conclusions.
 
@@ -341,26 +373,31 @@ Scan for each of these. Report only what you actually find — do not guess or i
 ### 🔴 CRITICAL (must fix — causes broken pages or editor UX)
 
 **C1** — Any concrete CND type (not a mixin) extending `jmix:droppableContent` directly
+
 ```bash
 grep -rn "jmix:droppableContent" src/ --include="*.cnd" | grep -v "mixin"
 ```
 
 **C2** — `fullPage` view with `componentType: "template"`
+
 ```bash
 grep -rn "fullPage" src/ --include="*.server.tsx" | head -10
 ```
 
 **C3** — CND type explicitly declaring `j:linknode` or `j:url` fields
+
 ```bash
 grep -rn "j:linknode\|j:url" src/ --include="*.cnd"
 ```
 
 **C4** — View using `j:linkType` value directly as an `href`
+
 ```bash
 grep -rn "j:linkType" src/ --include="*.server.tsx" --include="*.client.tsx"
 ```
 
 **C8** — All `<Area>` elements using the same generic `nodeType`
+
 ```bash
 grep -rn "nodeType" src/templates/ --include="*.server.tsx"
 ```
@@ -368,16 +405,19 @@ grep -rn "nodeType" src/templates/ --include="*.server.tsx"
 ### 🟡 WARNINGS (fix if time allows)
 
 **W1** — User-visible CND string/textarea without `i18n`
+
 ```bash
 grep -rn "(string\|textarea\|richtext)" src/ --include="*.cnd" | grep -v "i18n\|j:linkType\|j:url\|j:linknode"
 ```
 
 **W4** — Props typed as required (not `?:`) in types.ts
+
 ```bash
 grep -rn ": string\b\|: number\b\|: boolean\b" src/ --include="types.ts" | grep -v "?:"
 ```
 
 **W9** — Hardcoded URLs in views
+
 ```bash
 grep -rn 'href="http\|href="/\|href=`/' src/ --include="*.server.tsx" --include="*.client.tsx"
 ```
@@ -413,14 +453,15 @@ PASS | NEEDS_WORK
 ```
 
 Set Verdict to PASS only if there are **zero Critical issues**. Warnings and suggestions alone do not block.
-```
+
+````
 
 - [ ] **Step 2: Verify file exists and lint passes**
 
 ```bash
 ls src/harness/agents/jahia-reviewer/jahia-reviewer.agent.md
 yarn lint
-```
+````
 
 Expected: file exists, lint exits 0.
 
@@ -436,15 +477,17 @@ git commit -m "feat: add jahia-reviewer agent for orchestrated benchmark"
 ## Task 3: Orchestrator Skill
 
 **Files:**
+
 - Create: `src/harness/skills/jahia-orchestrate/SKILL.md`
 
 **Interfaces:**
+
 - Consumes: initial task description in agent context (from prompt.md)
 - Produces: `PLAN.md`, `DEV_STATUS.md`, `REVIEW.md` (via subagents); `pages.json`
 
 - [ ] **Step 1: Create the skill file**
 
-```markdown
+````markdown
 ---
 name: jahia-orchestrate
 description: Orchestrates the full Jahia benchmark task. Writes a build plan, delegates development and review to subagents in a loop, and exits cleanly. Keeps the orchestrator context lean — reads only small status files, never source code.
@@ -459,15 +502,18 @@ You are the Jahia benchmark orchestrator. Your role is coordination, not executi
 ## Step 1 — Parse the task
 
 Read the task description from your context. Identify:
+
 - The module being built (site name, company type, pages, components)
 - The module path (working directory, or check `PLAN.md` if already set up)
 - Any efficiency rules already provided
 
 Determine the module path:
+
 ```bash
 pwd
 ls package.json 2>/dev/null && cat package.json | grep '"name"' | head -1
 ```
+````
 
 ---
 
@@ -581,14 +627,15 @@ Orchestration complete.
 - Review verdict: <from REVIEW.md>
 - pages.json: <present/missing>
 ```
-```
+
+````
 
 - [ ] **Step 2: Verify file exists and lint passes**
 
 ```bash
 ls src/harness/skills/jahia-orchestrate/SKILL.md
 yarn lint
-```
+````
 
 Expected: file exists, lint exits 0.
 
@@ -604,20 +651,25 @@ git commit -m "feat: add jahia-orchestrate skill for multi-agent benchmark loop"
 ## Task 4: Update prompt.md and Build
 
 **Files:**
+
 - Modify: `src/benchmark/prompt.md`
 - Verify: `dist/claude/.claude/` compiled correctly
 
 **Interfaces:**
+
 - Consumes: existing prompt.md structure
 - Produces: prompt.md that invokes `/jahia-orchestrate` instead of `/jahia`
 
 - [ ] **Step 1: Replace the entry skill in prompt.md**
 
 In `src/benchmark/prompt.md`, replace the first line:
+
 ```
 /jahia
 ```
+
 with:
+
 ```
 /jahia-orchestrate
 ```
@@ -658,6 +710,7 @@ git commit -m "feat: wire orchestration into benchmark prompt; rebuild dist"
 ## Self-Review
 
 **Spec coverage:**
+
 - ✅ Top agent coordinates jobs → `/jahia-orchestrate` skill (Task 3)
 - ✅ First subagent does dev work → `jahia-dev-worker` (Task 1)
 - ✅ Second subagent does review → `jahia-reviewer` (Task 2)

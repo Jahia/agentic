@@ -61,12 +61,12 @@ public class QuoteServiceImpl implements QuoteService {
 
 ## References
 
-| Need | Annotation |
-| --- | --- |
-| A service that must be there | `@Reference private X x;` (the component does not start without it) |
-| A service that may be absent | `@Reference(cardinality = ReferenceCardinality.OPTIONAL)`, then check for `null` at each use |
+| Need                                         | Annotation                                                                                                             |
+| -------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------- |
+| A service that must be there                 | `@Reference private X x;` (the component does not start without it)                                                    |
+| A service that may be absent                 | `@Reference(cardinality = ReferenceCardinality.OPTIONAL)`, then check for `null` at each use                           |
 | Every service of a type, as they come and go | `@Reference(cardinality = MULTIPLE, policy = DYNAMIC)` on a `bind`/`unbind` pair that updates a thread-safe collection |
-| One instance among several | `@Reference(target = "(service.pid=org.example.custom)")` |
+| One instance among several                   | `@Reference(target = "(service.pid=org.example.custom)")`                                                              |
 
 With `policy = DYNAMIC`, DS can replace or clear the field while a request runs. Copy it to a local
 variable once, then use the local variable.
@@ -150,13 +150,13 @@ and never call it on every request.
 
 Open the Karaf console (`ssh -p 8101 jahia@localhost`, or **Administration > Server > OSGi console**) and run:
 
-| Command | Answer | Meaning |
-| --- | --- | --- |
-| `scr:list` | the component is absent | `_dsannotations` is missing, or the bundle is not `ACTIVE`. |
-| `scr:list` | `UNSATISFIED REFERENCE` | A mandatory `@Reference` has no service. `scr:info <name>` names it. |
-| `scr:list` | `UNSATISFIED CONFIGURATION` | `configurationPolicy = REQUIRE` and no `.cfg` file. |
-| `scr:list` | `FAILED ACTIVATION` | `@Activate` threw. The exception is in the Jahia log. |
-| `bundle:diag <id>` | missing requirement | An `Import-Package` that no bundle exports. |
+| Command            | Answer                      | Meaning                                                              |
+| ------------------ | --------------------------- | -------------------------------------------------------------------- |
+| `scr:list`         | the component is absent     | `_dsannotations` is missing, or the bundle is not `ACTIVE`.          |
+| `scr:list`         | `UNSATISFIED REFERENCE`     | A mandatory `@Reference` has no service. `scr:info <name>` names it. |
+| `scr:list`         | `UNSATISFIED CONFIGURATION` | `configurationPolicy = REQUIRE` and no `.cfg` file.                  |
+| `scr:list`         | `FAILED ACTIVATION`         | `@Activate` threw. The exception is in the Jahia log.                |
+| `bundle:diag <id>` | missing requirement         | An `Import-Package` that no bundle exports.                          |
 
 ## Review checklist
 

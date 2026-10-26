@@ -52,5 +52,6 @@ Iterate until the script exits 0 and `pages.json` is written.
 ---
 
 ## Validation checklist
+
 - [ ] Script exits 0 (zero a11y violations, zero failing SEO audits, no content lost)
 - [ ] `pages.json` exists (created by the script on pass)

@@ -333,7 +333,8 @@ function runCard(run: BenchmarkRun): string {
   const totalTokens = run.tokens.input + run.tokens.output;
   const cost = run.costUSD ?? estimateCost(run.tokens);
   const branch = run.branch || "main";
-  const branchBadge = branch !== "main" ? `<span class="branch-badge">${escHtml(branch)}</span>` : "";
+  const branchBadge =
+    branch !== "main" ? `<span class="branch-badge">${escHtml(branch)}</span>` : "";
 
   return `<a class="card" href="run/${run.id}/">
   <div class="card-screenshot">${screenshotHtml}</div>
@@ -358,11 +359,14 @@ function detailPage(run: BenchmarkRun): string {
     : "";
 
   const branch = run.branch || "main";
-  const branchItem = branch !== "main" ? `
+  const branchItem =
+    branch !== "main"
+      ? `
   <div class="run-meta-item">
     <span class="run-meta-label">Branch</span>
     <span class="run-meta-value"><span class="branch-badge">${escHtml(branch)}</span></span>
-  </div>` : "";
+  </div>`
+      : "";
 
   const cndMetaItem =
     run.cndQualityScore != null

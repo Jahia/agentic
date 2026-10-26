@@ -37,6 +37,7 @@ docker compose up --wait
 ```
 
 This will:
+
 - Pull and start a local Jahia instance
 - Wait until Jahia is fully ready before returning
 
@@ -75,6 +76,7 @@ Fetch the latest download and setup instructions from:
 > https://academy.jahia.com/downloads
 
 Key requirements:
+
 - A working JVM (Java 11 or 17)
 - The Jahia distribution ZIP or installer from the downloads page
 
@@ -112,6 +114,7 @@ Then open **Page Builder** at http://localhost:8080/jahia/page-builder to start 
 ---
 
 ## Validation checklist
+
 - [ ] `docker info` succeeds (or bare metal Jahia is running)
 - [ ] `docker compose up --wait` completes without errors (Docker path)
 - [ ] Jahia UI is reachable at http://localhost:8080

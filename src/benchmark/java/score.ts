@@ -20,7 +20,11 @@ async function call(url: string, init: RequestInit = {}): Promise<Answer> {
   let response: Response;
   let text: string;
   try {
-    response = await fetch(url, { redirect: "manual", signal: AbortSignal.timeout(15_000), ...init });
+    response = await fetch(url, {
+      redirect: "manual",
+      signal: AbortSignal.timeout(15_000),
+      ...init,
+    });
     text = await response.text();
   } catch (error) {
     // A timeout or a refused connection fails this check only
@@ -96,10 +100,16 @@ export async function scoreQuoteModule(projectDir: string, jahiaUrl: string): Pr
   ];
   for (const [name, query, error] of errors) {
     const answer = await call(`${action}?${query}`);
-    checks.push({ name: `${name}: 400 ${error}`, passed: isError(answer, error), detail: describe(answer) });
+    checks.push({
+      name: `${name}: 400 ${error}`,
+      passed: isError(answer, error),
+      detail: describe(answer),
+    });
   }
 
-  const browserError = await call(`${action}?product=boat&age=40`, { headers: { Accept: "text/html" } });
+  const browserError = await call(`${action}?product=boat&age=40`, {
+    headers: { Accept: "text/html" },
+  });
   checks.push({
     name: "error is JSON for Accept: text/html",
     passed: isError(browserError, "invalid-product"),
@@ -113,16 +123,21 @@ export async function scoreQuoteModule(projectDir: string, jahiaUrl: string): Pr
     detail: describe(post),
   });
 
-  const editor = await call(`${action}?product=car&age=30`, { headers: { Authorization: AUTHORIZATION } });
+  const editor = await call(`${action}?product=car&age=30`, {
+    headers: { Authorization: AUTHORIZATION },
+  });
   checks.push({
     name: "logged-in GET car, age 30 = 45",
     passed: isQuote(editor, "car", 30, 45),
     detail: describe(editor),
   });
 
-  const preview = await call(`${jahiaUrl}/cms/render/default/en/sites/systemsite/home.quote.do?product=car&age=30`, {
-    headers: { Authorization: AUTHORIZATION },
-  });
+  const preview = await call(
+    `${jahiaUrl}/cms/render/default/en/sites/systemsite/home.quote.do?product=car&age=30`,
+    {
+      headers: { Authorization: AUTHORIZATION },
+    },
+  );
   checks.push({
     name: "logged-in GET in the default workspace = 45",
     passed: isQuote(preview, "car", 30, 45),

@@ -59,25 +59,25 @@ Each folder is a skill. The folder name becomes the slash command (e.g. `jahia-d
 
 Key skills:
 
-| Skill | Purpose |
-|---|---|
-| `jahia-cnd-author` | Authors a CND content type definition + TypeScript props |
-| `jahia-dev-change-cnd` | Changes a CND already in production without a refused deployment, and migrates its content |
-| `jahia-dev-build-component` | Builds a complete component (CND + view + CSS) |
-| `jahia-dev-create-view` | Implements a React view (`.server.tsx` + CSS Module) |
-| `jahia-dev-create-page-template` | Creates a page template with Areas |
-| `jahia-dev-create-template-set` | Scaffolds a new template set |
-| `jahia-dev-migrate-jsp` | Migrates a JSP/Java template set to a JavaScript module |
-| `jahia-dev-query-content` | Designs JCR-SQL2 queries and wires `useJCRQuery` |
-| `jahia-dev-debug` | Debugs build, deploy and runtime errors end to end |
-| `jahia-dev-accessibility` | WCAG 2.1 AA audit with axe-core + fixes |
-| `jahia-review` | Full quality review — code + live site, in parallel |
-| `jahia-dev-java` | Writes a Java module: pom.xml, an Action (`.do` endpoint), configuration, tests, deployment |
-| `jahia-java-osgi` | OSGi Declarative Services and configuration in a Java module |
-| `jahia-java-jcr` | JCR sessions, queries and writes from Java |
-| `jahia-java-security` | Who may call an Action, a servlet or a GraphQL field, and how Jahia checks it |
-| `jahia-review-java` | Prioritised review of a Java module |
-| `jahia-capture` | Turns a task done twice in a session into a skill or an instruction stored in the user's project |
+| Skill                            | Purpose                                                                                          |
+| -------------------------------- | ------------------------------------------------------------------------------------------------ |
+| `jahia-cnd-author`               | Authors a CND content type definition + TypeScript props                                         |
+| `jahia-dev-change-cnd`           | Changes a CND already in production without a refused deployment, and migrates its content       |
+| `jahia-dev-build-component`      | Builds a complete component (CND + view + CSS)                                                   |
+| `jahia-dev-create-view`          | Implements a React view (`.server.tsx` + CSS Module)                                             |
+| `jahia-dev-create-page-template` | Creates a page template with Areas                                                               |
+| `jahia-dev-create-template-set`  | Scaffolds a new template set                                                                     |
+| `jahia-dev-migrate-jsp`          | Migrates a JSP/Java template set to a JavaScript module                                          |
+| `jahia-dev-query-content`        | Designs JCR-SQL2 queries and wires `useJCRQuery`                                                 |
+| `jahia-dev-debug`                | Debugs build, deploy and runtime errors end to end                                               |
+| `jahia-dev-accessibility`        | WCAG 2.1 AA audit with axe-core + fixes                                                          |
+| `jahia-review`                   | Full quality review — code + live site, in parallel                                              |
+| `jahia-dev-java`                 | Writes a Java module: pom.xml, an Action (`.do` endpoint), configuration, tests, deployment      |
+| `jahia-java-osgi`                | OSGi Declarative Services and configuration in a Java module                                     |
+| `jahia-java-jcr`                 | JCR sessions, queries and writes from Java                                                       |
+| `jahia-java-security`            | Who may call an Action, a servlet or a GraphQL field, and how Jahia checks it                    |
+| `jahia-review-java`              | Prioritised review of a Java module                                                              |
+| `jahia-capture`                  | Turns a task done twice in a session into a skill or an instruction stored in the user's project |
 
 ---
 
@@ -86,11 +86,13 @@ Key skills:
 The benchmark CI job (`.github/workflows/benchmark.yml`) runs on every push to `main` when `src/benchmark/**` or `src/harness/**` changes.
 
 **What it measures:**
+
 - `accessibilityScore` — `exp(-sum(violation_impact))` per page; closer to 1 is better
 - `seoScore` — Lighthouse SEO score (0–1)
 - `durationSeconds` — total agent runtime
 
 **Scoring formula for accessibility:**
+
 ```
 score = Math.exp(-violations.reduce((t, { impact }) => t + impacts[impact], 0))
 impacts = { minor: 0.1, moderate: 0.25, serious: 0.5, critical: 1 }
@@ -135,7 +137,7 @@ For skill additions, create a new folder under `src/harness/skills/<skill-name>/
 
 **One push per working session, no exceptions.**
 
-Every push to `main` that touches `src/harness/**` or `src/benchmark/**` triggers a full benchmark run. Benchmark runs consume significant tokens and CI time. 
+Every push to `main` that touches `src/harness/**` or `src/benchmark/**` triggers a full benchmark run. Benchmark runs consume significant tokens and CI time.
 
 - Batch all changes into a single commit before pushing.
 - Never push a follow-up fix as a separate commit — amend or accumulate first.

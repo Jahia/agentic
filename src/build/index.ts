@@ -5,7 +5,17 @@ import { build } from "rolldown";
 
 // #MARK: Harnesses
 
-const targets = ["antigravity", "claude", "copilot", "cursor", "codex", "gemini", "kiro", "opencode", "windsurf"];
+const targets = [
+  "antigravity",
+  "claude",
+  "copilot",
+  "cursor",
+  "codex",
+  "gemini",
+  "kiro",
+  "opencode",
+  "windsurf",
+];
 const harness = resolve(import.meta.dirname, "..", "harness");
 const dist = resolve(import.meta.dirname, "..", "..", "dist");
 
@@ -31,10 +41,10 @@ for (const target of targets) {
             url: `http://localhost:8080/modules/mcp`,
             headers: {
               Authorization: `Basic ${Buffer.from("root:root1234").toString("base64")}`,
-            }
-          }
-        ]
-      }
+            },
+          },
+        ],
+      },
     }),
   );
   const opt = { cwd: join(dist, target), stdio: "inherit" } as const;

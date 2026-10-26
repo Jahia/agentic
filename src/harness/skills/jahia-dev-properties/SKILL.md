@@ -11,11 +11,11 @@ allowed-tools: Read
 
 ## Configuration Files
 
-| File | Location | Purpose |
-|---|---|---|
-| `jahia.properties` | `digital-factory-config/jahia/` | Main Jahia configuration |
-| `jahia.node.properties` | `digital-factory-config/jahia/` | Cluster / node-specific settings |
-| OSGi `.cfg` files | `digital-factory-data/karaf/etc/` | Module and subsystem settings |
+| File                    | Location                          | Purpose                          |
+| ----------------------- | --------------------------------- | -------------------------------- |
+| `jahia.properties`      | `digital-factory-config/jahia/`   | Main Jahia configuration         |
+| `jahia.node.properties` | `digital-factory-config/jahia/`   | Cluster / node-specific settings |
+| OSGi `.cfg` files       | `digital-factory-data/karaf/etc/` | Module and subsystem settings    |
 
 `jahia.properties` is read at startup. Changes require a restart unless overridden via OSGi config at runtime.
 
@@ -23,13 +23,14 @@ allowed-tools: Read
 
 Jahia resolves these variables in property values:
 
-| Variable | Resolves to |
-|---|---|
-| `${jahiaWebAppRoot}` | Webapp root (e.g. `.../webapps/ROOT`) |
-| `${jahia.data.dir}` | Same as `jahiaVarDiskPath` once resolved |
-| `${jahia.jackrabbit.home}` | JCR repository home |
+| Variable                   | Resolves to                              |
+| -------------------------- | ---------------------------------------- |
+| `${jahiaWebAppRoot}`       | Webapp root (e.g. `.../webapps/ROOT`)    |
+| `${jahia.data.dir}`        | Same as `jahiaVarDiskPath` once resolved |
+| `${jahia.jackrabbit.home}` | JCR repository home                      |
 
 Default data layout:
+
 ```
 digital-factory-data/          ← jahiaVarDiskPath
   modules/                     ← jahiaModulesDiskPath
@@ -76,14 +77,15 @@ jahiaGeneratedResourcesDiskPath = /shared-nfs/generated-resources/
 
 ## Authentication Quick Reference
 
-| Auth method | Enable property |
-|---|---|
-| Cookie (default) | `auth.cookie.enabled = true` |
-| CAS | `auth.cas.enabled = true` + set `auth.cas.serverUrlPrefix` |
-| SPNEGO (Windows) | `auth.spnego.enabled = true` |
-| Container | `auth.container.enabled = true` |
+| Auth method      | Enable property                                            |
+| ---------------- | ---------------------------------------------------------- |
+| Cookie (default) | `auth.cookie.enabled = true`                               |
+| CAS              | `auth.cas.enabled = true` + set `auth.cas.serverUrlPrefix` |
+| SPNEGO (Windows) | `auth.spnego.enabled = true`                               |
+| Container        | `auth.container.enabled = true`                            |
 
 CAS minimum config:
+
 ```properties
 auth.cas.enabled = true
 auth.cas.serverUrlPrefix = https://cas.example.com/cas
@@ -142,6 +144,7 @@ Connect: `ssh -p 8101 karaf@localhost`
 See [references/all-properties.md](references/all-properties.md) for all ~90 properties grouped by category with keys, defaults, and descriptions.
 
 Search tip:
+
 ```bash
 ROOT=$(git rev-parse --show-toplevel 2>/dev/null || pwd)
 grep -i "keyword" "$(find .claude .agents .kiro "$ROOT/.claude" "$ROOT/.agents" "$ROOT/.kiro" -name "all-properties.md" -print -quit 2>/dev/null)"

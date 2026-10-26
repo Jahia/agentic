@@ -65,16 +65,16 @@ ORDER BY post.[publicationDate] DESC
 
 ## Step 3 — Use the right SQL2 clauses
 
-| Need | Pattern |
-|------|---------|
-| Recursive subtree | `ISDESCENDANTNODE(alias, '/path')` |
-| Direct children only | `ISCHILDNODE(alias, '/path')` |
-| Property equality | `alias.[prop] = 'value'` |
-| Pattern match | `alias.[prop] LIKE '%keyword%'` |
-| Exclude empty values | `alias.[prop] IS NOT NULL` |
-| Sort | `ORDER BY alias.[prop] DESC` |
-| Full-text | `CONTAINS(alias.*, 'term')` |
-| Relevance sort | `ORDER BY SCORE(alias) DESC` |
+| Need                 | Pattern                            |
+| -------------------- | ---------------------------------- |
+| Recursive subtree    | `ISDESCENDANTNODE(alias, '/path')` |
+| Direct children only | `ISCHILDNODE(alias, '/path')`      |
+| Property equality    | `alias.[prop] = 'value'`           |
+| Pattern match        | `alias.[prop] LIKE '%keyword%'`    |
+| Exclude empty values | `alias.[prop] IS NOT NULL`         |
+| Sort                 | `ORDER BY alias.[prop] DESC`       |
+| Full-text            | `CONTAINS(alias.*, 'term')`        |
+| Relevance sort       | `ORDER BY SCORE(alias) DESC`       |
 
 **Performance rule:** always constrain queries by path.
 
@@ -125,11 +125,11 @@ For a simple listing, use **Jahia - Queries > Content items using JCR Query** an
 ### `useJCRQuery` in a `.server.tsx` view
 
 ```tsx
-import { jahiaComponent, useJCRQuery, Render } from '@jahia/javascript-modules-library';
-import type { JCRNodeWrapper } from 'org.jahia.services.content';
+import { jahiaComponent, useJCRQuery, Render } from "@jahia/javascript-modules-library";
+import type { JCRNodeWrapper } from "org.jahia.services.content";
 
 jahiaComponent(
-  { componentType: 'view', nodeType: 'namespace:blogListing' },
+  { componentType: "view", nodeType: "namespace:blogListing" },
   (_, { renderContext }) => {
     const siteKey = renderContext.getSite().getName();
     const posts = useJCRQuery({
@@ -201,4 +201,3 @@ Use `ISDESCENDANTNODE` to cover nested folder trees automatically. Switch to `IS
 - `/jahia-jcr-sql2` — SQL2 syntax, full-text, joins, pagination, and performance
 - `/jahia-dev-build-component` — build the listing component that renders query results
 - `/jahia-cnd-author` — create the queried content type and folder types
-

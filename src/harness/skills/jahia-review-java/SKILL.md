@@ -14,11 +14,11 @@ Read `references/code-review-output.md` before you write the report.
 
 ## Modes
 
-| Mode | When | Output |
-| --- | --- | --- |
-| Module review | A module in the working directory | `code-review-<artifactId>-<YYYY-MM-DD>.md` at the module root |
+| Mode             | When                                            | Output                                                                                                                        |
+| ---------------- | ----------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------- |
+| Module review    | A module in the working directory               | `code-review-<artifactId>-<YYYY-MM-DD>.md` at the module root                                                                 |
 | Proof of concept | The developer calls the code a proof of concept | Same file. List risks, missing parts and open questions, framed as "next step: team decision", not as a production checklist. |
-| Follow-up | A `code-review-*.md` already exists | Update that file: mark each finding fixed, deferred or still open, and add the new findings. |
+| Follow-up        | A `code-review-*.md` already exists             | Update that file: mark each finding fixed, deferred or still open, and add the new findings.                                  |
 
 Ask once if the mode is unclear.
 
@@ -88,12 +88,12 @@ absent from the known limitations is a finding.
 
 ## Severity
 
-| Level | Use for |
-| --- | --- |
+| Level | Use for                                                                                         |
+| ----- | ----------------------------------------------------------------------------------------------- |
 | 🔴 P0 | A security hole that is reachable, data loss, a check that fails open, a broken public contract |
-| 🟠 P1 | A significant gap that is acceptable only as a documented risk, a silent partial failure |
-| 🟡 P2 | Code health that gets worse over time, wrong documentation, critical paths without tests |
-| 🟢 P3 | Refactoring and cleanup |
+| 🟠 P1 | A significant gap that is acceptable only as a documented risk, a silent partial failure        |
+| 🟡 P2 | Code health that gets worse over time, wrong documentation, critical paths without tests        |
+| 🟢 P3 | Refactoring and cleanup                                                                         |
 
 When in doubt, choose the lower level. Effort: XS (under 1 hour), S (half a day), M (2 days),
 L (more).

@@ -17,10 +17,10 @@ what it does, skill or instruction. Stop and wait.
 
 ## Step 1 — Skill or instruction?
 
-| The repeated work is… | Capture it as | Example |
-| --- | --- | --- |
-| A procedure: steps in order, run when a task comes up | **Skill** | Reset the demo site: delete it, import the zip, publish, warm the cache |
-| A rule to follow all the time, or a fact to know | **Instruction** | Images of this project live in `/sites/acme/files/brand`; never upload elsewhere |
+| The repeated work is…                                 | Capture it as   | Example                                                                          |
+| ----------------------------------------------------- | --------------- | -------------------------------------------------------------------------------- |
+| A procedure: steps in order, run when a task comes up | **Skill**       | Reset the demo site: delete it, import the zip, publish, warm the cache          |
+| A rule to follow all the time, or a fact to know      | **Instruction** | Images of this project live in `/sites/acme/files/brand`; never upload elsewhere |
 
 When in doubt, choose a skill: an instruction is loaded every turn of every session and costs
 context, a skill only when it is used.
@@ -56,25 +56,25 @@ another agent (`.github/`, `.cursor/`…), ask whether to write the capture for 
 
 **Skills** (`<name>/SKILL.md`):
 
-| Agent | Folder |
-| --- | --- |
-| Claude Code | `.claude/skills/<name>/SKILL.md` |
-| Windsurf | `.windsurf/skills/<name>/SKILL.md` |
-| Kiro | `.kiro/skills/<name>/SKILL.md` |
-| Copilot, Cursor, Codex, Gemini, OpenCode, Antigravity | `.agents/skills/<name>/SKILL.md` |
+| Agent                                                 | Folder                             |
+| ----------------------------------------------------- | ---------------------------------- |
+| Claude Code                                           | `.claude/skills/<name>/SKILL.md`   |
+| Windsurf                                              | `.windsurf/skills/<name>/SKILL.md` |
+| Kiro                                                  | `.kiro/skills/<name>/SKILL.md`     |
+| Copilot, Cursor, Codex, Gemini, OpenCode, Antigravity | `.agents/skills/<name>/SKILL.md`   |
 
 **Instructions**:
 
-| Agent | File | Front matter that keeps it always on |
-| --- | --- | --- |
-| Claude Code | `.claude/rules/<name>.md` | none |
-| Copilot | `.github/instructions/<name>.instructions.md` | `applyTo: "**"` |
-| Cursor | `.cursor/rules/<name>.mdc` | `alwaysApply: true` |
-| Windsurf | `.windsurf/rules/<name>.md` | `trigger: always_on` |
-| Kiro | `.kiro/steering/<name>.md` | `inclusion: always` |
-| Antigravity | `.agents/rules/<name>.md` | none |
-| Codex, OpenCode | a `## <Title>` section at the end of `AGENTS.md` | — |
-| Gemini | a `## <Title>` section at the end of `GEMINI.md` | — |
+| Agent           | File                                             | Front matter that keeps it always on |
+| --------------- | ------------------------------------------------ | ------------------------------------ |
+| Claude Code     | `.claude/rules/<name>.md`                        | none                                 |
+| Copilot         | `.github/instructions/<name>.instructions.md`    | `applyTo: "**"`                      |
+| Cursor          | `.cursor/rules/<name>.mdc`                       | `alwaysApply: true`                  |
+| Windsurf        | `.windsurf/rules/<name>.md`                      | `trigger: always_on`                 |
+| Kiro            | `.kiro/steering/<name>.md`                       | `inclusion: always`                  |
+| Antigravity     | `.agents/rules/<name>.md`                        | none                                 |
+| Codex, OpenCode | a `## <Title>` section at the end of `AGENTS.md` | —                                    |
+| Gemini          | a `## <Title>` section at the end of `GEMINI.md` | —                                    |
 
 `AGENTS.md` and `GEMINI.md` are shipped by the harness: tell the user that reinstalling it will
 offer to overwrite them, and that the section must then be added back.

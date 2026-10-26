@@ -19,12 +19,12 @@ For every surface that the module exposes, answer four questions, then apply the
 
 Jahia checks the requirements of an Action before `doExecute`. Set them in `@Activate`:
 
-| Setter | Default | Effect |
-| --- | --- | --- |
-| `setRequireAuthenticatedUser(boolean)` | `true` | A guest gets an access-denied error. |
-| `setRequiredPermission(String)` | none | The user must have the permission on the node of the URL. |
-| `setRequiredMethods(String)` | `"POST"` | Any other HTTP method is refused. |
-| `setRequiredWorkspace(String)` | none | The action answers only in that workspace. |
+| Setter                                 | Default  | Effect                                                    |
+| -------------------------------------- | -------- | --------------------------------------------------------- |
+| `setRequireAuthenticatedUser(boolean)` | `true`   | A guest gets an access-denied error.                      |
+| `setRequiredPermission(String)`        | none     | The user must have the permission on the node of the URL. |
+| `setRequiredMethods(String)`           | `"POST"` | Any other HTTP method is refused.                         |
+| `setRequiredWorkspace(String)`         | none     | The action answers only in that workspace.                |
 
 - **The node of the URL is chosen by the caller.** Jahia resolves it with the session of the user,
   so a user who cannot read a node cannot call the action on it. A check on the node that the action
@@ -101,12 +101,12 @@ A system session ignores permissions (`jahia-java-jcr`). When code uses one:
 
 ## Review findings
 
-| Finding | Severity |
-| --- | --- |
-| A surface that changes content with no authentication and no permission check | Highest |
-| A system session on a node chosen by the caller, with no prior check | Highest for a write, high for a read |
-| An action that changes content, whitelisted in the CSRF guard | High |
-| A GraphQL mutation without `@GraphQLRequiresPermission` | High |
-| An outbound HTTP call without timeouts | High |
-| A guest-open surface, not documented as deliberate | Medium |
-| A permission named in code that no module declares | Medium |
+| Finding                                                                       | Severity                             |
+| ----------------------------------------------------------------------------- | ------------------------------------ |
+| A surface that changes content with no authentication and no permission check | Highest                              |
+| A system session on a node chosen by the caller, with no prior check          | Highest for a write, high for a read |
+| An action that changes content, whitelisted in the CSRF guard                 | High                                 |
+| A GraphQL mutation without `@GraphQLRequiresPermission`                       | High                                 |
+| An outbound HTTP call without timeouts                                        | High                                 |
+| A guest-open surface, not documented as deliberate                            | Medium                               |
+| A permission named in code that no module declares                            | Medium                               |

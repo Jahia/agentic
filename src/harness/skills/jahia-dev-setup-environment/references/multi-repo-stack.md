@@ -69,10 +69,10 @@ environment. Write in a root `README.md` each workaround and the reason for it.
 Mount `dist/` next to the provisioning directory in `docker-compose.yml`:
 
 ```yaml
-    volumes:
-      - jahia-data:/var/jahia
-      - ./provisioning:/opt/provisioning:ro
-      - ./dist:/opt/dist:ro
+volumes:
+  - jahia-data:/var/jahia
+  - ./provisioning:/opt/provisioning:ro
+  - ./dist:/opt/dist:ro
 ```
 
 List every bundle in one operation. `autoStart` starts them once all of them are installed, so the
@@ -80,8 +80,8 @@ order does not matter, and `uninstallPreviousVersion` replaces the versions the 
 
 ```yaml
 - installModule:
-    - 'file:/opt/dist/module-a.jar'
-    - 'file:/opt/dist/module-b.jar'
+    - "file:/opt/dist/module-a.jar"
+    - "file:/opt/dist/module-b.jar"
   autoStart: true
   uninstallPreviousVersion: true
 ```
@@ -97,8 +97,8 @@ that ZIP to `dist/` in `build.sh`, then import the users before the site, becaus
 permissions name them:
 
 ```yaml
-- import: 'jar:file:/opt/dist/site-import.zip!/users.zip'
-- importSite: 'jar:file:/opt/dist/site-import.zip!/Site.zip'
+- import: "jar:file:/opt/dist/site-import.zip!/users.zip"
+- importSite: "jar:file:/opt/dist/site-import.zip!/Site.zip"
 ```
 
 When no module packages the site, ask the developer for an export of a staging site, or create an

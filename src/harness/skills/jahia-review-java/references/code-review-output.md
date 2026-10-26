@@ -53,9 +53,9 @@ the single biggest strength.
 
 ## Prioritised summary
 
-| Priority | Item | Effort |
-| --- | --- | --- |
-| 🔴 P0 | <one line> (§1.2) | S |
+| Priority | Item              | Effort |
+| -------- | ----------------- | ------ |
+| 🔴 P0    | <one line> (§1.2) | S      |
 
 Sort by priority, then by section. Every row links back to its finding (`§X.Y`). More than five P0
 rows usually means the severities are inflated: check them again.

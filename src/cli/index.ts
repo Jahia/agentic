@@ -14,7 +14,17 @@ import {
 } from "node:fs";
 import { resolve } from "node:path";
 
-const targets = ["antigravity", "claude", "copilot", "cursor", "codex", "gemini", "kiro", "opencode", "windsurf"];
+const targets = [
+  "antigravity",
+  "claude",
+  "copilot",
+  "cursor",
+  "codex",
+  "gemini",
+  "kiro",
+  "opencode",
+  "windsurf",
+];
 let target: string | undefined | symbol = argv[2];
 const interactive = !target;
 
@@ -54,7 +64,11 @@ if (!target) {
       { value: "gemini", label: "Gemini", hint: "Will create AGENTS.md, GEMINI.md and .agents/" },
       { value: "kiro", label: "Kiro", hint: "Will create AGENTS.md and .kiro/" },
       { value: "opencode", label: "OpenCode", hint: "Will create AGENTS.md and .agents/" },
-      { value: "windsurf", label: "Windsurf", hint: "Will create AGENTS.md, .agents/ and .windsurf/" },
+      {
+        value: "windsurf",
+        label: "Windsurf",
+        hint: "Will create AGENTS.md, .agents/ and .windsurf/",
+      },
     ],
   });
 
@@ -115,7 +129,10 @@ for (const { src, dst } of filesToCopy) {
 
 if (interactive && overwriteCount > 0) {
   const confirm = await p.confirm({
-    message: overwriteCount > 1 ? `There are ${overwriteCount} files that will be overwritten. Do you want to continue?` : "There is 1 file that will be overwritten. Do you want to continue?",
+    message:
+      overwriteCount > 1
+        ? `There are ${overwriteCount} files that will be overwritten. Do you want to continue?`
+        : "There is 1 file that will be overwritten. Do you want to continue?",
   });
   if (!confirm || p.isCancel(confirm)) {
     p.cancel("Come back soon!");

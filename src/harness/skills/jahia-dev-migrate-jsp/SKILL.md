@@ -71,7 +71,7 @@ grep -o 'jcr:primaryType="[^"]*"' repository.xml | sort | uniq -c | sort -rn  # 
 ```
 
 On the reference set this inverted the plan. Ported by source structure — starting from the file
-that *looks* like the main page template — the result covered **3.7% of real pages**, because a
+that _looks_ like the main page template — the result covered **3.7% of real pages**, because a
 single template nobody had prioritized carried **96.3%** of them. The same export showed the
 content views were already at 99.6% coverage by node count. A per-file tally would have reported
 "18 of 47 views ported" and told you neither.
@@ -85,11 +85,11 @@ page templates referenced by `import.xml`, then types with a `jnt:contentTemplat
 CND defines, then overrides of other modules' types. Say in the report that the order was
 unweighted, so nobody mistakes it for a priority ranking.
 
-| Tier | What it is | Action |
-|---|---|---|
-| 1 | Presentational: JSTL, EL, properties, `template:module/area/addResources` | Port mechanically |
-| 2 | Needs a judgement call: dynamic includes, cache dependencies, i18n, queries | Port carefully, verify behaviour |
-| 3 | No JSM equivalent (see `references/not-portable.md`) | Leave in Java, or drop |
+| Tier | What it is                                                                  | Action                           |
+| ---- | --------------------------------------------------------------------------- | -------------------------------- |
+| 1    | Presentational: JSTL, EL, properties, `template:module/area/addResources`   | Port mechanically                |
+| 2    | Needs a judgement call: dynamic includes, cache dependencies, i18n, queries | Port carefully, verify behaviour |
+| 3    | No JSM equivalent (see `references/not-portable.md`)                        | Leave in Java, or drop           |
 
 **Check the dependency graph against the target Jahia version too.** A set whose `jahia-depends`
 names a module with no release for your Jahia major cannot start at all, migrated or not — verify
@@ -102,17 +102,17 @@ are **not yours to assume** — each can double the work or halve it. Put them t
 the audit numbers attached, and record the answers in the migration report.
 
 Behind all three sits one rule: **do not run two migrations at once.** Carrying the styling and the
-client-side code across unchanged is what makes the view port *verifiable* — with class names and
+client-side code across unchanged is what makes the view port _verifiable_ — with class names and
 scripts identical, any rendering difference is a port bug, not a styling bug. Modernise afterwards,
 once parity is proven, and you always know which change broke what.
 
 ### 1. CSS — carry it as-is, or port to CSS Modules?
 
-| | Carry as-is | Port to CSS Modules |
-|---|---|---|
-| What it means | Ship the existing stylesheet from the package root; keep every class name | One `component.module.css` per component, class names hashed |
-| Cost | Near zero | Proportional to the number of components, plus a full visual re-check |
-| Buys you | A verifiable port | Scoping, dead-CSS detection, the Jahia-recommended layout |
+|               | Carry as-is                                                               | Port to CSS Modules                                                   |
+| ------------- | ------------------------------------------------------------------------- | --------------------------------------------------------------------- |
+| What it means | Ship the existing stylesheet from the package root; keep every class name | One `component.module.css` per component, class names hashed          |
+| Cost          | Near zero                                                                 | Proportional to the number of components, plus a full visual re-check |
+| Buys you      | A verifiable port                                                         | Scoping, dead-CSS detection, the Jahia-recommended layout             |
 
 **Default: carry as-is, then port per component afterwards.** Say plainly that CSS Modules are the
 recommended JSM structure, so the operator is choosing when to pay, not whether.
@@ -123,11 +123,11 @@ move.
 
 ### 2. Client-side JS — keep the existing libraries, or port to React islands?
 
-| | Keep jQuery and friends | Port to islands |
-|---|---|---|
-| What it means | `<AddResources>` the same scripts; inline blocks stay inline strings | `*.client.tsx` rendered through `<Island>` |
-| Cost | Near zero | Real: rewrite per behaviour, and props must be devalue-serializable |
-| Buys you | A verifiable port | Typed, bundled, tree-shaken code; no global jQuery |
+|               | Keep jQuery and friends                                              | Port to islands                                                     |
+| ------------- | -------------------------------------------------------------------- | ------------------------------------------------------------------- |
+| What it means | `<AddResources>` the same scripts; inline blocks stay inline strings | `*.client.tsx` rendered through `<Island>`                          |
+| Cost          | Near zero                                                            | Real: rewrite per behaviour, and props must be devalue-serializable |
+| Buys you      | A verifiable port                                                    | Typed, bundled, tree-shaken code; no global jQuery                  |
 
 **Default: keep them, and use islands only where a JSP shipped genuine interactivity.** An inline
 `<script>` that just wires up tooltips is glue and should stay glue; a real widget deserves an
@@ -147,7 +147,7 @@ Java module kept as a companion bundle (cheap, immediate) or its hooks rewritten
 
 **Default: keep it.** And it stops being a choice at all if the audit found a
 `choicelist[<x>Initializer]` in the CND or a `.drl` global — dropping the Java module then breaks the
-*content model*, not just rendering, because the CND keeps naming those initializers. If the operator
+_content model_, not just rendering, because the CND keeps naming those initializers. If the operator
 is absent or defers, keep the companion bundle and say so in the report.
 
 ## Step 3 — Scaffold and preserve identity
@@ -169,12 +169,12 @@ Two identity rules decide whether existing content still renders:
 
 These also move across unchanged: `META-INF/jahia-content-editor-forms/` →
 `settings/content-editor-forms/`, `resources/*.properties` → `settings/resources/` (they still
-drive *edition UI* labels; only view-facing `<fmt:message>` text becomes i18next), and the SCSS/CSS
+drive _edition UI_ labels; only view-facing `<fmt:message>` text becomes i18next), and the SCSS/CSS
 build.
 
 **Port `src/main/import/repository.xml` to `settings/import.xml`, but only its site skeleton.**
 The `jnt:template` nodes carrying `j:view`, and their `jnt:pageTemplate` children, do not port — in
-JSM the `jahiaComponent({ componentType: "template" })` registration *is* the picker entry. Any
+JSM the `jahiaComponent({ componentType: "template" })` registration _is_ the picker entry. Any
 pre-built content inside those templates (grids, `jnt:area` nodes) is content and must be
 re-authored. Skip this file and the site will be created with **no home page** and 404 everywhere.
 
@@ -187,10 +187,10 @@ people migrating the same module produce the same tree.
 ```tsx
 jahiaComponent(
   {
-    componentType: "view",           // "view" | "template"
-    nodeType: "jacademy:textBox",    // the JSP directory, `_` → `:`
-    name: "detail",                  // the view segment of the filename; omit for default
-    properties: { "cache.perUser": "true" },  // the JSP .properties sidecar, verbatim
+    componentType: "view", // "view" | "template"
+    nodeType: "jacademy:textBox", // the JSP directory, `_` → `:`
+    name: "detail", // the view segment of the filename; omit for default
+    properties: { "cache.perUser": "true" }, // the JSP .properties sidecar, verbatim
   },
   ({ "jcr:title": title }, { renderContext, currentNode }) => <h1>{title}</h1>,
 );
@@ -201,28 +201,28 @@ jahiaComponent(
 You are not free to choose here. Two agents migrating the same module must produce the same tree,
 so apply these mechanically even where a nicer name suggests itself.
 
-| Input | Output |
-|---|---|
-| view directory `<ns>_<type>` | `nodeType: "<ns>:<type>"` — always, even if this module's CND doesn't define it |
-| component directory name | **namespace-qualified** PascalCase: `jacademy_textContent` → `src/components/JacademyTextContent/` |
-| `componentType: "view"` | `src/components/<Name>/<name>.server.tsx`, or `default.server.tsx` when `name` is omitted |
-| `componentType: "template"` | `src/templates/<Name>.server.tsx` — **not** under `components/` |
+| Input                                 | Output                                                                                                                                                                         |
+| ------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| view directory `<ns>_<type>`          | `nodeType: "<ns>:<type>"` — always, even if this module's CND doesn't define it                                                                                                |
+| component directory name              | **namespace-qualified** PascalCase: `jacademy_textContent` → `src/components/JacademyTextContent/`                                                                             |
+| `componentType: "view"`               | `src/components/<Name>/<name>.server.tsx`, or `default.server.tsx` when `name` is omitted                                                                                      |
+| `componentType: "template"`           | `src/templates/<Name>.server.tsx` — **not** under `components/`                                                                                                                |
 | a shared layout or fragment component | `src/templates/<Name>.tsx` (no `.server`, it is imported, not registered), `<Name>` = the JSP's `j:view` value PascalCased — `jahia-academy-template` → `JahiaAcademyTemplate` |
-| an EL function from a module `.tld` | `src/lib/<functionName>.ts`, one file per function |
+| an EL function from a module `.tld`   | `src/lib/<functionName>.ts`, one file per function                                                                                                                             |
 
 Namespace-qualifying the directory is not decoration: a set can define the same local name in two
-namespaces (`jacademy:textContent` *and* `jacademix:textContent`), and the unqualified rule silently
+namespaces (`jacademy:textContent` _and_ `jacademix:textContent`), and the unqualified rule silently
 merges them, dropping a registration.
 
 **The `name` value, from the filename.** Split on `.`, discard the first segment (the type) and the
 extension; join whatever is left with `.`. A bare `<type>.jsp` has no `name` — it is the default view.
 
-| Filename | `name` |
-|---|---|
-| `kbEntry.jsp` | *(omitted — default view)* |
-| `kbEntry.detail.jsp` | `"detail"` |
-| `list.docCard.jsp` | `"docCard"` |
-| `skinnable.skins.bluebg.jsp` | `"skins.bluebg"` |
+| Filename                      | `name`                                                    |
+| ----------------------------- | --------------------------------------------------------- |
+| `kbEntry.jsp`                 | _(omitted — default view)_                                |
+| `kbEntry.detail.jsp`          | `"detail"`                                                |
+| `list.docCard.jsp`            | `"docCard"`                                               |
+| `skinnable.skins.bluebg.jsp`  | `"skins.bluebg"`                                          |
 | `textContent.textContent.jsp` | `"textContent"` — a repeated segment is still a view name |
 
 **One JSP body, several consumers.** A `jnt_template` view is page chrome, and `import.xml` often
@@ -281,7 +281,7 @@ natively — `fmt:formatDate` → `Intl.DateTimeFormat`, `fmt:formatNumber` → 
 platform. Reproducing the Java API shape produces worse code that then has to be maintained, and it
 mislabels a translation as a gap. A missing taglib is never a gap; a missing `moduleMap` is.
 
-**But reproduce the output during the parity port.** `Intl` replaces the *mechanism*, not the
+**But reproduce the output during the parity port.** `Intl` replaces the _mechanism_, not the
 result: give it explicit options that match the JSP's pattern (`{ day:"numeric", month:"long",
 year:"numeric" }` for `"MMMM d, yyyy"`), rather than a convenience preset like `dateStyle:"long"`
 that renders differently. Otherwise this instruction manufactures exactly the rendering differences
@@ -327,8 +327,8 @@ at all: skins and `moduleMap`-based views have no JS form, so the companion bund
 for those.
 
 **Do not carry `rules.drl` over unless its globals still exist.** `settings/*.drl` is compiled at
-startup, and a rule referencing a deleted class makes Jahia register every view and *then stop the
-whole bundle* — the cause appears far above the symptom in the log.
+startup, and a rule referencing a deleted class makes Jahia register every view and _then stop the
+whole bundle_ — the cause appears far above the symptom in the log.
 
 ## Step 6 — Build, deploy, verify
 
@@ -381,8 +381,8 @@ and account for **every** entry. A migration is done when each `.jsp` / `.jspf` 
 3. listed in the report with its tier-3 reason, or
 4. listed in the report as dead (its node type is defined nowhere).
 
-Nothing may be silently absent. Report the totals — *N files: A registered, B imported, C tier-3,
-D dead* — and make them add up. Without this the migration has no defined end, and two agents can
+Nothing may be silently absent. Report the totals — _N files: A registered, B imported, C tier-3,
+D dead_ — and make them add up. Without this the migration has no defined end, and two agents can
 stop at very different coverage and both claim they followed the skill.
 
 Record alongside it: the operator's three Step 2 answers, the porting order and whether it was
@@ -399,11 +399,11 @@ explicitly, and say what each command does rather than just adding it.
 The scaffold ships ESLint and Prettier (`lint` = `eslint .`, `format` = `prettier --write`), so this
 is a swap, not a gap. Put the trade-off to them:
 
-| | Keep ESLint + Prettier | Swap to oxlint + oxfmt |
-|---|---|---|
-| Speed | fine on a small module, slower as it grows | Rust-based, far faster |
-| Rules | the React/TypeScript plugin ecosystem, incl. `@eslint-react` | a large built-in set, a smaller plugin ecosystem |
-| Familiarity | what most JavaScript documentation assumes | what Jahia's own tooling uses |
+|             | Keep ESLint + Prettier                                       | Swap to oxlint + oxfmt                           |
+| ----------- | ------------------------------------------------------------ | ------------------------------------------------ |
+| Speed       | fine on a small module, slower as it grows                   | Rust-based, far faster                           |
+| Rules       | the React/TypeScript plugin ecosystem, incl. `@eslint-react` | a large built-in set, a smaller plugin ecosystem |
+| Familiarity | what most JavaScript documentation assumes                   | what Jahia's own tooling uses                    |
 
 Whichever they choose, put the type-check in `lint` as well — `tsc --noEmit && <linter>`. The
 scaffold already runs it, but only inside `build`, so this is about moving it into the fast loop

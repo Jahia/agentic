@@ -97,6 +97,7 @@ src/components/<Category>/<Name>/
 ```
 
 Optional additions:
+
 - `small.server.tsx` — named view (compact/alternate rendering)
 - `<name>.client.tsx` — client-side interactive component
 
@@ -114,6 +115,7 @@ After a CND change, redeploy and call `content.type` on the parent type before c
 ---
 
 ## Troubleshooting
+
 > https://academy.jahia.com/tutorials-get-started/front-end-developer/making-a-hero-section
 
 ## References
@@ -123,6 +125,7 @@ After a CND change, redeploy and call `content.type` on the parent type before c
 ---
 
 ## Validation checklist
+
 - [ ] Spec written before any code
 - [ ] Component count within scale of thumbs (1–4 templates, 5–10 types, 2–5 mixins, 1–4 views/type)
 - [ ] `definition.cnd` created with correct namespace and mixins

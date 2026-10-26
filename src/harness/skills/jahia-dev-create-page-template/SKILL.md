@@ -18,21 +18,28 @@ Page templates live in `src/templates/<ModuleName>Template/`. Name the file `def
 
 ```tsx
 import React from "react";
-import { Area, AbsoluteArea, getChildNodes, buildNodeUrl, jahiaComponent } from "@jahia/javascript-modules-library";
+import {
+  Area,
+  AbsoluteArea,
+  getChildNodes,
+  buildNodeUrl,
+  jahiaComponent,
+} from "@jahia/javascript-modules-library";
 import styles from "./template.module.css";
 
 jahiaComponent(
   {
-    componentType: "template",   // "template" for full pages, not "view"
-    nodeType: "jnt:page",        // always jnt:page for page templates
+    componentType: "template", // "template" for full pages, not "view"
+    nodeType: "jnt:page", // always jnt:page for page templates
     displayName: "Default Template",
     name: "default",
   },
   ({ "jcr:title": title }, { renderContext, currentResource, mainNode }) => {
     // Pages live under /sites/<key>/home — not directly under the site node
     const siteHome = renderContext.getSite().getNode("home");
-    const navPages = getChildNodes(siteHome, -1, 0, n => n.isNodeType("jnt:page"));
-    const siteName = renderContext.getSite().getPropertyAsString("j:title") ?? renderContext.getSite().getName();
+    const navPages = getChildNodes(siteHome, -1, 0, (n) => n.isNodeType("jnt:page"));
+    const siteName =
+      renderContext.getSite().getPropertyAsString("j:title") ?? renderContext.getSite().getName();
     return (
       <html lang={currentResource.getLocale().toLanguageTag()}>
         <head>
@@ -43,16 +50,21 @@ jahiaComponent(
           <title>{[title, siteName].filter(Boolean).join(" | ")}</title>
         </head>
         <body>
-          <a href="#main-content" className={styles.skipLink}>Skip to main content</a>
+          <a href="#main-content" className={styles.skipLink}>
+            Skip to main content
+          </a>
           <header className={styles.header}>
             <nav aria-label="Main navigation">
               <ul className={styles.navList}>
                 <li key={siteHome.getPath()}>
-                  <a href={buildNodeUrl(siteHome)} aria-current={siteHome.getPath() === mainNode.getPath() ? "page" : undefined}>
+                  <a
+                    href={buildNodeUrl(siteHome)}
+                    aria-current={siteHome.getPath() === mainNode.getPath() ? "page" : undefined}
+                  >
                     {siteHome.getPropertyAsString("jcr:title") ?? siteHome.getName()}
                   </a>
                 </li>
-                {navPages.map(page => (
+                {navPages.map((page) => (
                   <li key={page.getPath()}>
                     <a
                       href={buildNodeUrl(page)}
@@ -71,7 +83,10 @@ jahiaComponent(
           </main>
           <footer className={styles.footer}>
             <AbsoluteArea name="footer" parent={renderContext.getSite()} />
-            <p className={styles.copyright}>{"© "}{renderContext.getSite().getName()}</p>
+            <p className={styles.copyright}>
+              {"© "}
+              {renderContext.getSite().getName()}
+            </p>
           </footer>
         </body>
       </html>
@@ -93,11 +108,11 @@ To share a page on social networks, add Open Graph tags to the `<head>`. They ne
 
 ## Step 2 — Choose: Area vs AbsoluteArea
 
-| | `<Area>` | `<AbsoluteArea>` |
-|---|---|---|
-| Content | Per-page (each page has its own) | Shared across all pages |
-| Use for | Page body, hero, sections | Footer, navbar, sidebar |
-| `parent` prop | Not needed | Set to `renderContext.getSite()` for site-wide |
+|               | `<Area>`                         | `<AbsoluteArea>`                               |
+| ------------- | -------------------------------- | ---------------------------------------------- |
+| Content       | Per-page (each page has its own) | Shared across all pages                        |
+| Use for       | Page body, hero, sections        | Footer, navbar, sidebar                        |
+| `parent` prop | Not needed                       | Set to `renderContext.getSite()` for site-wide |
 
 ---
 
@@ -136,11 +151,18 @@ Then in the template:
 > **Sections driven by content folders** (e.g. a tutorials listing that queries `/contents/tutorials/`) should NOT use an Area at all — the template renders them via a server-side query component. Exposing an Area there invites editors to manually add duplicates of auto-queried content.
 
 > ⚠️ **CSS gotcha — `Area` renders children directly, no wrapper div.** When wrapping an `<Area>` in a container div and styling children with `.container > div { display: grid }`, the grid won't apply because there is no intermediate `div` — the area's child components are rendered as direct children of `.container`. Always apply grid/flex layout **on the container itself** when its only content is an Area:
+>
 > ```css
 > /* ✅ correct — grid on the container that wraps the Area */
-> .featuresSection .container { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 1.5rem; }
+> .featuresSection .container {
+>   display: grid;
+>   grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+>   gap: 1.5rem;
+> }
 > /* ❌ wrong — no div is inserted between container and the card articles */
-> .container > div { display: grid; }
+> .container > div {
+>   display: grid;
+> }
 > ```
 
 ### ⚠️ After defining `pageComponent` — update existing components
@@ -158,6 +180,7 @@ Scan all `definition.cnd` files and update every component that should be droppa
 ```
 
 **Which components need `pageComponent`?**
+
 - Standalone page sections (hero, feature cards, text blocks, etc.) → `namespacemix:pageComponent`
 - Child-only types (CTA inside hero, card inside list) → keep `namespacemix:component`
 - `jmix:mainResource` types stored in content folders → keep `namespacemix:component`
@@ -168,11 +191,11 @@ Scan all `definition.cnd` files and update every component that should be droppa
 
 Before creating a new page template, ask:
 
-| Is this… | Use a… |
-|---|---|
-| A new top-level page layout (different column structure, hero slot) | **New page template** |
-| A layout variation that could be reused as a section on any page | **Sectioning component** (use the build-component skill) |
-| A minor style difference on an existing template | **Named view** of the existing template |
+| Is this…                                                            | Use a…                                                   |
+| ------------------------------------------------------------------- | -------------------------------------------------------- |
+| A new top-level page layout (different column structure, hero slot) | **New page template**                                    |
+| A layout variation that could be reused as a section on any page    | **Sectioning component** (use the build-component skill) |
+| A minor style difference on an existing template                    | **Named view** of the existing template                  |
 
 **Guideline**: keep page templates small (1–4). Use sectioning components for compositional differences.
 
@@ -193,10 +216,9 @@ Render it with `RenderChild`:
 // src/components/Header/default.server.tsx
 import { jahiaComponent, RenderChild } from "@jahia/javascript-modules-library";
 
-jahiaComponent(
-  { componentType: "view", nodeType: "namespace:header" },
-  () => <RenderChild name="hero" />,
-);
+jahiaComponent({ componentType: "view", nodeType: "namespace:header" }, () => (
+  <RenderChild name="hero" />
+));
 ```
 
 ---
@@ -251,6 +273,7 @@ jahiaComponent(
 ```
 
 **Rules:**
+
 - `j:templateName` must match the `name:` in your `jahiaComponent` call — if it's wrong, editors get a blank page
 - Pre-create area nodes (`jcr:primaryType="namespace:pageArea"`) so editors don't face empty containers on first open
 - Add a starter component in the hero area so the page isn't visually blank (optional but strongly recommended)
@@ -306,12 +329,13 @@ After deploying, the new template will appear in the **template selection** step
       </nav>
     </Layout>
   );
-}
+};
 ```
 
 ---
 
 ## Validation checklist
+
 - [ ] `componentType: "template"` and `nodeType: "jnt:page"`
 - [ ] `name` is set (used in Jahia UI template picker)
 - [ ] Skip link present: `<a href="#main-content">Skip to main content</a>`
@@ -329,7 +353,7 @@ After deploying, the new template will appear in the **template selection** step
 
 **Symptom:** An Area in your template produces no HTML output at all, even though you can see children in jContent.
 
-**Root cause:** Jahia's `Area` component auto-creates the JCR area node using its declared `nodeType` on first page load. If that node was subsequently **deleted and recreated manually** (e.g. via GraphQL) with a *different* type, the declared type and the actual JCR type no longer match — and Jahia silently renders nothing.
+**Root cause:** Jahia's `Area` component auto-creates the JCR area node using its declared `nodeType` on first page load. If that node was subsequently **deleted and recreated manually** (e.g. via GraphQL) with a _different_ type, the declared type and the actual JCR type no longer match — and Jahia silently renders nothing.
 
 **Fix:** Delete the mistyped node and let Jahia recreate it automatically:
 

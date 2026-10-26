@@ -8,12 +8,12 @@ allowed-tools: Read
 
 ## Which session
 
-| Need | Session |
-| --- | --- |
+| Need                                        | Session                                                                                                                                                                            |
+| ------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | Inside an Action, a render filter or a view | The session Jahia gives you: `session` in `Action.doExecute`, or `resource.getNode().getSession()`. It is the session of the current user, in the workspace and locale of the URL. |
-| Elsewhere, as the current user | `JCRSessionFactory.getInstance().getCurrentUserSession(workspace, locale)` |
-| As a named user, in a background job | `JCRTemplate.getInstance().doExecuteWithUserSession(username, workspace, locale, session -> { … })` |
-| With every permission (system session) | `JCRTemplate.getInstance().doExecuteWithSystemSession(null, workspace, locale, session -> { … })` |
+| Elsewhere, as the current user              | `JCRSessionFactory.getInstance().getCurrentUserSession(workspace, locale)`                                                                                                         |
+| As a named user, in a background job        | `JCRTemplate.getInstance().doExecuteWithUserSession(username, workspace, locale, session -> { … })`                                                                                |
+| With every permission (system session)      | `JCRTemplate.getInstance().doExecuteWithSystemSession(null, workspace, locale, session -> { … })`                                                                                  |
 
 - **A user session applies the permissions (ACLs) of the user.** A guest reads only what guests
   may read, in `live` only.

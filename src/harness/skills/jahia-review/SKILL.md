@@ -25,9 +25,11 @@ cat pages-to-review.json
 Invoke two subagents simultaneously:
 
 **Subagent A — code review:**
+
 > Invoke `/jahia-review-code` on this module. Scan all CND files, TypeScript views, and page templates. Report every issue found (critical, warning, suggestion) with file locations and fix guidance. Report only: do not fix anything, and do not ask whether to fix.
 
 **Subagent B — site review:**
+
 > Invoke `/jahia-review-site` against the URLs in `pages-to-review.json`. Run the review script and report every failure it prints: a11y, SEO and content loss.
 
 ---

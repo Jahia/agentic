@@ -13,9 +13,9 @@ registry. Until app-shell 4 every UI extension is built with webpack. From app-s
 loads UI extensions built with Vite, and from app-shell 5 it loads only those.
 
 | app-shell | webpack build | Vite build |
-|---|---|---|
-| 4 | loads | loads |
-| 5 | ignored | loads |
+| --------- | ------------- | ---------- |
+| 4         | loads         | loads      |
+| 5         | ignored       | loads      |
 
 The app-shell loads its own copy of the shared libraries (React, i18next, redux…) before any
 module. Your module always gets the app-shell's version, whatever it declares. A declared range
@@ -52,20 +52,20 @@ goes in `devDependencies`.
 ## Step 3 — `vite.config.ts`
 
 ```ts
-import {defineConfig} from 'vite';
-import jahiaFederationPlugin from '@jahia/vite-federation-plugin';
+import { defineConfig } from "vite";
+import jahiaFederationPlugin from "@jahia/vite-federation-plugin";
 
 export default defineConfig({
-    build: {
-        outDir: 'src/main/resources/javascript/apps' // the output directory of webpack.config.js
-    },
-    plugins: [
-        jahiaFederationPlugin({
-            exposes: {
-                './init': './src/javascript/init.js' // every entry of the webpack exposes
-            }
-        })
-    ]
+  build: {
+    outDir: "src/main/resources/javascript/apps", // the output directory of webpack.config.js
+  },
+  plugins: [
+    jahiaFederationPlugin({
+      exposes: {
+        "./init": "./src/javascript/init.js", // every entry of the webpack exposes
+      },
+    }),
+  ],
 });
 ```
 
@@ -86,28 +86,28 @@ Set `"type": "module"`, `"build": "vite build"` and `"watch": "vite build --watc
 and every script that runs webpack. Then put every library the source imports in exactly one
 section:
 
-| Section | What the plugin does | Put here |
-|---|---|---|
-| `peerDependencies` | Never bundles it, and uses the app-shell's copy. | The imported libraries of the table below, and nothing else. |
-| `dependencies` | Bundles it, and shares it with the other Vite modules. | Every other library the code imports at runtime (not a peer, and not one of the utilities of the next row): `@jahia/moonstone`, `@apollo/client`, `graphql-tag`, `@jahia/data-helper`, `dayjs`, `moment`, `react-router-dom`… |
-| `devDependencies` | Bundles only what the code uses, and shares nothing. | Build tools, types, a copy of each peer, and the small stateless utilities `lodash` (and `lodash/*`), `clsx`, `classnames`, `prop-types`. |
+| Section            | What the plugin does                                   | Put here                                                                                                                                                                                                                      |
+| ------------------ | ------------------------------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `peerDependencies` | Never bundles it, and uses the app-shell's copy.       | The imported libraries of the table below, and nothing else.                                                                                                                                                                  |
+| `dependencies`     | Bundles it, and shares it with the other Vite modules. | Every other library the code imports at runtime (not a peer, and not one of the utilities of the next row): `@jahia/moonstone`, `@apollo/client`, `graphql-tag`, `@jahia/data-helper`, `dayjs`, `moment`, `react-router-dom`… |
+| `devDependencies`  | Bundles only what the code uses, and shares nothing.   | Build tools, types, a copy of each peer, and the small stateless utilities `lodash` (and `lodash/*`), `clsx`, `classnames`, `prop-types`.                                                                                     |
 
 The libraries the app-shell provides. Replace the module's own range with this one, even when the
 module declared an older major, and copy the version into `devDependencies` so that the module
 builds against the oldest version it supports:
 
-| Library | `peerDependencies` | `devDependencies` |
-|---|---|---|
-| `react`, `react-dom` | `"^18.3.1 \|\| ^19.0.0"` | `"18.3.1"`, and `@types/react` / `@types/react-dom` `"~18.3"` if TypeScript |
-| `react-router` | `"^5.3.4"` | `"5.3.4"` |
-| `react-router-dom-v5-compat` | `"^6.30.6"` | `"6.30.6"` |
-| `i18next` | `">=23.16.8 <27"` | `"23.16.8"` |
-| `react-i18next` | `">=15.7.4 <18"` | `"15.7.4"` |
-| `react-redux` | `"^9.3.0"` | `"9.3.0"` |
-| `redux` | `"^5.0.1"` | `"5.0.1"` |
-| `formik` | `"^2.4.9"` | `"2.4.9"` |
-| `@jahia/ui-extender` | `"^2.0.0"` | `"2.0.0"` |
-| `react-apollo`, `@apollo/react-components` | `"^3.1.5"` | `"3.1.5"` |
+| Library                                    | `peerDependencies`       | `devDependencies`                                                           |
+| ------------------------------------------ | ------------------------ | --------------------------------------------------------------------------- |
+| `react`, `react-dom`                       | `"^18.3.1 \|\| ^19.0.0"` | `"18.3.1"`, and `@types/react` / `@types/react-dom` `"~18.3"` if TypeScript |
+| `react-router`                             | `"^5.3.4"`               | `"5.3.4"`                                                                   |
+| `react-router-dom-v5-compat`               | `"^6.30.6"`              | `"6.30.6"`                                                                  |
+| `i18next`                                  | `">=23.16.8 <27"`        | `"23.16.8"`                                                                 |
+| `react-i18next`                            | `">=15.7.4 <18"`         | `"15.7.4"`                                                                  |
+| `react-redux`                              | `"^9.3.0"`               | `"9.3.0"`                                                                   |
+| `redux`                                    | `"^5.0.1"`               | `"5.0.1"`                                                                   |
+| `formik`                                   | `"^2.4.9"`               | `"2.4.9"`                                                                   |
+| `@jahia/ui-extender`                       | `"^2.0.0"`               | `"2.0.0"`                                                                   |
+| `react-apollo`, `@apollo/react-components` | `"^3.1.5"`               | `"3.1.5"`                                                                   |
 
 The build fails with a message that names the library when a library of this table is in
 `dependencies`, or when `peerDependencies` holds a library the app-shell does not provide.

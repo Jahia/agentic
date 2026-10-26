@@ -23,10 +23,12 @@ const baseline = existsSync(BASELINE) ? JSON.parse(readFileSync(BASELINE, "utf-8
 // A string array is expected; tolerate { url } objects, which agents write despite the instructions
 const entries = JSON.parse(readFileSync("pages-to-review.json", "utf-8"));
 const urls = Array.isArray(entries)
-  ? entries.map(entry => (typeof entry === "string" ? entry : entry?.url))
+  ? entries.map((entry) => (typeof entry === "string" ? entry : entry?.url))
   : [];
-if (urls.length === 0 || !urls.every(url => typeof url === "string")) {
-  console.error('pages-to-review.json must be a JSON array of URLs: ["http://localhost:8080/…", …]');
+if (urls.length === 0 || !urls.every((url) => typeof url === "string")) {
+  console.error(
+    'pages-to-review.json must be a JSON array of URLs: ["http://localhost:8080/…", …]',
+  );
   process.exit(1);
 }
 const port = 9222;
@@ -44,10 +46,15 @@ for (const url of urls) {
 
   const content = await page.evaluate(() => {
     const main = document.querySelector("main") ?? document.body;
-    return { text: main.innerText.replace(/\s+/g, " ").trim().length, headings: main.querySelectorAll("h2, h3, h4, h5, h6").length };
+    return {
+      text: main.innerText.replace(/\s+/g, " ").trim().length,
+      headings: main.querySelectorAll("h2, h3, h4, h5, h6").length,
+    };
   });
   const before = baseline[url];
-  const contentLost = before !== undefined && (content.text < before.text * 0.7 || content.headings < before.headings);
+  const contentLost =
+    before !== undefined &&
+    (content.text < before.text * 0.7 || content.headings < before.headings);
 
   // A11y
   const axe = await new AxeBuilder({ page }).analyze();
@@ -56,11 +63,13 @@ for (const url of urls) {
   const lhr = (await lighthouse(url, { port, output: "json", onlyCategories: ["seo"] }))?.lhr;
   const seoViolations = lhr
     ? Object.values(lhr.audits).filter(
-        a => SCORED_MODES.has(a.scoreDisplayMode) && a.score !== null && a.score < 1,
+        (a) => SCORED_MODES.has(a.scoreDisplayMode) && a.score !== null && a.score < 1,
       )
     : [];
 
-  process.stdout.write(`a11y=${axe.violations.length} violation(s) seo=${seoViolations.length} violation(s)\n`);
+  process.stdout.write(
+    `a11y=${axe.violations.length} violation(s) seo=${seoViolations.length} violation(s)\n`,
+  );
   results.push({ url, violations: axe.violations, seoViolations, content, before, contentLost });
 }
 
@@ -77,7 +86,9 @@ for (const r of results) {
   console.log(`${pageOk ? "✅" : "❌"} ${r.url}`);
 
   for (const v of r.violations) {
-    console.log(`   ❌ A11y [${v.id}] — ${v.description} (${v.nodes.length} node${v.nodes.length !== 1 ? "s" : ""})`);
+    console.log(
+      `   ❌ A11y [${v.id}] — ${v.description} (${v.nodes.length} node${v.nodes.length !== 1 ? "s" : ""})`,
+    );
     for (const node of v.nodes.slice(0, 3)) {
       console.log(`        ${node.html.slice(0, 100)}`);
     }
@@ -87,7 +98,11 @@ for (const r of results) {
     console.log(
       `   ❌ Content — ${r.content.text} characters and ${r.content.headings} headings, down from ${r.before.text} and ${r.before.headings} at the last pass`,
     );
-    console.log("        A change hid content: restore it. If you removed it on purpose, delete " + BASELINE + ".");
+    console.log(
+      "        A change hid content: restore it. If you removed it on purpose, delete " +
+        BASELINE +
+        ".",
+    );
   }
 
   for (const a of r.seoViolations) {
@@ -102,7 +117,10 @@ if (failed) {
   process.exit(1);
 } else {
   writeFileSync("pages.json", JSON.stringify(urls, null, 2));
-  writeFileSync(BASELINE, JSON.stringify(Object.fromEntries(results.map(r => [r.url, r.content])), null, 2));
+  writeFileSync(
+    BASELINE,
+    JSON.stringify(Object.fromEntries(results.map((r) => [r.url, r.content])), null, 2),
+  );
   console.log("\n✅ PASS — pages.json written.");
   process.exit(0);
 }

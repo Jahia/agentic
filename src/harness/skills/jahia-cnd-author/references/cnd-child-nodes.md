@@ -11,11 +11,11 @@
 
 ## When to use child nodes vs `weakreference multiple`
 
-| Use child nodes when… | Use `weakreference multiple` when… |
-|---|---|
+| Use child nodes when…                            | Use `weakreference multiple` when…               |
+| ------------------------------------------------ | ------------------------------------------------ |
 | Each item has multiple properties (label + link) | Each item is just a reference (a page, an image) |
-| Items have no life outside the parent | Items are managed elsewhere and reused |
-| You always create them together | Editors need to pick from existing content |
+| Items have no life outside the parent            | Items are managed elsewhere and reused           |
+| You always create them together                  | Editors need to pick from existing content       |
 
 ## Repeatable CTA pattern
 
@@ -100,7 +100,7 @@ The view renders the list as an area whose parent is the section node:
 
 ```tsx
 const { currentNode } = useServerContext();
-<AbsoluteArea name="items" parent={currentNode} nodeType="ns:sectionItems" />
+<AbsoluteArea name="items" parent={currentNode} nodeType="ns:sectionItems" />;
 ```
 
 Jahia creates the `items` node the first time the area renders, so the CND needs no `autocreated`
@@ -109,12 +109,30 @@ section, its list and its items in **one** `content.create` call, with `children
 levels deep:
 
 ```json
-{"parentPath": "/sites/<site>/home/main", "nodeType": "ns:section", "name": "products",
- "properties": {"jcr:title": "Our products", "layout": "3col"},
- "children": [{"name": "items", "nodeType": "ns:sectionItems", "children": [
-   {"name": "car", "nodeType": "ns:textCard", "properties": {"jcr:title": "Car", "body": "…"}},
-   {"name": "home", "nodeType": "ns:textCard", "properties": {"jcr:title": "Home", "body": "…"}}
- ]}]}
+{
+  "parentPath": "/sites/<site>/home/main",
+  "nodeType": "ns:section",
+  "name": "products",
+  "properties": { "jcr:title": "Our products", "layout": "3col" },
+  "children": [
+    {
+      "name": "items",
+      "nodeType": "ns:sectionItems",
+      "children": [
+        {
+          "name": "car",
+          "nodeType": "ns:textCard",
+          "properties": { "jcr:title": "Car", "body": "…" }
+        },
+        {
+          "name": "home",
+          "nodeType": "ns:textCard",
+          "properties": { "jcr:title": "Home", "body": "…" }
+        }
+      ]
+    }
+  ]
+}
 ```
 
 **The other shape, and what the refusal means.** `+ * (ns:textCard)` straight on the section,

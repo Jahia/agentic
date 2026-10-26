@@ -42,13 +42,14 @@ Locate the target section in the fetched HTML. Extract the **complete HTML block
 
 **Replace only dynamic content** with typed placeholders:
 
-| Source HTML | Replacement |
-|---|---|
-| Text inside an element | `{title}`, `{description}`, etc. |
-| Image `src` / `data-bg` / `data-src` URL | `{image}` (will become a `weakreference` field) |
-| Link `href` | `{href}` (will become `j:linkType` / `j:linknode`) |
+| Source HTML                              | Replacement                                        |
+| ---------------------------------------- | -------------------------------------------------- |
+| Text inside an element                   | `{title}`, `{description}`, etc.                   |
+| Image `src` / `data-bg` / `data-src` URL | `{image}` (will become a `weakreference` field)    |
+| Link `href`                              | `{href}` (will become `j:linkType` / `j:linknode`) |
 
 **Keep verbatim:**
+
 - All CSS classes
 - All `data-*` attributes (animation libraries, carousel config, IDs)
 - `aria-*` and `role` attributes
@@ -64,12 +65,14 @@ Locate the target section in the fetched HTML. Extract the **complete HTML block
 Show the developer a proposed split:
 
 **Will become CND fields (editable in Jahia):**
+
 - User-facing text: titles, subtitles, descriptions, button labels
 - Images (→ `weakreference, picker[type='image']`)
 - Links (→ `j:linkType / j:linknode / j:url`)
 - Any value that should vary between instances
 
 **Will be hardcoded in the view:**
+
 - Layout wrapper divs
 - Icon SVGs that are decorative / never change
 - Animation class names and `data-*` config attributes
@@ -90,13 +93,13 @@ grep -E '<link[^>]+stylesheet|<script[^>]+src' /tmp/imported-page.html | head -3
 
 Categorize findings:
 
-| Type | Examples | Action |
-|---|---|---|
-| **Animation library** | AOS, GSAP, ScrollReveal, Animate.css | Likely needed — check npm first |
-| **Carousel/slider** | Swiper, Glide, Owl Carousel, Splide | Likely needed — check npm first |
-| **Utility CSS** | Bootstrap, Tailwind | May already be in the module or can be imported |
-| **Site-specific CSS** | `main.css`, `theme.css` | Targeted import only (see Step 5b) |
-| **Fonts** | Google Fonts, custom woff2 | Import if not already in the module |
+| Type                  | Examples                             | Action                                          |
+| --------------------- | ------------------------------------ | ----------------------------------------------- |
+| **Animation library** | AOS, GSAP, ScrollReveal, Animate.css | Likely needed — check npm first                 |
+| **Carousel/slider**   | Swiper, Glide, Owl Carousel, Splide  | Likely needed — check npm first                 |
+| **Utility CSS**       | Bootstrap, Tailwind                  | May already be in the module or can be imported |
+| **Site-specific CSS** | `main.css`, `theme.css`              | Targeted import only (see Step 5b)              |
+| **Fonts**             | Google Fonts, custom woff2           | Import if not already in the module             |
 
 Report findings, then ask: **"Should I import any of these? (yes / no / specific ones)"**
 
@@ -128,7 +131,7 @@ Using the confirmed field split from Step 3, run the `jahia-cnd-author` and `jah
 // default.server.tsx — passes config, initializes nothing
 ({ title, subtitle }: Props, { renderContext }) => (
   <Island component={MyComponentClient} props={{ title, subtitle }} />
-)
+);
 
 // MyComponent.client.tsx — owns the browser-side lifecycle
 import { useEffect } from "react";
@@ -157,7 +160,7 @@ export default function MyComponentClient({ title, subtitle }: Props) {
     </div>
   ) : (
     <Island component={CarouselClient} props={{ count: slides?.length }} />
-  )
+  );
 ```
 
 ---

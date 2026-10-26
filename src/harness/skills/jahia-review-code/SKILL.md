@@ -69,23 +69,29 @@ Fix: never set expiration to 0. If truly fresh data is needed, use a small value
 
 **C8 — `<Area>` in a component view**
 Check: a view under `src/components/` that renders `<Area`. `<Area name="items">` resolves its name against the page, not the component, so the children that editors add inside the component (the cards of a section) are never rendered: the page shows the component without them.
+
 ```bash
 grep -rnE '<Area[[:space:]/>]' src/components
 ```
+
 Fix: `<AbsoluteArea name="items" parent={currentNode} nodeType="ns:sectionItems" />`, with `currentNode` from the second argument of the component (see `jahia-dev-build-component`, "Nested components"). The content stays where it is.
 
 **C9 — `<RenderChild>` or `<RenderChildren>` behind a condition**
 Check: a view that renders `RenderChild` or `RenderChildren` only when the child exists — `currentNode.hasNode("cta") && <RenderChild name="cta" />`, or a child count checked first. In edit mode these components render the button that adds a missing child; behind the guard, editors cannot add the first CTA or item from Page Builder.
+
 ```bash
 grep -rnE -B4 '<RenderChild(ren)?[[:space:]/>]' src/components | grep -E 'hasNode|getNodes|\.length'
 ```
+
 Fix: render the component unconditionally. If a wrapper must not appear on a live page without the child, condition the wrapper with `hasNode(…) || renderContext.isEditMode()` (see `jahia-dev-create-view`, "Never put `RenderChild` or `RenderChildren` behind a condition"). No content changes.
 
 **C10 — `t` imported from `i18next`**
 Check: a view or client component that imports `t` from `i18next`. Since JavaScript Modules 1.3, the global `t` does not know the module's namespace, and the page shows the translation keys instead of the text.
+
 ```bash
 grep -rnE 'import[^;{]*\{[^}]*\bt\b[^}]*\}[[:space:]]*from[[:space:]]*.i18next.' src
 ```
+
 Fix: `import { useTranslation } from "react-i18next";`, then `const { t } = useTranslation();` inside the component. No content changes.
 
 ---
@@ -132,6 +138,7 @@ Fix: **All navigable URLs must come from contributed content.** Use `j:linkType`
 **W10 — Generic area type used for every Area**
 Check: page templates where every `<Area>` uses the same generic area type (e.g. `nodeType="namespace:pageArea"` everywhere). This means editors see ALL `pageComponent` types as droppable options in every area — a hero section will appear as an option in a feature card grid.
 Fix: create **one typed area node per section** in `settings/definitions.cnd`, each with a tight child constraint:
+
 ```cnd
 [namespace:heroArea] > jnt:content, jmix:list, jmix:hiddenType orderable
  + * (namespace:heroSection)
@@ -139,6 +146,7 @@ Fix: create **one typed area node per section** in `settings/definitions.cnd`, e
 [namespace:featuresArea] > jnt:content, jmix:list, jmix:hiddenType orderable
  + * (namespace:featureCard)
 ```
+
 Only use a generic `pageArea` for flexible areas (e.g. footer) where any component is valid.
 On pages that already hold content, the fix moves that content: report it, and apply it only while the pages are still empty.
 
@@ -157,6 +165,7 @@ Fix: add descriptive alt text. Decorative images should have `alt=""` with a com
 **S3 — Accessibility violations (axe-core audit)**
 Check: run `/jahia-dev-accessibility` against all live pages. A clean module has zero `critical` or `serious` violations.
 Common issues in Jahia modules:
+
 - `color-contrast`: hardcoded colours with insufficient contrast ratio — check with https://webaim.org/resources/contrastchecker/
 - `image-alt`: `<img>` missing a meaningful `alt` prop sourced from CND
 - `button-name`: icon-only `<button>` or `<a>` without `aria-label`
@@ -198,10 +207,12 @@ Fix: add a `namespace:contentStack > jnt:content, namespacemix:component + * (jm
 
 **S11 — Scaffold/boilerplate components still present**
 Check: components under `src/components/Hello/` (or any other archetype-generated boilerplate) that are no longer referenced in `settings/import.xml` and no longer used by any view or page template.
+
 ```bash
 # Check if Hello components are still referenced anywhere
 grep -r "helloWorld\|helloCard\|Hello/" src/templates/ settings/ --include="*.tsx" --include="*.xml" --include="*.cnd"
 ```
+
 Fix: once `import.xml` no longer provisions Hello World content and no template uses them, delete the entire `src/components/Hello/` directory, remove their entries from `.properties` files, and delete their icons from `settings/content-types-icons/`. Keeping dead components inflates the content picker and confuses editors.
 
 **S12 — Image node rendered with `<img src={buildNodeUrl(…)}>`**

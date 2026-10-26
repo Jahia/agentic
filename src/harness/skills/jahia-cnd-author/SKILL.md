@@ -75,6 +75,7 @@ Write to `src/components/<Category>/<Name>/types.ts`.
 Editors see these labels in the content editor — every type name and every field needs an entry. Load [references/cnd-authoring-experience.md] for the naming conventions and icon patterns.
 
 Write to:
+
 - `settings/resources/<module>_en.properties`
 - `settings/resources/<module>_fr.properties` (use the English label as a placeholder if no translation is available)
 

@@ -2,26 +2,26 @@
 
 ## Types
 
-| Type | Editor widget | Notes |
-|---|---|---|
-| `long` | Integer number input | Counts, limits, columns |
-| `double` | Decimal number input | Coordinates, prices, ratios |
-| `boolean` | Checkbox | Feature flags, toggles |
-| `date` | Date picker | ISO 8601 stored, string in TypeScript |
-| `date, datepicker` | Date-only picker | Same storage, date-only widget |
-| `date, datetimepicker` | Date + time picker | Use when time precision is needed |
+| Type                   | Editor widget        | Notes                                 |
+| ---------------------- | -------------------- | ------------------------------------- |
+| `long`                 | Integer number input | Counts, limits, columns               |
+| `double`               | Decimal number input | Coordinates, prices, ratios           |
+| `boolean`              | Checkbox             | Feature flags, toggles                |
+| `date`                 | Date picker          | ISO 8601 stored, string in TypeScript |
+| `date, datepicker`     | Date-only picker     | Same storage, date-only widget        |
+| `date, datetimepicker` | Date + time picker   | Use when time precision is needed     |
 
 ## Types to avoid
 
-| Avoid | Use instead | Reason |
-|---|---|---|
-| `path` | `weakreference` | weakreference is the preferred reference type |
-| `reference` | `weakreference` | Not properly implemented |
-| `uri` | `string` | No added value |
-| `decimal` | `double` | Use double for decimal numbers |
-| `name` | `string` | JCR node type name; use string instead |
-| `binary` | — | Binary data; rarely needed in practice |
-| `undefined` | — | Unknown type; avoid |
+| Avoid       | Use instead     | Reason                                        |
+| ----------- | --------------- | --------------------------------------------- |
+| `path`      | `weakreference` | weakreference is the preferred reference type |
+| `reference` | `weakreference` | Not properly implemented                      |
+| `uri`       | `string`        | No added value                                |
+| `decimal`   | `double`        | Use double for decimal numbers                |
+| `name`      | `string`        | JCR node type name; use string instead        |
+| `binary`    | —               | Binary data; rarely needed in practice        |
+| `undefined` | —               | Unknown type; avoid                           |
 
 ## Default values with `autocreated`
 
@@ -86,9 +86,9 @@ Parentheses = exclusive bound, brackets = inclusive. Leave a side empty for open
 
 ## TypeScript mapping
 
-| CND type | TypeScript |
-|---|---|
-| `long` | `number` |
-| `double` | `number` |
-| `boolean` | `boolean` |
-| `date` | `string` (ISO 8601) |
+| CND type  | TypeScript          |
+| --------- | ------------------- |
+| `long`    | `number`            |
+| `double`  | `number`            |
+| `boolean` | `boolean`           |
+| `date`    | `string` (ISO 8601) |

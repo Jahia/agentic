@@ -5,11 +5,11 @@ Fetch this URL to verify before using any mixin not listed here.
 
 ## Base types — always extend these
 
-| Type | Purpose |
-|---|---|
-| `jnt:content` | Base for all user content nodes — **always include** |
-| `jnt:page` | Page node — only for `jmix:mainResource` full-page types |
-| `jnt:file` | File node — for file references |
+| Type          | Purpose                                                  |
+| ------------- | -------------------------------------------------------- |
+| `jnt:content` | Base for all user content nodes — **always include**     |
+| `jnt:page`    | Page node — only for `jmix:mainResource` full-page types |
+| `jnt:file`    | File node — for file references                          |
 
 ---
 
@@ -24,11 +24,11 @@ Define these in `settings/definitions.cnd` before all other types:
 [nsmix:pageComponent] > nsmix:component mixin
 ```
 
-| Component will be… | Extend |
-|---|---|
-| Dropped in page areas | `nsmix:pageComponent` |
-| Child of another component | `nsmix:component` |
-| Listed programmatically | `nsmix:component` |
+| Component will be…         | Extend                |
+| -------------------------- | --------------------- |
+| Dropped in page areas      | `nsmix:pageComponent` |
+| Child of another component | `nsmix:component`     |
+| Listed programmatically    | `nsmix:component`     |
 
 ### `jmix:droppableContent` — base for droppable types
 
@@ -66,6 +66,7 @@ Adds `j:tagList` (string, multiple) with autocomplete and `j:tags` (weakreferenc
 ```
 
 CND definition:
+
 ```cnd
 [jmix:tagged] mixin
   extends = nt:hierarchyNode, jnt:content, jnt:page
@@ -83,6 +84,7 @@ Adds `j:defaultCategory` (weakreference, multiple) pointing to taxonomy categori
 ```
 
 CND definition:
+
 ```cnd
 [jmix:categorized] mixin
   extends = nt:hierarchyNode, jnt:content, jnt:page
@@ -155,6 +157,7 @@ Controls whether a component renders based on the visitor's login state or role.
 ```
 
 Properties:
+
 ```cnd
 [jmix:requiredPermissions] mixin
   extends = jnt:content, jnt:area, jnt:mainResourceDisplay
@@ -367,7 +370,9 @@ Use as a constraint on image weakreference properties:
 **Never declare `imageAlt (string) i18n`** alongside an image weakreference. Use the image node's `jcr:title` as alt text, which `<JImage>` does by default:
 
 ```tsx
-{props.image && <JImage src={props.image} />}
+{
+  props.image && <JImage src={props.image} />;
+}
 ```
 
 ### `jmix:document` — document metadata
@@ -446,63 +451,63 @@ Adds `j:expiration` (long, seconds) and `j:perUser` (boolean), the cache options
 
 ## System & structural mixins (do not extend unless building infrastructure)
 
-| Mixin | Purpose |
-|---|---|
-| `jmix:nodenameInfo` | System node identification marker |
-| `jmix:systemNode` | System node marker |
-| `jmix:observable` | Event-based monitoring (observable pattern) |
-| `jmix:list` | Identifies container/collection nodes |
-| `jmix:isAreaList` | Area list marker |
-| `jmix:shareable` | Shareable content (shared nodes across paths) |
-| `jmix:unstructured` | Unstructured content (accepts any child) |
-| `jmix:hasIcon` | Icon support |
-| `jmix:systemNameReadonly` | Prevents renaming via UI |
-| `jmix:blockUiMove` | Prevents drag-move in UI |
-| `jmix:skipConstraintCheck` | Bypasses node type constraint checks |
-| `jmix:contributeMode` | Contribute mode support |
-| `jmix:listRestrictions` | List restrictions configuration |
-| `jmix:studioLayout` | Studio layout marker |
-| `jmix:listedInRestrictions` | Listed-in-restrictions marker |
-| `jmix:markedForDeletion` | Deletion marker (internal) |
-| `jmix:markedForDeletionRoot` | Deletion root marker (internal) |
-| `jmix:autoSplitFolders` | Auto-splits folders when child count is high |
-| `jmix:hideDeleteAction` | Hides delete action in UI |
-| `jmix:htmlSettings` | HTML settings |
-| `jmix:viewProperties` | View properties |
-| `jmix:mockupStyle` | Mockup styling |
-| `jmix:requireLicense` | License requirement marker |
-| `jmix:hasExternalProviderExtension` | External provider extension support |
-| `jmix:sourceControl` | Source control integration |
-| `jmix:moduleImportFile` | Module import file marker |
-| `jmix:originWS` | Workspace origin tracking |
-| `jmix:liveProperties` | Live workspace properties |
-| `jmix:deletedChildren` | Deleted children tracking |
+| Mixin                               | Purpose                                       |
+| ----------------------------------- | --------------------------------------------- |
+| `jmix:nodenameInfo`                 | System node identification marker             |
+| `jmix:systemNode`                   | System node marker                            |
+| `jmix:observable`                   | Event-based monitoring (observable pattern)   |
+| `jmix:list`                         | Identifies container/collection nodes         |
+| `jmix:isAreaList`                   | Area list marker                              |
+| `jmix:shareable`                    | Shareable content (shared nodes across paths) |
+| `jmix:unstructured`                 | Unstructured content (accepts any child)      |
+| `jmix:hasIcon`                      | Icon support                                  |
+| `jmix:systemNameReadonly`           | Prevents renaming via UI                      |
+| `jmix:blockUiMove`                  | Prevents drag-move in UI                      |
+| `jmix:skipConstraintCheck`          | Bypasses node type constraint checks          |
+| `jmix:contributeMode`               | Contribute mode support                       |
+| `jmix:listRestrictions`             | List restrictions configuration               |
+| `jmix:studioLayout`                 | Studio layout marker                          |
+| `jmix:listedInRestrictions`         | Listed-in-restrictions marker                 |
+| `jmix:markedForDeletion`            | Deletion marker (internal)                    |
+| `jmix:markedForDeletionRoot`        | Deletion root marker (internal)               |
+| `jmix:autoSplitFolders`             | Auto-splits folders when child count is high  |
+| `jmix:hideDeleteAction`             | Hides delete action in UI                     |
+| `jmix:htmlSettings`                 | HTML settings                                 |
+| `jmix:viewProperties`               | View properties                               |
+| `jmix:mockupStyle`                  | Mockup styling                                |
+| `jmix:requireLicense`               | License requirement marker                    |
+| `jmix:hasExternalProviderExtension` | External provider extension support           |
+| `jmix:sourceControl`                | Source control integration                    |
+| `jmix:moduleImportFile`             | Module import file marker                     |
+| `jmix:originWS`                     | Workspace origin tracking                     |
+| `jmix:liveProperties`               | Live workspace properties                     |
+| `jmix:deletedChildren`              | Deleted children tracking                     |
 
 ---
 
 ## Legacy/compatibility mixins (do not use in new modules)
 
-| Mixin | Notes |
-|---|---|
-| `jmix:filemetadata` | Replaced by `jmix:basemetadata` |
-| `jmix:hierarchyNode` | Legacy hierarchy marker |
-| `jmix:collection` | Legacy collection marker |
-| `jmix:usersFolder` | Legacy users folder (extends `nt:base`) |
-| `jmix:groupsFolder` | Legacy groups folder |
-| `jmix:virtualsitesFolder` | Legacy virtual sites folder |
-| `jmix:mountPointFactory` | Mount point factory |
-| `jmix:legacyContent` | Legacy content marker |
-| `jmix:legacyPage` | Legacy page marker |
-| `jmix:legacyFile` | Legacy file marker |
+| Mixin                     | Notes                                   |
+| ------------------------- | --------------------------------------- |
+| `jmix:filemetadata`       | Replaced by `jmix:basemetadata`         |
+| `jmix:hierarchyNode`      | Legacy hierarchy marker                 |
+| `jmix:collection`         | Legacy collection marker                |
+| `jmix:usersFolder`        | Legacy users folder (extends `nt:base`) |
+| `jmix:groupsFolder`       | Legacy groups folder                    |
+| `jmix:virtualsitesFolder` | Legacy virtual sites folder             |
+| `jmix:mountPointFactory`  | Mount point factory                     |
+| `jmix:legacyContent`      | Legacy content marker                   |
+| `jmix:legacyPage`         | Legacy page marker                      |
+| `jmix:legacyFile`         | Legacy file marker                      |
 
 ---
 
 ## picker[] selector
 
-| Selector | Use |
-|---|---|
+| Selector               | Use               |
+| ---------------------- | ----------------- |
 | `picker[type='image']` | Image assets only |
-| `picker[type='file']` | Any file asset |
+| `picker[type='file']`  | Any file asset    |
 
 ```cnd
 - backgroundImage (weakreference, picker[type='image']) < jmix:image

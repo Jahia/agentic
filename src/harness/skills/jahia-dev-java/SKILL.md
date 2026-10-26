@@ -13,13 +13,13 @@ adds only what the module needs.
 
 Load the other Java skills when the work reaches their subject:
 
-| Subject | Skill |
-| --- | --- |
-| `@Component`, `@Reference`, `@Activate`, OSGi configuration | `jahia-java-osgi` |
-| Reading or writing JCR content from Java | `jahia-java-jcr` |
-| Who may call the endpoint: guests, permissions, CSRF guard, GraphQL | `jahia-java-security` |
-| Build, deploy, bundle state, a module that does not start | `jahia-dev-run-module` |
-| Review of a finished module | `jahia-review-java` |
+| Subject                                                             | Skill                  |
+| ------------------------------------------------------------------- | ---------------------- |
+| `@Component`, `@Reference`, `@Activate`, OSGi configuration         | `jahia-java-osgi`      |
+| Reading or writing JCR content from Java                            | `jahia-java-jcr`       |
+| Who may call the endpoint: guests, permissions, CSRF guard, GraphQL | `jahia-java-security`  |
+| Build, deploy, bundle state, a module that does not start           | `jahia-dev-run-module` |
+| Review of a finished module                                         | `jahia-review-java`    |
 
 ## 1. Decide if the work needs Java
 
@@ -202,25 +202,25 @@ public class GreetingAction extends Action {
 
 What each part does, and what goes wrong without it:
 
-| Part | Why |
-| --- | --- |
+| Part                                 | Why                                                                                                     |
+| ------------------------------------ | ------------------------------------------------------------------------------------------------------- |
 | `@Component(service = Action.class)` | Jahia finds actions as OSGi services of type `Action`. Without `service`, the action is not registered. |
-| `setName("greeting")` in `@Activate` | The name is the `.greeting.do` part of the URL. An action has no name until you set it. |
+| `setName("greeting")` in `@Activate` | The name is the `.greeting.do` part of the URL. An action has no name until you set it.                 |
 | `setRequireAuthenticatedUser(false)` | The default is `true`: a guest gets an `AccessDeniedException`, so Jahia sends the login page or a 401. |
-| `setRequiredMethods("GET")` | The default is `POST` only. A `GET` to a default action fails. Several methods: `"GET,POST"`. |
-| `setRequiredPermission("jcr:write")` | Optional. Jahia checks the permission on the node before `doExecute`. |
-| `setRequiredWorkspace("live")` | Optional. The action then answers only in that workspace. |
+| `setRequiredMethods("GET")`          | The default is `POST` only. A `GET` to a default action fails. Several methods: `"GET,POST"`.           |
+| `setRequiredPermission("jcr:write")` | Optional. Jahia checks the permission on the node before `doExecute`.                                   |
+| `setRequiredWorkspace("live")`       | Optional. The action then answers only in that workspace.                                               |
 
 ### What `doExecute` returns
 
 Jahia reads the returned `ActionResult` like this (`org.jahia.bin.Render`):
 
-| Return value | What the client gets |
-| --- | --- |
-| `null` | Only what you wrote to the response. Use this for a JSON API. |
-| `new ActionResult(200, null, json)` | The JSON, **only** if the request has `Accept: application/json` or the parameter `returnContentType=json`. Otherwise a redirect to the node. |
-| `ActionResult.OK` | A redirect to the node (`302`). |
-| A code ≥ 300 without the JSON condition above | `sendError(code)`: the HTML error page of Jahia, not your JSON. |
+| Return value                                  | What the client gets                                                                                                                          |
+| --------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------- |
+| `null`                                        | Only what you wrote to the response. Use this for a JSON API.                                                                                 |
+| `new ActionResult(200, null, json)`           | The JSON, **only** if the request has `Accept: application/json` or the parameter `returnContentType=json`. Otherwise a redirect to the node. |
+| `ActionResult.OK`                             | A redirect to the node (`302`).                                                                                                               |
+| A code ≥ 300 without the JSON condition above | `sendError(code)`: the HTML error page of Jahia, not your JSON.                                                                               |
 
 Write the response yourself and return `null` (the `send` helper above). The answer is then the
 same for `curl`, `fetch` and a browser, whatever their `Accept` header is.
@@ -338,16 +338,16 @@ After a change, build and post the JAR again. The same version replaces the bund
 
 ## 9. When the action does not answer
 
-| Symptom | Cause | Fix |
-| --- | --- | --- |
-| `404` HTML page for `<node>.<name>.do` | The action is not registered: bundle not `ACTIVE`, `_dsannotations` missing, `service = Action.class` missing, or the name differs from `setName`. | Check the bundle state (`jahia-dev-run-module`), then the POM and the annotation. |
-| `404` HTML page, and the action is registered | The node does not exist in that workspace, or the user cannot read it. A guest reads `live` only. | Publish the node, or call the action on another node. |
-| `401` for a guest | `requireAuthenticatedUser` is still `true`, or the method is not a required method. Jahia answers a guest `401` for both. | `setRequireAuthenticatedUser(false)` and `setRequiredMethods("GET")` in `@Activate`. |
-| `405` for a logged-in user | The method is not a required method. The default is `POST` only. | `setRequiredMethods("GET")`, or `"GET,POST"`. |
-| `302` for a logged-in user, `200` for a guest | The CSRF guard refused the request. | Section 4. |
-| `302` redirect instead of JSON | `doExecute` returned an `ActionResult`, and the request has no `Accept: application/json`. | Write the response and return `null`. |
-| HTML error page instead of your JSON error | A code ≥ 300 in the `ActionResult`, or an exception. | Write the error JSON and return `null`. Catch the expected exceptions. |
-| `CSRF attack thwarted` in the browser console | A logged-in user called the action without the CSRF token. | Section 4. |
+| Symptom                                                                                                        | Cause                                                                                                                                                                                                                                                           | Fix                                                                                                                                                                                                                             |
+| -------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `404` HTML page for `<node>.<name>.do`                                                                         | The action is not registered: bundle not `ACTIVE`, `_dsannotations` missing, `service = Action.class` missing, or the name differs from `setName`.                                                                                                              | Check the bundle state (`jahia-dev-run-module`), then the POM and the annotation.                                                                                                                                               |
+| `404` HTML page, and the action is registered                                                                  | The node does not exist in that workspace, or the user cannot read it. A guest reads `live` only.                                                                                                                                                               | Publish the node, or call the action on another node.                                                                                                                                                                           |
+| `401` for a guest                                                                                              | `requireAuthenticatedUser` is still `true`, or the method is not a required method. Jahia answers a guest `401` for both.                                                                                                                                       | `setRequireAuthenticatedUser(false)` and `setRequiredMethods("GET")` in `@Activate`.                                                                                                                                            |
+| `405` for a logged-in user                                                                                     | The method is not a required method. The default is `POST` only.                                                                                                                                                                                                | `setRequiredMethods("GET")`, or `"GET,POST"`.                                                                                                                                                                                   |
+| `302` for a logged-in user, `200` for a guest                                                                  | The CSRF guard refused the request.                                                                                                                                                                                                                             | Section 4.                                                                                                                                                                                                                      |
+| `302` redirect instead of JSON                                                                                 | `doExecute` returned an `ActionResult`, and the request has no `Accept: application/json`.                                                                                                                                                                      | Write the response and return `null`.                                                                                                                                                                                           |
+| HTML error page instead of your JSON error                                                                     | A code ≥ 300 in the `ActionResult`, or an exception.                                                                                                                                                                                                            | Write the error JSON and return `null`. Catch the expected exceptions.                                                                                                                                                          |
+| `CSRF attack thwarted` in the browser console                                                                  | A logged-in user called the action without the CSRF token.                                                                                                                                                                                                      | Section 4.                                                                                                                                                                                                                      |
 | `[ERROR] Error resolving dependencies … (present, but unavailable)` during `mvn package`, then `BUILD SUCCESS` | The dependency scan of `jahia-maven-plugin` reads the local Maven repository without a remote repository, and Maven 3.9 or later refuses it. The scan finds the packages that the JSP files use, and the imports of an embedded library that may stay optional. | Nothing for a module with no JSP and no embedded library. Otherwise the bundle loses its taglib imports, or keeps a mandatory import of a library Jahia does not ship: build it with Maven 3.8 (`jahia-dev-run-module` step 4). |
-| Bundle `INSTALLED`, `Unresolved requirement: Import-Package: …` | An import that no bundle exports in that version. | Pin a range in `Import-Package` (section 2), or embed the library. |
-| Bundle `ACTIVE`, the action still absent | `@Activate` threw. The component is disabled. | Read the exception in the Jahia log. Make `@Activate` tolerate a missing or bad configuration. |
+| Bundle `INSTALLED`, `Unresolved requirement: Import-Package: …`                                                | An import that no bundle exports in that version.                                                                                                                                                                                                               | Pin a range in `Import-Package` (section 2), or embed the library.                                                                                                                                                              |
+| Bundle `ACTIVE`, the action still absent                                                                       | `@Activate` threw. The component is disabled.                                                                                                                                                                                                                   | Read the exception in the Jahia log. Make `@Activate` tolerate a missing or bad configuration.                                                                                                                                  |

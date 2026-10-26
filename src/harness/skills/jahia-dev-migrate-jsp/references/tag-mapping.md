@@ -9,28 +9,28 @@ inherit exact JSP semantics — trust the old behaviour when reasoning about the
 
 ## Rendering and composition
 
-| JSP | JSM |
-|---|---|
-| `<template:module node="${n}"/>` | `<Render node={n} />` |
-| `<template:module path="/a/b"/>` | `<Render path="/a/b" />` |
-| `<template:module path="*"/>`, **outside** an edit-mode guard | `<RenderChildren />` |
-| `<template:module path="*" nodeTypes="a b"/>`, **inside** an edit-mode guard | `<AddContentButtons nodeTypes={["a", "b"]} />` |
-| a single named child | `<RenderChild name="foo" />` |
-| `<template:include view="x"/>` | `<Render advanceRenderingConfig="INCLUDE" view="x" />` |
-| `<template:option .../>` | `<Render advanceRenderingConfig="OPTION" … />` |
-| `<template:param name="k" value="v"/>` in a tag body | `parameters={{ k: "v" }}` on the enclosing `<Render>` / `<Area>` |
-| `<template:area name="x"/>` **and** `<template:area path="x"/>` | `<Area name="x" />` |
-| `areaView` / `nodeTypes` / `listLimit` / `areaType` | `view` / `allowedNodeTypes` / `numberOfItems` / `nodeType` |
-| `areaAsSubNode="true"` | **no equivalent** — see below |
-| `areaAsSubNode="true"` **with** `moduleType="absoluteArea"` | `<AbsoluteArea>` — the content-location risk does not apply here; see below |
-| `<template:area … var="x"/>` | no prop — see `not-portable.md`, "capturing a fragment's output" |
-| `<template:areaAbsolute .../>` or `moduleType="absoluteArea" level="0"` | `<AbsoluteArea name="x" parent={site} />` where `site = renderContext.getSite()` |
-| `editable="false"` | `readOnly` |
+| JSP                                                                          | JSM                                                                              |
+| ---------------------------------------------------------------------------- | -------------------------------------------------------------------------------- |
+| `<template:module node="${n}"/>`                                             | `<Render node={n} />`                                                            |
+| `<template:module path="/a/b"/>`                                             | `<Render path="/a/b" />`                                                         |
+| `<template:module path="*"/>`, **outside** an edit-mode guard                | `<RenderChildren />`                                                             |
+| `<template:module path="*" nodeTypes="a b"/>`, **inside** an edit-mode guard | `<AddContentButtons nodeTypes={["a", "b"]} />`                                   |
+| a single named child                                                         | `<RenderChild name="foo" />`                                                     |
+| `<template:include view="x"/>`                                               | `<Render advanceRenderingConfig="INCLUDE" view="x" />`                           |
+| `<template:option .../>`                                                     | `<Render advanceRenderingConfig="OPTION" … />`                                   |
+| `<template:param name="k" value="v"/>` in a tag body                         | `parameters={{ k: "v" }}` on the enclosing `<Render>` / `<Area>`                 |
+| `<template:area name="x"/>` **and** `<template:area path="x"/>`              | `<Area name="x" />`                                                              |
+| `areaView` / `nodeTypes` / `listLimit` / `areaType`                          | `view` / `allowedNodeTypes` / `numberOfItems` / `nodeType`                       |
+| `areaAsSubNode="true"`                                                       | **no equivalent** — see below                                                    |
+| `areaAsSubNode="true"` **with** `moduleType="absoluteArea"`                  | `<AbsoluteArea>` — the content-location risk does not apply here; see below      |
+| `<template:area … var="x"/>`                                                 | no prop — see `not-portable.md`, "capturing a fragment's output"                 |
+| `<template:areaAbsolute .../>` or `moduleType="absoluteArea" level="0"`      | `<AbsoluteArea name="x" parent={site} />` where `site = renderContext.getSite()` |
+| `editable="false"`                                                           | `readOnly`                                                                       |
 
 `Area` accepts a path in `name`, so `name="basicArea/subLevel"` works.
 
 **Read `path` on an area, not `name`.** `RenderHelper.renderArea` does `attr.put("path", <the name prop>)` before
-driving `AreaTag`, so `<Area name="x"/>` *is* `<template:area path="x"/>`. Template sets routinely use `path=`
+driving `AreaTag`, so `<Area name="x"/>` _is_ `<template:area path="x"/>`. Template sets routinely use `path=`
 exclusively — every one of the 12 areas in the reference set does — and a table that only maps `name=` reads as
 if none of them port. They all do, one for one.
 
@@ -63,19 +63,19 @@ it is `<RenderChildren />`. `AddContentButtons` also takes `childName` (default 
 
 `src/main/import/repository.xml` binds views to pages with `jnt:contentTemplate` nodes, and they are easy to miss
 because they are content, not code. A `jnt:contentTemplate` sits under a `jnt:template`, carries `j:applyOn="<type>"`,
-and holds a `jnt:mainResourceDisplay` with `j:mainResourceView="<view>"`. It means: *when a node of `<type>` is the
-main resource, wrap it in this page template and render it with `<view>`.*
+and holds a `jnt:mainResourceDisplay` with `j:mainResourceView="<view>"`. It means: _when a node of `<type>` is the
+main resource, wrap it in this page template and render it with `<view>`._
 
 That whole construct becomes **one `jahiaComponent` registration**, in `src/templates/`:
 
-| `jnt:contentTemplate` attribute | JSM |
-|---|---|
-| `j:applyOn="jacademy:kbEntry"` | `nodeType: "jacademy:kbEntry"`, `componentType: "template"` |
-| `j:mainResourceView="detail"` | `<Render node={currentNode} view="detail" />` in the body |
-| the parent `jnt:template`'s `j:view` | the page chrome — port that JSP into this component's body |
-| `j:defaultTemplate="true"` | the default `name` (omit `name`) |
-| `j:priority="1"` | `priority: 1` |
-| `j:hiddenTemplate="true"` | **no equivalent** — see `not-portable.md`, "Hidden templates" |
+| `jnt:contentTemplate` attribute      | JSM                                                           |
+| ------------------------------------ | ------------------------------------------------------------- |
+| `j:applyOn="jacademy:kbEntry"`       | `nodeType: "jacademy:kbEntry"`, `componentType: "template"`   |
+| `j:mainResourceView="detail"`        | `<Render node={currentNode} view="detail" />` in the body     |
+| the parent `jnt:template`'s `j:view` | the page chrome — port that JSP into this component's body    |
+| `j:defaultTemplate="true"`           | the default `name` (omit `name`)                              |
+| `j:priority="1"`                     | `priority: 1`                                                 |
+| `j:hiddenTemplate="true"`            | **no equivalent** — see `not-portable.md`, "Hidden templates" |
 
 The reference module has three: `j:applyOn` of `jacademy:kbEntry` (view `detail`), `jnt:fixApplier` (view `detail`)
 and `jnt:content` (view `default`, `j:priority="1"`, `j:hiddenTemplate="true"`). Skip them and those types render
@@ -84,14 +84,14 @@ with no page around them. The scaffold's own catch-all is registered on `jmix:ma
 
 ## Resources and caching
 
-| JSP | JSM |
-|---|---|
-| `<template:addResources type="css" resources="a.css"/>` | `<AddResources type="css" resources="a.css" />` |
-| `type="inline"` with a script body | `<AddResources type="inline" inlineResource={"…"} />` |
-| `targetTag="${renderContext.editMode?'head':'body'}"` | `targetTag={renderContext.isEditMode() ? "head" : "body"}` |
-| the view's `.properties` sidecar | `properties: { … }` on `jahiaComponent`, same key space — **except two keys**, see `not-portable.md` |
-| `<template:addCacheDependency node="${n}"/>` | `server.render.addCacheDependency({ node: n }, renderContext)` |
-| `<template:tokenizedCacheDependency/>` | **no equivalent** |
+| JSP                                                     | JSM                                                                                                  |
+| ------------------------------------------------------- | ---------------------------------------------------------------------------------------------------- |
+| `<template:addResources type="css" resources="a.css"/>` | `<AddResources type="css" resources="a.css" />`                                                      |
+| `type="inline"` with a script body                      | `<AddResources type="inline" inlineResource={"…"} />`                                                |
+| `targetTag="${renderContext.editMode?'head':'body'}"`   | `targetTag={renderContext.isEditMode() ? "head" : "body"}`                                           |
+| the view's `.properties` sidecar                        | `properties: { … }` on `jahiaComponent`, same key space — **except two keys**, see `not-portable.md` |
+| `<template:addCacheDependency node="${n}"/>`            | `server.render.addCacheDependency({ node: n }, renderContext)`                                       |
+| `<template:tokenizedCacheDependency/>`                  | **no equivalent**                                                                                    |
 
 `addCacheDependency` accepts `node`, `uuid`, `path` or `flushOnPathMatchingRegexp` (`uuid` is
 ignored before JavaScript Modules 1.3). It has no React wrapper — `server` is a global in the SSR
@@ -105,7 +105,7 @@ registered view rendered through `<Render>` when the sidecar carries cache keys.
 
 **This bites hardest on a mixin view that includes `view="default"`.** `whatsNew.expanded.jsp` is the only file
 under `jacademix_whatsNew/` and its whole body is `<template:include view="default"><template:param
-name="expanded" value="true"/></template:include>` — it re-renders *the current node's* default view, which is
+name="expanded" value="true"/></template:include>` — it re-renders _the current node's_ default view, which is
 defined by whichever concrete type carries the mixin (`jacademy:whatsNewDX`, `jacademy:whatsNewModule`), in another
 component directory. The port is:
 
@@ -120,22 +120,22 @@ sidecar, it stays a `<Render>`.
 
 ## Control flow and EL
 
-| JSP | JSM |
-|---|---|
-| `<c:if test="${x}">A</c:if>` | `{x && <>A</>}` |
-| `<c:choose>/<c:when>/<c:otherwise>` | ternary, or early `return` |
-| `<c:forEach items="${xs}" var="x">` | `{xs.map((x) => …)}` |
-| `<c:set var="a" value="${b}"/>` | `const a = b` |
-| `<c:url value="${n.url}" context="/"/>` | `buildNodeUrl(n)` |
-| `<c:out value="${x}"/>` / `fn:escapeXml` | just `{x}` — React escapes |
-| `${currentNode.properties.foo.string}` | the `foo` prop (first callback argument) |
-| `${jcr:isNodeType(n,'jnt:page')}` | `n.isNodeType("jnt:page")` |
-| `${jcr:getChildrenOfType(n,'t')}` | `getChildNodes(n, -1, (c) => c.isNodeType("t"))` |
-| `<jcr:node var="n" path="/a/b"/>` | `jcrSession.getNode("/a/b")` — **but it throws**, see below |
-| `<jcr:node var="n" path="rel/path"/>` | `currentNode.hasNode("rel/path") ? currentNode.getNode("rel/path") : undefined` |
-| `${param.foo}` | `renderContext.getRequest().getParameter("foo")` — no high-level helper |
-| `${fn:length(x)}` etc. | plain JS |
-| `functions:abbreviate`, `removeHtmlTags` | a JS idiom, but neither is a one-liner — see "Prefer the platform idiom" below |
+| JSP                                      | JSM                                                                             |
+| ---------------------------------------- | ------------------------------------------------------------------------------- |
+| `<c:if test="${x}">A</c:if>`             | `{x && <>A</>}`                                                                 |
+| `<c:choose>/<c:when>/<c:otherwise>`      | ternary, or early `return`                                                      |
+| `<c:forEach items="${xs}" var="x">`      | `{xs.map((x) => …)}`                                                            |
+| `<c:set var="a" value="${b}"/>`          | `const a = b`                                                                   |
+| `<c:url value="${n.url}" context="/"/>`  | `buildNodeUrl(n)`                                                               |
+| `<c:out value="${x}"/>` / `fn:escapeXml` | just `{x}` — React escapes                                                      |
+| `${currentNode.properties.foo.string}`   | the `foo` prop (first callback argument)                                        |
+| `${jcr:isNodeType(n,'jnt:page')}`        | `n.isNodeType("jnt:page")`                                                      |
+| `${jcr:getChildrenOfType(n,'t')}`        | `getChildNodes(n, -1, (c) => c.isNodeType("t"))`                                |
+| `<jcr:node var="n" path="/a/b"/>`        | `jcrSession.getNode("/a/b")` — **but it throws**, see below                     |
+| `<jcr:node var="n" path="rel/path"/>`    | `currentNode.hasNode("rel/path") ? currentNode.getNode("rel/path") : undefined` |
+| `${param.foo}`                           | `renderContext.getRequest().getParameter("foo")` — no high-level helper         |
+| `${fn:length(x)}` etc.                   | plain JS                                                                        |
+| `functions:abbreviate`, `removeHtmlTags` | a JS idiom, but neither is a one-liner — see "Prefer the platform idiom" below  |
 
 **`<jcr:node>` swallows a missing node; `getNode` does not.** `JCRNodeTag` catches `PathNotFoundException` and
 `ItemNotFoundException`, logs at debug and leaves the variable **unset**, which is why the JSP that follows reads
@@ -156,18 +156,18 @@ the render context (`renderContext.getSite().getPath()`) and keep only the relat
 The first callback argument is a `Proxy` over `currentNode`, so a prop is read at access time. `getNodeProps` maps
 JCR types as follows — declare the callback's parameter type to match, because nothing infers it for you.
 
-| CND | Prop type | Note |
-|---|---|---|
-| `(string)`, `(name)`, `(path)`, `(uri)`, `(decimal)` | `string` | |
-| `(long)` | `number` | `getLong()` |
-| `(double)` | `number` | `getDouble()` |
-| `(boolean)` | `boolean` | a real JCR boolean, which is rare |
-| `(date)` | `string` | ISO-ish string, never a `Date` — the unwrapper avoids the JVM time zone |
-| `(reference)`, `(weakreference)` | `JCRNodeWrapper` | already resolved to the node |
-| `multiple` | `T[]` | the same unwrapper, applied per value |
-| absent property | `undefined` | |
+| CND                                                  | Prop type        | Note                                                                    |
+| ---------------------------------------------------- | ---------------- | ----------------------------------------------------------------------- |
+| `(string)`, `(name)`, `(path)`, `(uri)`, `(decimal)` | `string`         |                                                                         |
+| `(long)`                                             | `number`         | `getLong()`                                                             |
+| `(double)`                                           | `number`         | `getDouble()`                                                           |
+| `(boolean)`                                          | `boolean`        | a real JCR boolean, which is rare                                       |
+| `(date)`                                             | `string`         | ISO-ish string, never a `Date` — the unwrapper avoids the JVM time zone |
+| `(reference)`, `(weakreference)`                     | `JCRNodeWrapper` | already resolved to the node                                            |
+| `multiple`                                           | `T[]`            | the same unwrapper, applied per value                                   |
+| absent property                                      | `undefined`      |                                                                         |
 
-**Absent means `undefined`, never `[]`.** The proxy returns `undefined` from `!node.hasProperty(key)` *before* it
+**Absent means `undefined`, never `[]`.** The proxy returns `undefined` from `!node.hasProperty(key)` _before_ it
 ever looks at cardinality, so an unset multi-valued property is `undefined`, not an empty array. `${empty xs}` and
 `${fn:length(xs) > 0}` both covered this in EL; `xs.map(…)` does not. Type it `T[] | undefined` and default it at
 the destructuring site.
@@ -185,16 +185,16 @@ id={id}/>` type-checks and puts a video identifier in the DOM `id` attribute. Re
 `URLGenerator` (`${url.*}`) is reachable in full through `renderContext.getURLGenerator()`, but the common uses
 have first-class helpers and should go through them.
 
-| JSP | JSM |
-|---|---|
-| `${url.currentModule}/images/logo.svg` | `buildModuleFileUrl("static/images/logo.svg")` |
-| `${url.base}${n.path}.html` / `${n.url}` | `buildNodeUrl(n)` |
-| `${url.baseLive}${n.path}.html` | `buildNodeUrl(n, { mode: "live" })` |
-| `${url.server}${n.url}` | `buildNodeUrl(n, { absolute: true })` (1.3+) |
-| `<img src="${image.url}" alt="${image.properties['jcr:title'].string}"/>` | `<JImage src={image} />` (1.3+) |
-| `/graphql`, `/cms/…` and other endpoints | `buildEndpointUrl("/graphql")` |
-| `${url.mainResource}` | `renderContext.getURLGenerator().getMainResource()` |
-| `${url.edit}` / `.preview` / `.live` / `.login` / `.logout` | `renderContext.getURLGenerator().getEdit()` etc. |
+| JSP                                                                       | JSM                                                 |
+| ------------------------------------------------------------------------- | --------------------------------------------------- |
+| `${url.currentModule}/images/logo.svg`                                    | `buildModuleFileUrl("static/images/logo.svg")`      |
+| `${url.base}${n.path}.html` / `${n.url}`                                  | `buildNodeUrl(n)`                                   |
+| `${url.baseLive}${n.path}.html`                                           | `buildNodeUrl(n, { mode: "live" })`                 |
+| `${url.server}${n.url}`                                                   | `buildNodeUrl(n, { absolute: true })` (1.3+)        |
+| `<img src="${image.url}" alt="${image.properties['jcr:title'].string}"/>` | `<JImage src={image} />` (1.3+)                     |
+| `/graphql`, `/cms/…` and other endpoints                                  | `buildEndpointUrl("/graphql")`                      |
+| `${url.mainResource}`                                                     | `renderContext.getURLGenerator().getMainResource()` |
+| `${url.edit}` / `.preview` / `.live` / `.login` / `.logout`               | `renderContext.getURLGenerator().getEdit()` etc.    |
 
 `buildModuleFileUrl` calls `getURLGenerator().getCurrentModule()` itself, so the JSP concatenation ports as a path
 argument — with the `static/` prefix the packaging rule in `gotchas.md` imposes. `${url.mainResource}` is
@@ -203,45 +203,45 @@ resolved-template segment, so use the generator when the exact URL matters (face
 
 ## Context objects
 
-| JSP | JSM (`useServerContext()` or the 2nd callback argument) |
-|---|---|
-| `currentNode` | `currentNode` |
-| `currentResource` | `currentResource` |
-| `renderContext` | `renderContext` |
-| `renderContext.mainResource.node` | `mainNode` |
-| `renderContext.site` | `renderContext.getSite()` |
-| `renderContext.editMode` / `previewMode` | `renderContext.isEditMode()` / `isPreviewMode()` |
-| `currentUser` | `renderContext.getUser()` |
-| — | `jcrSession`, `bundleKey` |
+| JSP                                      | JSM (`useServerContext()` or the 2nd callback argument) |
+| ---------------------------------------- | ------------------------------------------------------- |
+| `currentNode`                            | `currentNode`                                           |
+| `currentResource`                        | `currentResource`                                       |
+| `renderContext`                          | `renderContext`                                         |
+| `renderContext.mainResource.node`        | `mainNode`                                              |
+| `renderContext.site`                     | `renderContext.getSite()`                               |
+| `renderContext.editMode` / `previewMode` | `renderContext.isEditMode()` / `isPreviewMode()`        |
+| `currentUser`                            | `renderContext.getUser()`                               |
+| —                                        | `jcrSession`, `bundleKey`                               |
 
 ## Queries
 
-| JSP | JSM |
-|---|---|
-| `<jcr:sql var="r" sql="…"/>` | `useJCRQuery({ query })` or `getNodesByJCRQuery(session, query, limit)` |
-| GraphQL | `useGQLQuery({ query, variables })` |
-| `<jcr:jqom>` / the `query:` taglib | **no equivalent — JCR-SQL2 only** |
-| the `facet:` taglib (`facetLib`) | **no equivalent** — see `not-portable.md` |
-| the `search:` / `s:` taglib (`http://www.jahia.org/tags/search`) | **no equivalent** — see `not-portable.md` |
+| JSP                                                              | JSM                                                                     |
+| ---------------------------------------------------------------- | ----------------------------------------------------------------------- |
+| `<jcr:sql var="r" sql="…"/>`                                     | `useJCRQuery({ query })` or `getNodesByJCRQuery(session, query, limit)` |
+| GraphQL                                                          | `useGQLQuery({ query, variables })`                                     |
+| `<jcr:jqom>` / the `query:` taglib                               | **no equivalent — JCR-SQL2 only**                                       |
+| the `facet:` taglib (`facetLib`)                                 | **no equivalent** — see `not-portable.md`                               |
+| the `search:` / `s:` taglib (`http://www.jahia.org/tags/search`) | **no equivalent** — see `not-portable.md`                               |
 
 `getNodesByJCRQuery` requires a `limit`; a falsy one returns `[]` with a warning.
 
-Count the *uses*, not the imports, when sizing this. The reference set imports the search taglib nine times
+Count the _uses_, not the imports, when sizing this. The reference set imports the search taglib nine times
 (`s:` ×8, `search:` ×1) but uses a single tag from it, `<search:searchUrl>`; the `facet:` taglib is imported three
 times and genuinely used nineteen times, all inside `jnt_facets/`. Sized by imports the two look comparable;
 sized by use, one is a dead import and the other is a whole component that cannot port.
 
 ## i18n
 
-| JSP | JSM |
-|---|---|
-| `<fmt:message key="k"/>` | `const { t } = useTranslation(); t("k")` |
-| the module resource bundle for views | `settings/locales/<lang>.json` (i18next) |
-| resource bundles for **content-type and field labels** | unchanged — `settings/resources/<module>[_<lang>].properties` |
-| `<fmt:message key="${fn:replace(n.primaryNodeTypeName,':','_')}"/>` | `n.getPrimaryNodeType().getLabel(locale)` |
-| `<fmt:message key="<type>_<prop>"/>` computed for a field | `type.getPropertyDefinition(name).getLabel(locale, type)` |
-| `<fmt:formatDate>` | `Intl.DateTimeFormat` — see below |
-| `<fmt:formatNumber>` | `Intl.NumberFormat` |
+| JSP                                                                 | JSM                                                           |
+| ------------------------------------------------------------------- | ------------------------------------------------------------- |
+| `<fmt:message key="k"/>`                                            | `const { t } = useTranslation(); t("k")`                      |
+| the module resource bundle for views                                | `settings/locales/<lang>.json` (i18next)                      |
+| resource bundles for **content-type and field labels**              | unchanged — `settings/resources/<module>[_<lang>].properties` |
+| `<fmt:message key="${fn:replace(n.primaryNodeTypeName,':','_')}"/>` | `n.getPrimaryNodeType().getLabel(locale)`                     |
+| `<fmt:message key="<type>_<prop>"/>` computed for a field           | `type.getPropertyDefinition(name).getLabel(locale, type)`     |
+| `<fmt:formatDate>`                                                  | `Intl.DateTimeFormat` — see below                             |
+| `<fmt:formatNumber>`                                                | `Intl.NumberFormat`                                           |
 
 ### The two bundles are not the same bundle
 
@@ -269,7 +269,7 @@ so it produces exactly `settings/locales/en.json`.
 **A computed key cannot be an i18next key.** The reference set builds keys at render time —
 `key="${fn:replace(currentNode.primaryNodeTypeName,':','_')}"` and
 `key="${fn:replace(facetNodeTypeName,':','_')}.${fn:replace(facetPropertyName,':','_')}"`. There is nothing to
-extract into a JSON file, and `t(someVariable)` would just miss. Both are asking for a *definition label*, which
+extract into a JSON file, and `t(someVariable)` would just miss. Both are asking for a _definition label_, which
 Jahia already resolves against the content bundle: `ExtendedNodeType#getLabel(Locale)` builds exactly the
 `<ns>_<type>` key, and `ExtendedItemDefinition#getLabel(Locale, ExtendedNodeType)` builds the
 `<ns>_<type>.<prop>` one. Call those and the lookup keeps working with the properties file untouched.
@@ -278,7 +278,7 @@ Jahia already resolves against the content bundle: `ExtendedNodeType#getLabel(Lo
 solid share of them resolve keys the module does not define — `bootstrap5nt_navbar.label.*`,
 `bootstrap5mix_advancedPagination.*`, `label.username`, `label.password`, `facets.facetsSet`,
 `angular.ffController.button.*`. In JSP these worked because Jahia's resource-bundle lookup spans modules; in JSM
-they do not, because the namespace *is* a bundle and the owning module ships `.properties`, not
+they do not, because the namespace _is_ a bundle and the owning module ships `.properties`, not
 `META-INF/locales/*.json`, so even `t("their-bundle:key")` finds nothing. Copying the strings into your own
 `en.json` forks them from their owner and they stop tracking upstream. List them in the Step 7 report as
 unresolved i18n keys and let the operator decide.
@@ -291,15 +291,15 @@ instead produces worse code that then has to be maintained.
 
 Reach for the platform first:
 
-| JSP | Use |
-|---|---|
-| `<fmt:formatDate>` | `new Intl.DateTimeFormat(locale, {…}).format(new Date(value))` |
-| `<fmt:formatNumber>` | `Intl.NumberFormat` |
-| relative dates hand-rolled in EL | `Intl.RelativeTimeFormat` |
-| `functions:abbreviate(s, lower, upper, end)` | **not `slice`** — a small helper, see below |
-| locale-aware sorting in a taglib | `Intl.Collator` |
-| `fn:startsWith` / `contains` / `replace` / `length` | the matching `String` and `Array` methods |
-| `fn:escapeXml` | nothing — React escapes by default |
+| JSP                                                 | Use                                                            |
+| --------------------------------------------------- | -------------------------------------------------------------- |
+| `<fmt:formatDate>`                                  | `new Intl.DateTimeFormat(locale, {…}).format(new Date(value))` |
+| `<fmt:formatNumber>`                                | `Intl.NumberFormat`                                            |
+| relative dates hand-rolled in EL                    | `Intl.RelativeTimeFormat`                                      |
+| `functions:abbreviate(s, lower, upper, end)`        | **not `slice`** — a small helper, see below                    |
+| locale-aware sorting in a taglib                    | `Intl.Collator`                                                |
+| `fn:startsWith` / `contains` / `replace` / `length` | the matching `String` and `Array` methods                      |
+| `fn:escapeXml`                                      | nothing — React escapes by default                             |
 
 Take the locale from the render context — `currentResource.getLocale()` — and pass it to the `Intl`
 constructor, rather than hardcoding a format string as the JSP did. The result is usually shorter
@@ -324,7 +324,7 @@ Two genuine exceptions, where the taglib is not a thin wrapper over something Ja
 the exact output matters, strip the markup where the value is produced rather than where it is displayed.
 
 **`functions:abbreviate` is `org.apache.commons.lang.WordUtils.abbreviate`**, and the four-argument form is
-*lower bound, upper bound, appendix* with word-boundary snapping — `slice` reproduces none of it. `abbreviate(s,
+_lower bound, upper bound, appendix_ with word-boundary snapping — `slice` reproduces none of it. `abbreviate(s,
 150, 250, '...')` means: look for the first space at or after index 150; cut there if there is one before 250,
 otherwise cut hard at 250; append `'...'` only if anything was actually removed. Write it out:
 
@@ -343,7 +343,7 @@ export function abbreviate(str: string, lower: number, upper: number, end = ""):
 Cutting at `lower` alone truncates mid-word; cutting at `upper` alone over-runs every short text and appends an
 ellipsis to text that was never shortened. Both are visible on the page.
 
-Only treat something as a gap when the *platform* cannot express it — see `not-portable.md`. A
+Only treat something as a gap when the _platform_ cannot express it — see `not-portable.md`. A
 missing taglib is not a gap; a missing `moduleMap` is.
 
 ## Client-side behaviour

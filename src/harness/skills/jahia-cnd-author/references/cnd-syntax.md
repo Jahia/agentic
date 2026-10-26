@@ -2,16 +2,16 @@
 
 ## Namespace declarations
 
-| Pattern | Example |
-|---|---|
+| Pattern            | Example                                       |
+| ------------------ | --------------------------------------------- |
 | `<prefix = 'uri'>` | `<jnt = 'http://www.jahia.org/jahia/nt/1.0'>` |
 
 Jahia built-in namespaces:
 
-| Prefix | URI |
-|---|---|
-| `j` | `http://www.jahia.org/jahia/1.0` |
-| `jnt` | `http://www.jahia.org/jahia/nt/1.0` |
+| Prefix | URI                                  |
+| ------ | ------------------------------------ |
+| `j`    | `http://www.jahia.org/jahia/1.0`     |
+| `jnt`  | `http://www.jahia.org/jahia/nt/1.0`  |
 | `jmix` | `http://www.jahia.org/jahia/mix/1.0` |
 
 Module convention: declare two namespaces — one for node types (`ns`), one for mixins (`nsmix`). The prefix is read from the first `<…>` line in `settings/definitions.cnd`.
@@ -64,51 +64,51 @@ All component node types must extend `nsmix:component`:
 - propertyName (type, visualHint) = 'default' modifier1 modifier2 < constraint1, constraint2
 ```
 
-| Part | Position | Example |
-|---|---|---|
-| Name | after `-` | `- title` |
-| Type | first parens | `(string)` |
-| Visual hint | after type, same parens | `(string, text)` |
-| Default value | after `=` | `= 'Hello'` |
-| Modifiers | after default | `i18n mandatory multiple autocreated primary` |
-| Constraints | after `<` | `< 'en', 'fr', 'de'` |
+| Part          | Position                | Example                                       |
+| ------------- | ----------------------- | --------------------------------------------- |
+| Name          | after `-`               | `- title`                                     |
+| Type          | first parens            | `(string)`                                    |
+| Visual hint   | after type, same parens | `(string, text)`                              |
+| Default value | after `=`               | `= 'Hello'`                                   |
+| Modifiers     | after default           | `i18n mandatory multiple autocreated primary` |
+| Constraints   | after `<`               | `< 'en', 'fr', 'de'`                          |
 
 ### Property types
 
-| Type | Notes |
-|---|---|
-| `string` | Plain text |
-| `boolean` | `true` / `false` |
-| `long` | Integer |
-| `double` | Floating point |
-| `decimal` | Exact decimal |
-| `date` | ISO date/time |
-| `weakreference` | Node reference |
-| `uri` | URI string |
+| Type            | Notes            |
+| --------------- | ---------------- |
+| `string`        | Plain text       |
+| `boolean`       | `true` / `false` |
+| `long`          | Integer          |
+| `double`        | Floating point   |
+| `decimal`       | Exact decimal    |
+| `date`          | ISO date/time    |
+| `weakreference` | Node reference   |
+| `uri`           | URI string       |
 
 ### Common modifiers
 
-| Modifier | Meaning |
-|---|---|
-| `i18n` | Translatable per language |
-| `mandatory` | Must have a value |
-| `multiple` | Multi-value property |
-| `autocreated` | Created automatically |
-| `primary` | Primary property of the node |
-| `hidden` | Not shown in editor UI |
-| `protected` | Not editable by users |
+| Modifier      | Meaning                      |
+| ------------- | ---------------------------- |
+| `i18n`        | Translatable per language    |
+| `mandatory`   | Must have a value            |
+| `multiple`    | Multi-value property         |
+| `autocreated` | Created automatically        |
+| `primary`     | Primary property of the node |
+| `hidden`      | Not shown in editor UI       |
+| `protected`   | Not editable by users        |
 
 ### Common visual hints
 
-| Hint | Editor widget |
-|---|---|
-| `text` | Single-line text |
-| `textarea` | Multi-line text |
-| `richtext` | Rich text editor |
-| `picker` | Content picker |
-| `color` | Color picker |
-| `checkbox` | Checkbox |
-| `choicelist` | Drop-down list |
+| Hint         | Editor widget    |
+| ------------ | ---------------- |
+| `text`       | Single-line text |
+| `textarea`   | Multi-line text  |
+| `richtext`   | Rich text editor |
+| `picker`     | Content picker   |
+| `color`      | Color picker     |
+| `checkbox`   | Checkbox         |
+| `choicelist` | Drop-down list   |
 
 ---
 

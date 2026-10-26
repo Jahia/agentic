@@ -29,6 +29,7 @@ yarn jahia-deploy
 ```
 
 Interpret the output:
+
 - `"Operation successful"` in the response → deployment was accepted. Proceed to Step 3 — the module may still fail at runtime.
 - `{}`, or `Jahia installed nothing` (since `@jahia/vite-plugin` 1.3, the script also exits with code 1) → **nothing was installed**, and the previous version of the module is still running. The provisioning API answers `200` in that case. See "CND: a change is not applied" below before you look anywhere else.
 - Any other error → fix the connection issue (is Docker running?) then retry.
@@ -73,6 +74,7 @@ docker logs <container-name> 2>&1 | grep "Registered Jahia component"
 ```
 
 Expected: one line per view registered, e.g.:
+
 ```
 Registered Jahia component: mymodule_view_ns:hero_default
 Registered Jahia component: mymodule_view_ns:hero_small
@@ -86,18 +88,18 @@ If a component you just deployed is **absent** from this list, its `jahiaCompone
 
 Scan the captured log output for the **first** error that appears **after** the deploy timestamp. Common patterns to look for:
 
-| Pattern | Likely cause |
-|---|---|
-| `CND parse error` / `invalid node type` | CND syntax error or illegal field declaration |
-| `Cannot install package.tgz = java.io.IOException` | Jahia could not read a CND (ignore the hint about Maven repositories): see "CND: a change is not applied" |
-| `Bundle package.tgz already installed, skip` | The same version without `-SNAPSHOT` is already installed: see "CND: a change is not applied" |
+| Pattern                                                                            | Likely cause                                                                                                                        |
+| ---------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------- |
+| `CND parse error` / `invalid node type`                                            | CND syntax error or illegal field declaration                                                                                       |
+| `Cannot install package.tgz = java.io.IOException`                                 | Jahia could not read a CND (ignore the hint about Maven repositories): see "CND: a change is not applied"                           |
+| `Bundle package.tgz already installed, skip`                                       | The same version without `-SNAPSHOT` is already installed: see "CND: a change is not applied"                                       |
 | `Skipping installation of package.tgz, a more recent version is already installed` | The installed version is higher than `package.json`'s, for instance after you switched branches: see "CND: a change is not applied" |
-| `NoSuchNodeTypeException` | A referenced type doesn't exist (wrong namespace, typo, missing dependency) |
-| `ClassNotFoundException` / `NoClassDefFoundError` | Java dependency missing |
-| `Cannot set property` / `TypeError` in JS stack | View runtime error |
-| `Module ... failed to start` | Any of the above |
-| `Unresolved requirement` | OSGi dependency not satisfied |
-| Missing `Registered Jahia component` for a specific type | View file has a syntax/import error, or `jahiaComponent` not reached |
+| `NoSuchNodeTypeException`                                                          | A referenced type doesn't exist (wrong namespace, typo, missing dependency)                                                         |
+| `ClassNotFoundException` / `NoClassDefFoundError`                                  | Java dependency missing                                                                                                             |
+| `Cannot set property` / `TypeError` in JS stack                                    | View runtime error                                                                                                                  |
+| `Module ... failed to start`                                                       | Any of the above                                                                                                                    |
+| `Unresolved requirement`                                                           | OSGi dependency not satisfied                                                                                                       |
+| Missing `Registered Jahia component` for a specific type                           | View file has a syntax/import error, or `jahiaComponent` not reached                                                                |
 
 **Focus on the first error, not the last.** Later errors are often cascading failures caused by the first one.
 
@@ -145,6 +147,7 @@ docker logs <container-name> --since 5m 2>&1 | grep -E "Cannot install package.t
    ```
 
    No output means no `orderable` on a child node line.
+
 2. Read every line you changed since the last deploy that worked. Known refusals:
    - `orderable` on a `+` child node line: `orderable` is an option of the type, after its supertypes (`[ns:list] > jnt:content, jmix:list orderable`), never of a child node.
    - A property type or selector that does not exist, such as `(richtext)` instead of `(string, richtext)`.
@@ -154,24 +157,31 @@ docker logs <container-name> --since 5m 2>&1 | grep -E "Cannot install package.t
 Do not work around a CND that Jahia refuses. Groovy console scripts, the JCR browser, uninstalling the module, deleting `/modules/<module>`, or `POST /modules/api/bundles` take an hour and fix nothing. `/modules/api/bundles` also runs the breaking-change check that `yarn jahia-deploy` skips, so it refuses every major change as `Major change in definition`.
 
 ### CND: `j:linknode` or `j:url` declared explicitly
+
 These fields are injected by Jahia's `linkTypeInitializer` mixin. Remove them from the CND.
 
 ### CND: unknown mixin or type
+
 Check that the namespace is declared at the top of `settings/definitions.cnd` and that all referenced types exist. A namespace declared a second time in a component `definition.cnd` breaks the merged CND file instead: every `<prefix = 'uri'>` line belongs in `settings/definitions.cnd` only.
 
 ### import.xml: reference to a non-existent type
+
 Any `jcr:primaryType` or `jcr:mixinTypes` value in `import.xml` must exist in the deployed CND. Check for typos.
 
 ### import.xml: `jmix:nolive` used as `jcr:primaryType`
+
 `jmix:nolive` is a mixin — it goes in `jcr:mixinTypes`, not `jcr:primaryType`.
 
 ### import.xml: OSGi fails with `missing requirement … (nodetypes=jmix:nolive)`
+
 Every `jcr:mixinTypes` value in `import.xml` is scanned by the OSGi bundle resolver. If the mixin is not declared in the module's own CND and is not provided by a resolvable dependency, the bundle will not start. Correct spelling is `jmix:nolive` (all lowercase). Verify the mixin exists in your Jahia instance before using it in `import.xml`.
 
 ### View: module loads but page is blank
+
 Stream the Docker logs (Step 3), redeploy with `yarn build && yarn jahia-deploy`, and load the page: a React render error is logged with the view that threw it. Never run `yarn dev` from an agent.
 
 ### View: translation keys displayed instead of text
+
 The page shows raw keys such as `7l9zetMbU4cKpL4NxSOtL` where `settings/locales/<lang>.json` has a value. The view imports `t` from `i18next`: since JavaScript Modules 1.3, the global `t` no longer knows the module's namespace. Replace it with `const { t } = useTranslation();` from `react-i18next`, inside the component. If the view already uses `useTranslation()`, check that the key exists in the JSON file of the page language.
 
 ---

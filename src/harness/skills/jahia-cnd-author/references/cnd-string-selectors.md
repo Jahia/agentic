@@ -2,15 +2,15 @@
 
 ## String type variants
 
-| Type declaration | Editor widget | When to use |
-|---|---|---|
-| `(string)` | Single-line text input | Short labels, IDs, slugs |
-| `(string, textarea)` | Multi-line text area | Paragraphs, descriptions |
-| `(string, richtext)` | Rich text editor (TinyMCE) | Body content, formatted text |
-| `(string) multiple` | Tag input / list | Lists of plain strings |
-| `(string, tag[autocomplete=<n>,separator='<char>']) multiple` | Tag input with autocomplete | Tagging, keywords |
-| `(string, color)` | Color picker | Color values |
-| `(string, cron)` | Cron expression editor | Scheduling |
+| Type declaration                                              | Editor widget               | When to use                  |
+| ------------------------------------------------------------- | --------------------------- | ---------------------------- |
+| `(string)`                                                    | Single-line text input      | Short labels, IDs, slugs     |
+| `(string, textarea)`                                          | Multi-line text area        | Paragraphs, descriptions     |
+| `(string, richtext)`                                          | Rich text editor (TinyMCE)  | Body content, formatted text |
+| `(string) multiple`                                           | Tag input / list            | Lists of plain strings       |
+| `(string, tag[autocomplete=<n>,separator='<char>']) multiple` | Tag input with autocomplete | Tagging, keywords            |
+| `(string, color)`                                             | Color picker                | Color values                 |
+| `(string, cron)`                                              | Cron expression editor      | Scheduling                   |
 
 ## Fixed-choice dropdowns
 
@@ -24,23 +24,23 @@ Use `(string, choicelist)` + `< 'val1', 'val2'` for a dropdown with a hard-coded
 
 ## `choicelist[...]` initializer variants
 
-| Initializer | What it renders |
-|---|---|
-| `choicelist` | Dropdown from constraints list |
-| `choicelist[componentTypes='<types>']` | Component types/mixins dropdown |
-| `choicelist[country]` | Countries list (ISO codes, localized labels) |
-| `choicelist[menus]` | Site menus |
-| `choicelist[nodes='<path>;<type>;<property>']` | Nodes from a JCR path; supports `$currentSiteTemplatesSet` |
-| `choicelist[nodetypes='<type>']` | Node types inheriting from `<type>`; special values: `PRIMARY;fromDependencies;useName`, `MIXIN;fromDependencies;useName` |
-| `choicelist[permissions]` | Permissions list |
-| `choicelist[renderModes]` | Render modes |
-| `choicelist[resourceBundle]` | Keys as constraints, labels from resource bundle |
-| `choicelist[sortableFieldnames]` | Sortable field names |
-| `choicelist[subnodetypes='<type>']` | Similar to nodetypes |
-| `choicelist[templates]` | Site templates; variants: `mainresource`, `reference`, `subnodes`, `<type>`, with optional `, dependentProperties='<property>'` |
-| `choicelist[templatesNode]` | Node templates; variant: `pageTemplate` |
-| `choicelist[workflow]` | Available workflows |
-| `choicelist[linkTypeInitializer]` | Internal/external/none link picker (see below) |
+| Initializer                                    | What it renders                                                                                                                 |
+| ---------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------- |
+| `choicelist`                                   | Dropdown from constraints list                                                                                                  |
+| `choicelist[componentTypes='<types>']`         | Component types/mixins dropdown                                                                                                 |
+| `choicelist[country]`                          | Countries list (ISO codes, localized labels)                                                                                    |
+| `choicelist[menus]`                            | Site menus                                                                                                                      |
+| `choicelist[nodes='<path>;<type>;<property>']` | Nodes from a JCR path; supports `$currentSiteTemplatesSet`                                                                      |
+| `choicelist[nodetypes='<type>']`               | Node types inheriting from `<type>`; special values: `PRIMARY;fromDependencies;useName`, `MIXIN;fromDependencies;useName`       |
+| `choicelist[permissions]`                      | Permissions list                                                                                                                |
+| `choicelist[renderModes]`                      | Render modes                                                                                                                    |
+| `choicelist[resourceBundle]`                   | Keys as constraints, labels from resource bundle                                                                                |
+| `choicelist[sortableFieldnames]`               | Sortable field names                                                                                                            |
+| `choicelist[subnodetypes='<type>']`            | Similar to nodetypes                                                                                                            |
+| `choicelist[templates]`                        | Site templates; variants: `mainresource`, `reference`, `subnodes`, `<type>`, with optional `, dependentProperties='<property>'` |
+| `choicelist[templatesNode]`                    | Node templates; variant: `pageTemplate`                                                                                         |
+| `choicelist[workflow]`                         | Available workflows                                                                                                             |
+| `choicelist[linkTypeInitializer]`              | Internal/external/none link picker (see below)                                                                                  |
 
 ## `mix:title` instead of a title string property
 
@@ -90,12 +90,12 @@ In the view, switch on `props["j:linkType"]`.
 
 ## Weakreference picker variants
 
-| Initializer | What it picks |
-|---|---|
-| `picker[type='image']` | Image from media library |
-| `picker[type='editoriallink']` | Editorial content node |
-| `picker[type='page']` | Page node |
-| `picker[type='file']` | Any file asset |
+| Initializer                    | What it picks            |
+| ------------------------------ | ------------------------ |
+| `picker[type='image']`         | Image from media library |
+| `picker[type='editoriallink']` | Editorial content node   |
+| `picker[type='page']`          | Page node                |
+| `picker[type='file']`          | Any file asset           |
 
 ## Regex constraints on strings
 
@@ -107,19 +107,19 @@ In the view, switch on `props["j:linkType"]`.
 
 ## Modifiers / keywords
 
-| Keyword | Description |
-|---|---|
-| `i18n` | Translatable per language — **default to always on user-facing fields** |
-| `mandatory` | Required |
-| `multiple` | List of values |
-| `primary` | Highlighted field in editor (one per type) |
-| `autocreated` | Auto-created on node creation; requires `= 'value'` |
-| `indexed=no` | Excludes from indexing |
-| `nofulltext` | Excludes from full-text search |
-| `boost=<float>` | Multiplies full-text search score |
-| `facetable` | Enables faceted search on this property |
-| `protected` | Cannot be set by external tools |
-| `hidden` | Hidden in editor |
+| Keyword         | Description                                                             |
+| --------------- | ----------------------------------------------------------------------- |
+| `i18n`          | Translatable per language — **default to always on user-facing fields** |
+| `mandatory`     | Required                                                                |
+| `multiple`      | List of values                                                          |
+| `primary`       | Highlighted field in editor (one per type)                              |
+| `autocreated`   | Auto-created on node creation; requires `= 'value'`                     |
+| `indexed=no`    | Excludes from indexing                                                  |
+| `nofulltext`    | Excludes from full-text search                                          |
+| `boost=<float>` | Multiplies full-text search score                                       |
+| `facetable`     | Enables faceted search on this property                                 |
+| `protected`     | Cannot be set by external tools                                         |
+| `hidden`        | Hidden in editor                                                        |
 
 ## Examples combining selectors and modifiers
 

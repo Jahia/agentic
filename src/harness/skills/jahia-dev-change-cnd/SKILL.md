@@ -36,21 +36,21 @@ The table and the procedure below were verified on Jahia 8.2.3.2 with a Java/JSP
 
 ## Step 1 — Look the change up
 
-| Change on an existing type | Verdict | Content impact |
-| --- | --- | --- |
-| Add an optional property (with or without `autocreated` and a default) | Accepted | Existing nodes do not get it: autocreated applies to new nodes only |
-| Add a `mandatory` property | **Refused** | |
-| Change a property's type (`string` → `boolean`, …) | **Refused** | |
-| Rename a property | **Refused** (it is a removal plus an addition) | |
-| Remove a property, even unused by any node | **Refused** | |
-| Add or remove `internationalized` | **Refused** | |
-| Add `mandatory` to an existing property | **Refused** | |
-| Add a value to a choicelist constraint (`< 'a', 'b', 'c'`) | Accepted | **One way**: removing that value later is refused |
-| Remove a value from a constraint | **Refused** | |
-| Change a default value | Accepted | Existing nodes keep their value |
-| Add or remove `autocreated` | Accepted | |
-| Add `hidden` | Accepted | Editors stop seeing the field; the value stays |
-| Add or remove `indexed=no` | Accepted | Reindex the site afterwards (Jahia Tools > Search engine management) |
+| Change on an existing type                                             | Verdict                                        | Content impact                                                       |
+| ---------------------------------------------------------------------- | ---------------------------------------------- | -------------------------------------------------------------------- |
+| Add an optional property (with or without `autocreated` and a default) | Accepted                                       | Existing nodes do not get it: autocreated applies to new nodes only  |
+| Add a `mandatory` property                                             | **Refused**                                    |                                                                      |
+| Change a property's type (`string` → `boolean`, …)                     | **Refused**                                    |                                                                      |
+| Rename a property                                                      | **Refused** (it is a removal plus an addition) |                                                                      |
+| Remove a property, even unused by any node                             | **Refused**                                    |                                                                      |
+| Add or remove `internationalized`                                      | **Refused**                                    |                                                                      |
+| Add `mandatory` to an existing property                                | **Refused**                                    |                                                                      |
+| Add a value to a choicelist constraint (`< 'a', 'b', 'c'`)             | Accepted                                       | **One way**: removing that value later is refused                    |
+| Remove a value from a constraint                                       | **Refused**                                    |                                                                      |
+| Change a default value                                                 | Accepted                                       | Existing nodes keep their value                                      |
+| Add or remove `autocreated`                                            | Accepted                                       |                                                                      |
+| Add `hidden`                                                           | Accepted                                       | Editors stop seeing the field; the value stays                       |
+| Add or remove `indexed=no`                                             | Accepted                                       | Reindex the site afterwards (Jahia Tools > Search engine management) |
 
 Read from the code of the 8.2.3.2 checker, not tested: changing `multiple` is also major, and
 bumping the module version does not skip the check, which runs whenever the bundle carries the

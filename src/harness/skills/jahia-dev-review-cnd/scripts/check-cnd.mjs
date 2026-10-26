@@ -42,7 +42,8 @@ function checkFile(filePath, content) {
     ) {
       const propName = trimmed.match(/^-\s+(\w+)/)?.[1] ?? "unknown";
       issues.push({
-        file: filePath, line: lineNum,
+        file: filePath,
+        line: lineNum,
         pattern: "rawStringLink",
         message: `"${propName}" uses (string) for a link/url — use choicelist[linkTypeInitializer]`,
         fix: "Replace with: - j:linkType (string, choicelist[linkTypeInitializer]) mandatory",
@@ -53,7 +54,8 @@ function checkFile(filePath, content) {
     if (/^-\s+(title|heroTitle|pageTitle|sectionTitle)\s+\(string[,)]/i.test(trimmed)) {
       const propName = trimmed.match(/^-\s+(\w+)/)?.[1] ?? "unknown";
       issues.push({
-        file: filePath, line: lineNum,
+        file: filePath,
+        line: lineNum,
         pattern: "rawTitleProp",
         message: `"${propName}" is a plain string — extend mix:title instead`,
         fix: "Add mix:title to the type declaration and remove this property",
@@ -63,7 +65,8 @@ function checkFile(filePath, content) {
     // weakrefNoConstraint: (weakreference) with no < constraint on same line
     if (/\(weakreference[,)]/.test(trimmed) && !/<\s*\S/.test(trimmed)) {
       issues.push({
-        file: filePath, line: lineNum,
+        file: filePath,
+        line: lineNum,
         pattern: "weakrefNoConstraint",
         message: "Unconstrained weakreference — add a type constraint",
         fix: "Add e.g. (weakreference, picker[type='image']) < jmix:image",
@@ -73,7 +76,8 @@ function checkFile(filePath, content) {
     // weakrefWrongConstraint: an image picker constrained to jnt:file, quoted or not
     if (/picker\[type=['"]?image\b/.test(trimmed) && /<\s*['"]?jnt:file\b/.test(trimmed)) {
       issues.push({
-        file: filePath, line: lineNum,
+        file: filePath,
+        line: lineNum,
         pattern: "weakrefWrongConstraint",
         message: "An image picker constrained to jnt:file accepts any file, not only images",
         fix: "Replace with < jmix:image for images",
@@ -86,10 +90,13 @@ function checkFile(filePath, content) {
     if (
       i18nPropName &&
       !/\s(i18n|internationalized)\b/.test(trimmed) &&
-      /(title|text|label|description|subtitle|caption|alt|heading|summary|excerpt|body)/i.test(i18nPropName)
+      /(title|text|label|description|subtitle|caption|alt|heading|summary|excerpt|body)/i.test(
+        i18nPropName,
+      )
     ) {
       issues.push({
-        file: filePath, line: lineNum,
+        file: filePath,
+        line: lineNum,
         pattern: "missingI18n",
         message: "User-visible string property missing i18n",
         fix: "Add i18n keyword after the type declaration",
@@ -104,9 +111,11 @@ function checkFile(filePath, content) {
       /\)(?:\s*=\s*[\w:]+)?.*(?<![\w:])(orderable|ord|o)\b/.test(trimmed.replace(/\/\/.*$/, ""))
     ) {
       issues.push({
-        file: filePath, line: lineNum,
+        file: filePath,
+        line: lineNum,
         pattern: "childNodeOrderable",
-        message: "orderable on a child node line: Jahia cannot parse the CND, and yarn jahia-deploy installs nothing",
+        message:
+          "orderable on a child node line: Jahia cannot parse the CND, and yarn jahia-deploy installs nothing",
         fix: "Move orderable to the type line, after the supertypes: [ns:list] > jnt:content, jmix:list orderable",
       });
     }
@@ -114,7 +123,8 @@ function checkFile(filePath, content) {
     // studioOnly
     if (/jmix:studioOnly/.test(trimmed)) {
       issues.push({
-        file: filePath, line: lineNum,
+        file: filePath,
+        line: lineNum,
         pattern: "studioOnly",
         message: "jmix:studioOnly causes silent rendering issues",
         fix: "Replace with jmix:hiddenType",
@@ -124,9 +134,11 @@ function checkFile(filePath, content) {
     // redundantImageAlt: imageAlt as plain string — image node already has jcr:title
     if (/^-\s+imageAlt\s+\(string[,)]/i.test(trimmed)) {
       issues.push({
-        file: filePath, line: lineNum,
+        file: filePath,
+        line: lineNum,
         pattern: "redundantImageAlt",
-        message: '"imageAlt" is redundant — the image node\'s jcr:title (mix:title) serves as alt text',
+        message:
+          '"imageAlt" is redundant — the image node\'s jcr:title (mix:title) serves as alt text',
         fix: 'Remove imageAlt. In the view, render the image with <JImage src={image} />: its alt text defaults to the jcr:title of the image. With javascript-modules-engine 1.2 or earlier, call server.render.addCacheDependency({ node: image }, renderContext), then use image.getPropertyAsString("jcr:title")',
       });
     }
@@ -134,9 +146,11 @@ function checkFile(filePath, content) {
     // missingRatingConstraint: rating (long) without a range constraint
     if (/^-\s+rating\s+\(long[,)]/i.test(trimmed) && !/<\s*['"]?\[/.test(trimmed)) {
       issues.push({
-        file: filePath, line: lineNum,
+        file: filePath,
+        line: lineNum,
         pattern: "missingRatingConstraint",
-        message: '"rating" (long) has no range constraint — unconstrained ratings cause data integrity issues',
+        message:
+          '"rating" (long) has no range constraint — unconstrained ratings cause data integrity issues',
         fix: 'Add: < "[1,5]"',
       });
     }
@@ -161,13 +175,16 @@ function checkFile(filePath, content) {
         file: filePath,
         ...(typeLineIdx >= 0 ? { line: typeLineIdx + 1 } : {}),
         pattern: "directDroppable",
-        message: "Extends jmix:droppableContent directly — always extend the module component mixin",
+        message:
+          "Extends jmix:droppableContent directly — always extend the module component mixin",
         fix: "Replace jmix:droppableContent with nsmix:component (or your module's equivalent)",
       });
     }
 
-    const hasCtaLabel = /^\s*-\s+(cta(Text|Label|ButtonText|ButtonLabel)|button(Text|Label))\s+\(/im.test(block);
-    const hasCtaLink = /^\s*-\s+(cta(Link|Url|Href|ButtonLink|ButtonUrl)|button(Link|Url|Href))\s+\(/im.test(block);
+    const hasCtaLabel =
+      /^\s*-\s+(cta(Text|Label|ButtonText|ButtonLabel)|button(Text|Label))\s+\(/im.test(block);
+    const hasCtaLink =
+      /^\s*-\s+(cta(Link|Url|Href|ButtonLink|ButtonUrl)|button(Link|Url|Href))\s+\(/im.test(block);
     const hasChildNodes = /^\s*\+\s+/m.test(block);
     if (hasCtaLabel && hasCtaLink && !hasChildNodes) {
       issues.push({
@@ -196,7 +213,11 @@ export function checkCndFiles(projectDir) {
     }
   }
 
-  return { score: Math.exp(-allIssues.length * 0.5), issues: allIssues, filesChecked: files.length };
+  return {
+    score: Math.exp(-allIssues.length * 0.5),
+    issues: allIssues,
+    filesChecked: files.length,
+  };
 }
 
 if (import.meta.main) {
