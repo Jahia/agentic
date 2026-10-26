@@ -364,10 +364,10 @@ Use as a constraint on image weakreference properties:
 
 **Never use `< 'jnt:file'`** — it does not enforce image type correctly.
 
-**Never declare `imageAlt (string) i18n`** alongside an image weakreference. Use the image node's `jcr:title` as alt text:
+**Never declare `imageAlt (string) i18n`** alongside an image weakreference. Use the image node's `jcr:title` as alt text, which `<JImage>` does by default:
 
 ```tsx
-const imageAlt = props.image?.getPropertyAsString("jcr:title") ?? "";
+{props.image && <JImage src={props.image} />}
 ```
 
 ### `jmix:document` — document metadata

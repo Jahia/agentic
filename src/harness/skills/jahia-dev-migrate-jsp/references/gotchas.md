@@ -132,9 +132,9 @@ These come from the old module's files still sitting in the repo.
 
 ## Tooling
 
-- **`npm init @jahia/module` may not be scriptable.** Non-interactive `--yes` is recent; older
-  published versions prompt regardless and die on an unsettled top-level await. Check before
-  relying on it in an automated flow. `npm init` also swallows flags without a `--` separator.
+- **`npm init @jahia/module` needs `--yes` without a terminal.** Since 1.3, the CLI stops with
+  `This command requires an interactive terminal` unless it gets `--yes` and a module name.
+  `npm init` also swallows flags without a `--` separator.
 - **A Jahia container may not reach Nexus.** `installBundle: mvn:…` then fails with
   `java.io.IOException`; fetch the jar host-side and push it through
   `POST /modules/api/provisioning` instead.

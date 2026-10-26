@@ -156,8 +156,8 @@ is absent or defers, keep the companion bundle and say so in the report.
 npm init @jahia/module@latest -- <name> -t template-set --yes
 ```
 
-If `--yes` prompts anyway, the published CLI predates non-interactive mode; scaffold interactively
-or compose `templates/module` + `templates/template-set` by hand.
+Keep the `--`: without it, `npm init` swallows the flags, and the CLI stops because it has no
+terminal to ask its questions in.
 
 Two identity rules decide whether existing content still renders:
 

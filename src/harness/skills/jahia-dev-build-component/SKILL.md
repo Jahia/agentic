@@ -70,7 +70,7 @@ Use the instructions from the `jahia-dev-create-view` skill to:
 1. Create `src/components/<Category>/<Name>/default.server.tsx`
 2. Create `src/components/<Category>/<Name>/component.module.css`
 3. Import `Props` from `./types.js`
-4. Use `buildNodeUrl`, `RenderChildren`, `RenderChild` as needed
+4. Use `JImage`, `buildNodeUrl`, `RenderChildren`, `RenderChild` as needed
 5. Run `yarn build && yarn jahia-deploy` to push all changes
 
 ---

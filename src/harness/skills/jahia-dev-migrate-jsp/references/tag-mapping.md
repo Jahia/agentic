@@ -93,8 +93,10 @@ with no page around them. The scaffold's own catch-all is registered on `jmix:ma
 | `<template:addCacheDependency node="${n}"/>` | `server.render.addCacheDependency({ node: n }, renderContext)` |
 | `<template:tokenizedCacheDependency/>` | **no equivalent** |
 
-`addCacheDependency` accepts `node`, `uuid`, `path` or `flushOnPathMatchingRegexp`. It has no React
-wrapper — `server` is a global in the SSR context.
+`addCacheDependency` accepts `node`, `uuid`, `path` or `flushOnPathMatchingRegexp` (`uuid` is
+ignored before JavaScript Modules 1.3). It has no React wrapper — `server` is a global in the SSR
+context. Since 1.3, `buildNodeUrl` declares the dependency itself: a JSP that called
+`addCacheDependency` only for a node it links to ports without the call.
 
 **A cache boundary is a rendering boundary.** A `<template:include>`d view with its own
 `cache.mainResource` gets its own cache fragment. Collapsing it into a plain imported React
@@ -188,6 +190,8 @@ have first-class helpers and should go through them.
 | `${url.currentModule}/images/logo.svg` | `buildModuleFileUrl("static/images/logo.svg")` |
 | `${url.base}${n.path}.html` / `${n.url}` | `buildNodeUrl(n)` |
 | `${url.baseLive}${n.path}.html` | `buildNodeUrl(n, { mode: "live" })` |
+| `${url.server}${n.url}` | `buildNodeUrl(n, { absolute: true })` (1.3+) |
+| `<img src="${image.url}" alt="${image.properties['jcr:title'].string}"/>` | `<JImage src={image} />` (1.3+) |
 | `/graphql`, `/cms/…` and other endpoints | `buildEndpointUrl("/graphql")` |
 | `${url.mainResource}` | `renderContext.getURLGenerator().getMainResource()` |
 | `${url.edit}` / `.preview` / `.live` / `.login` / `.logout` | `renderContext.getURLGenerator().getEdit()` etc. |

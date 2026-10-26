@@ -80,6 +80,14 @@ jahiaComponent(
 );
 ```
 
+To share a page on social networks, add Open Graph tags to the `<head>`. They need absolute URLs, which `buildNodeUrl` builds with `absolute: true` (JavaScript Modules 1.3+). A `content` attribute keeps the origin in every mode, where Jahia removes it from an `href` or `src` in preview and edit:
+
+```tsx
+// ogImage: an image node, such as a weakreference property of the page
+<meta property="og:title" content={title} />
+<meta property="og:url" content={buildNodeUrl(mainNode, { absolute: true })} />
+{ogImage && <meta property="og:image" content={buildNodeUrl(ogImage, { absolute: true })} />}
+```
 
 ---
 

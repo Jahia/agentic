@@ -94,18 +94,35 @@ Build these requirements in from the start — retrofitting them later is more e
 
 ### Images
 
-Every `<img>` must have an `alt` attribute. Decorative images use `alt=""`. Informational images use a descriptive string from a CND property:
+Render an image node with `<JImage>`. It takes the alt text from the image node's `jcr:title`, sets `width` and `height` from the image's own size (no layout shift), and builds a `srcset` (except for an SVG, see below):
 
 ```tsx
-// ❌ Missing alt
+import { JImage } from "@jahia/javascript-modules-library";
+
+// ❌ No alt, no dimensions
 <img src={buildNodeUrl(props.image)} />
 
-// ✅ Alt from the image node's title (no extra CND property needed)
-if (props.image) server.render.addCacheDependency({ node: props.image }, renderContext);
-<img src={buildNodeUrl(props.image)} alt={props.image?.getPropertyAsString("jcr:title") ?? ""} />
+// ✅ Alt from the image node's jcr:title; alt="" when the image has no title
+{props.image && <JImage src={props.image} className={classes.image} />}
+
+// ✅ Informative image: fall back to a meaningful text when the image has no title
+{props.image && (
+  <JImage src={props.image} alt={props.image.getPropertyAsString("jcr:title") || props["jcr:title"]} />
+)}
+
+// ✅ Decorative image
+{props.image && <JImage src={props.image} alt="" />}
 ```
 
-Reading `jcr:title` reads a property of the referenced node, so the view declares a cache dependency on it (see the caching rule below); a renamed image then updates the alt text.
+- **The hero, or any image above the fold, loads eagerly**: `<JImage src={hero} loading="eager" fetchPriority="high" />`. Every other image keeps the default, `loading="lazy"`.
+- **Keep `height: auto` in the image CSS.** `<JImage>` sets the `width` and `height` attributes; a CSS rule that sets only `width` stretches the image. Use `width: 100%; height: auto;`, or `aspect-ratio` with `object-fit: cover` for a cropped frame.
+- Other `<img>` attributes (`className`, `fetchPriority`, `decoding`…) pass through. `width={400}` asks for a fixed-size image instead of a responsive one.
+- **`sizes` and `srcSet` take arrays, not strings**: `sizes={["(width >= 1200px) 600px", "100vw"]}`, `srcSet={[800, 400]}`. Set `sizes` when the image is narrower than the viewport, so the browser picks a smaller file. The default is `["auto", "100vw"]`, or `["100vw"]` with `loading="eager"`.
+- **An SVG gets no `srcset`, and no `width` or `height`** unless you pass them: size it in CSS, or with `width={…}`.
+- `<JImage>` builds the image URL with `buildNodeUrl`, so the view already depends on the image node: a renamed image updates the alt text, with no `addCacheDependency` call.
+- On a default Jahia, every `srcset` candidate serves the original file; the resizing happens only with a DAM or an image resizer. Use `<JImage>` anyway.
+- **In an island**, pass `getImageProps(node)` as a prop and spread it on an `<img />` (see Step 5b).
+- **JavaScript Modules 1.2 and earlier** have no `<JImage>`. The version that counts is the `javascript-modules-engine` installed in Jahia, which provides `@jahia/javascript-modules-library` at runtime: read it in `docker/provisioning.yml` (`javascript-modules-engine/<version>`), or in the module list of Jahia. The library version in `package.json` only sets the types of the build: a view that uses `<JImage>` builds against a 1.2 engine, then fails to render. On a 1.2 engine, write `<img src={buildNodeUrl(image)} alt={image.getPropertyAsString("jcr:title") ?? ""} />` and declare `server.render.addCacheDependency({ node: image }, renderContext)`.
 
 The image node already has `jcr:title` (from `mix:title`). **Do not add `imageAlt (string) i18n`** to the CND — it forces editors to enter duplicate data.
 
@@ -186,7 +203,7 @@ This applies everywhere: `href`, `src`, `action`, `data-url`. If a link needs to
 ```tsx
 import { buildNodeUrl } from "@jahia/javascript-modules-library";
 
-<img src={buildNodeUrl(coverNode)} alt="Descriptive alt text" />
+<a href={buildNodeUrl(articleNode)}>{title}</a>
 <header style={{ backgroundImage: `url(${buildNodeUrl(background)})` }}>
 ```
 
@@ -198,6 +215,7 @@ import { buildNodeUrl } from "@jahia/javascript-modules-library";
 | `language` | current language | Override language: `language: "fr"` |
 | `mode` | current mode | Force workspace: `"edit"`, `"preview"`, or `"live"` |
 | `parameters` | — | Append query params: `parameters: { page: "2" }` |
+| `absolute` | `false` | Prefix the URL with the server origin, or with the origin given as a string (1.3+) |
 
 ```tsx
 // Link to the blog page in the current language
@@ -205,7 +223,14 @@ import { buildNodeUrl } from "@jahia/javascript-modules-library";
 
 // Same link forced to French
 <a href={buildNodeUrl(blogNode, { language: "fr" })}>Blog (FR)</a>
+
+// Absolute URL, for a meta tag read outside the site
+<meta property="og:url" content={buildNodeUrl(mainNode, { absolute: true })} />
 ```
+
+Use `absolute` only where a full URL is required (`og:url`, `og:image`, feeds, emails). In preview and edit, Jahia removes the origin from a page URL in an `href` or `src` attribute, so an absolute URL there is only kept in an attribute like `content`. `buildModuleFileUrl` and `buildEndpointUrl` take the same option.
+
+Since JavaScript Modules 1.3, `buildNodeUrl` adds the node to the cache dependencies of the view: a link to a page that is renamed or moved is updated instead of leading to a 404. A view that links to many nodes and should not be flushed by them sets `autocollectDependency: false` on the call, or `"cache.autocollectDependencies": "false"` in its `properties`.
 
 > ⚠️ **Always guard optional nodes**: `buildNodeUrl(undefined)` throws `"Expected a node in buildNodeUrl, received undefined"`. If the prop is optional in the CND, guard it:
 > ```tsx
@@ -216,19 +241,24 @@ import { buildNodeUrl } from "@jahia/javascript-modules-library";
 > style={background ? { backgroundImage: `url(${buildNodeUrl(background)})` } : undefined}
 > ```
 
-> ⚠️ **Caching rule**: Never render properties of a **weakreference** node directly in the same view. Doing so will produce stale output because Jahia's cache is based on the referencing node, not the referenced one. Instead, render the referenced node with `<Render node={...} />` (or a dedicated sub-view), or call `server.render.addCacheDependency({ node }, renderContext)` before reading it. `<RenderChild>` does not work here: it renders a child node, and a weakreference is a property. Example:
+> ⚠️ **Caching rule**: Never render properties of a **weakreference** node directly in the same view unless the view depends on that node. Otherwise the output goes stale, because Jahia's cache is based on the referencing node, not the referenced one. The view depends on the node when it passes it to `buildNodeUrl` or `<JImage>` (JavaScript Modules 1.3+), or after `server.render.addCacheDependency({ node }, renderContext)`. You can also render the referenced node with `<Render node={...} />` (or a dedicated sub-view). `<RenderChild>` does not work here: it renders a child node, and a weakreference is a property. Example:
 >
 > ```tsx
-> // ❌ Don't do this — stale on referenced node change
-> <img src={buildNodeUrl(background)} alt={background.getProperty('jcr:title').getString()} />
+> // ❌ Don't do this — the view never builds the author's URL: stale when the author changes
+> <p>{author.getPropertyAsString("jcr:title")}</p>
 >
 > // ✅ Do this — render the referenced node as its own view
-> <Render node={background} />
+> <Render node={author} />
+>
+> // ✅ Or this — link to it: buildNodeUrl declares the dependency
+> <a href={buildNodeUrl(author)}>{author.getPropertyAsString("jcr:title")}</a>
 >
 > // ✅ Or this — declare the dependency, then read the node
-> server.render.addCacheDependency({ node: background }, renderContext);
-> <img src={buildNodeUrl(background)} alt={background.getPropertyAsString("jcr:title") ?? ""} />
+> server.render.addCacheDependency({ node: author }, renderContext);
+> <p>{author.getPropertyAsString("jcr:title")}</p>
 > ```
+>
+> On JavaScript Modules 1.2 and earlier, `buildNodeUrl` declares nothing: use `<Render>` or `addCacheDependency`.
 
 ### `RenderChildren` — render child nodes with optional pagination and filtering
 
@@ -555,7 +585,7 @@ Use `readOnly` when rendering a node that editors should not edit in-place (e.g.
 <Render node={currentNode.getNode("footer")} readOnly />
 ```
 
-For `AbsoluteArea`, `readOnly="children"` makes the area editable only on the page whose node is its `parent`, and read-only everywhere else:
+For `AbsoluteArea`, `readOnly="children"` makes the area editable only on the page whose node is its `parent`, and read-only everywhere else. On JavaScript Modules 1.2 and earlier, such an area cannot be edited on that page either:
 
 ```tsx
 // Editable from every page — the default, and the right choice for a site-wide nav or footer
@@ -706,6 +736,20 @@ export default function Counter({ label, initialCount = 0 }: Props) {
 
 > ⚠️ **Props must be serializable**: only strings, numbers, booleans, plain objects, and arrays. You cannot pass `JCRNodeWrapper`, `renderContext`, or Java objects to a client component.
 
+To show an image node in an island, compute its `<img>` attributes on the server with `getImageProps` and pass the plain object; the island spreads it on an `<img />`. `ImageProps` is a type-only import, so the client file may import it:
+
+```tsx
+// Gallery.client.tsx
+import type { ImageProps } from "@jahia/javascript-modules-library";
+
+export default function Gallery({ images }: { images: ImageProps[] }) {
+  return images.map((image) => <img key={image.src} {...image} />);
+}
+
+// default.server.tsx
+<Island component={Gallery} props={{ images: images.map((node) => getImageProps(node)) }} />
+```
+
 ### Step 2 — Wrap it with `<Island>` in the server view
 
 ```tsx
@@ -732,13 +776,23 @@ If the component cannot run on the server (e.g. uses `window`, `document`, or a 
 
 ```tsx
 <Island component={MapWidget} props={{ lat, lng }} clientOnly>
-  <p>Loading map…</p>   {/* shown until the component hydrates */}
+  <p>Loading map…</p>   {/* MapWidget does not render children: shown until it loads */}
 </Island>
 ```
 
+Children of a client-only island are shown until the component loads, then passed to it as `children` (JavaScript Modules 1.3+). A component that does not render `children` thus gets a loading placeholder. When the children must only appear inside the component, such as the content of a modal, use `clientOnly="hide-children-while-loading"`:
+
+```tsx
+<Island clientOnly="hide-children-while-loading" component={Modal}>
+  <RenderChildren />   {/* hidden until <Modal /> has loaded, then shown inside it */}
+</Island>
+```
+
+On 1.2 and earlier, a client-only island never receives its children, and logs a hydration error in the browser console.
+
 ### Step 3b — Passing children to an island (accordion pattern)
 
-In default mode (without `clientOnly`), children passed to `<Island>` are rendered on the server and inserted as static children of the island component. Use this for accordion or collapsible containers where the shell is interactive but the content is static:
+Children passed to `<Island>` are rendered on the server and inserted as static children of the island component. Use this for accordion or collapsible containers where the shell is interactive but the content is static:
 
 ```tsx
 // Accordion.client.tsx
@@ -767,11 +821,11 @@ export default function Accordion({ children }: { children: ReactNode }) {
 </Island>
 ```
 
-> ⚠️ The `{children}` insertion point must always be present in the client component. If you want to hide children, use CSS — a JS condition will cause them to be omitted from the page entirely.
+> ⚠️ The `{children}` insertion point must always be present in a server-rendered island. If you want to hide children, use CSS — a JS condition will cause them to be omitted from the page entirely. A `clientOnly` island may render its children conditionally: they are kept while hidden.
 
 > ⚠️ Children are wrapped in a `<jsm-children>` custom element. Avoid using the CSS `>` child combinator to target island children. Also do not target `jsm-island` or `jsm-children` in CSS — they are implementation details and may change.
 
-In `clientOnly` mode, children act as a **loading placeholder** shown until the island hydrates (see Step 3 above).
+In `clientOnly` mode, children are shown until the island loads (see Step 3 above).
 
 ### Step 4 — Dynamic import for heavy/browser-only libraries
 
@@ -825,7 +879,7 @@ These files are auto-discovered by `@jahia/vite-plugin` — no registration need
 ```tsx
 import { useTranslation } from "react-i18next";
 
-// Works in both .server.tsx and .client.tsx
+// Works in both .server.tsx and .client.tsx — call it inside the component
 const { t } = useTranslation();
 
 // Simple
@@ -851,6 +905,7 @@ const { t } = useTranslation();
 ```
 
 **Best practices:**
+- Always get `t` from `useTranslation()`, never `import { t } from "i18next"`. Since JavaScript Modules 1.3, only `useTranslation()` knows the module's namespace: the global `t` looks the key up in the engine's namespace and renders the key itself. A view that uses `t` must therefore have a body (`=> { const { t } = useTranslation(); return (…); }`), not an expression.
 - Use random/opaque keys (e.g. `"r3k2"`) or scoped semantic keys (e.g. `"hero.cta.label"`) — never bare English words as keys (`"read-more"`) which creates ambiguity across contexts and forces renaming.
 - Never concatenate: always use interpolation (`{{author}}`) for dynamic data.
 - For HTML inside translations, use the `<Trans>` component instead of `t()`:
@@ -915,8 +970,8 @@ yarn build && yarn jahia-deploy
 ## Validation checklist
 - [ ] `jahiaComponent` registered with correct `nodeType` (matches CND)
 - [ ] `Props` imported from `./types.js`
-- [ ] `buildNodeUrl` used for any image or node URL
-- [ ] Weakreference-backed content rendered with `<Render node={...} />`, or read after `server.render.addCacheDependency({ node }, renderContext)`
+- [ ] Image nodes rendered with `<JImage>` (the hero with `loading="eager" fetchPriority="high"`); `buildNodeUrl` used for any other node URL
+- [ ] Properties of a weakreference node read only when the view depends on it: `<Render node={...} />`, `buildNodeUrl`/`<JImage>` on that node, or `server.render.addCacheDependency({ node }, renderContext)`
 - [ ] Interactive UI (carousels, tabs) flattened in edit mode with editor hints
 - [ ] Structural/shared nodes rendered with `readOnly` prop
 - [ ] Semantic HTML used (`<article>`, `<section>`, `<nav>`, `<header>`, `<footer>`)

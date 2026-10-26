@@ -56,11 +56,11 @@ Check: any `.server.tsx` or `.client.tsx` file that uses `props["j:linkType"]` o
 Fix: use a `switch (props["j:linkType"])` with `buildNodeUrl(props["j:linknode"])` for internal and `props["j:url"]` for external.
 
 **C5 — Weakreference node properties read directly in a view (cache issue)**
-Check: views that access `.getPropertyAsString()`, `.getProperty(...)`, or property destructuring from a weakreference prop (other than `buildNodeUrl`), with no `server.render.addCacheDependency({ node: refNode }, renderContext)` call for that node.
-Fix: render the referenced node via `<Render node={refNode} view="..." />`, or declare the dependency before reading it. Reading the image `jcr:title` for alt text is correct once the dependency is declared.
+Check: views that access `.getPropertyAsString()`, `.getProperty(...)`, or property destructuring from a weakreference prop, when the view does not depend on that node: no `buildNodeUrl(refNode)` or `<JImage src={refNode}>` (both declare the dependency since JavaScript Modules 1.3), and no `server.render.addCacheDependency({ node: refNode }, renderContext)`. On a 1.2 engine or earlier, only `addCacheDependency` counts. The engine version is in `docker/provisioning.yml` (`javascript-modules-engine/<version>`), not in `package.json`: the engine provides the library at runtime.
+Fix: render the referenced node via `<Render node={refNode} view="..." />`, or declare the dependency before reading it. Reading the image `jcr:title` for alt text needs nothing more when the image is rendered with `<JImage>`.
 
 **C6 — Client component imports server-only APIs**
-Check: any `.client.tsx` file that imports from `@jahia/javascript-modules-library` (except `Island` which is re-exported).
+Check: any `.client.tsx` file that imports a value from `@jahia/javascript-modules-library`. An `import type { ImageProps }` statement is fine; an inline `import { type ImageProps }` is not, because `verbatimModuleSyntax` keeps the import in the client bundle.
 Fix: move server-side logic to the `.server.tsx` wrapper and pass results as serializable props to the Island.
 
 **C7 — Cache explicitly disabled (`cache.expiration="0"`)**
@@ -80,6 +80,13 @@ Check: a view that renders `RenderChild` or `RenderChildren` only when the child
 grep -rnE -B4 '<RenderChild(ren)?[[:space:]/>]' src/components | grep -E 'hasNode|getNodes|\.length'
 ```
 Fix: render the component unconditionally. If a wrapper must not appear on a live page without the child, condition the wrapper with `hasNode(…) || renderContext.isEditMode()` (see `jahia-dev-create-view`, "Never put `RenderChild` or `RenderChildren` behind a condition"). No content changes.
+
+**C10 — `t` imported from `i18next`**
+Check: a view or client component that imports `t` from `i18next`. Since JavaScript Modules 1.3, the global `t` does not know the module's namespace, and the page shows the translation keys instead of the text.
+```bash
+grep -rnE 'import[^;{]*\{[^}]*\bt\b[^}]*\}[[:space:]]*from[[:space:]]*.i18next.' src
+```
+Fix: `import { useTranslation } from "react-i18next";`, then `const { t } = useTranslation();` inside the component. No content changes.
 
 ---
 
@@ -144,7 +151,7 @@ Check: views that use `<div>` where `<article>`, `<section>`, `<nav>`, `<header>
 Fix: use semantic HTML for better accessibility and SEO.
 
 **S2 — Images without meaningful alt text**
-Check: `<img>` tags with `alt=""` or no `alt` attribute (unless there's a comment saying it's decorative).
+Check: `<img>` tags with `alt=""` or no `alt` attribute (unless there's a comment saying it's decorative), and `<JImage>` given `alt=""` for an informative image.
 Fix: add descriptive alt text. Decorative images should have `alt=""` with a comment.
 
 **S3 — Accessibility violations (axe-core audit)**
@@ -196,6 +203,10 @@ Check: components under `src/components/Hello/` (or any other archetype-generate
 grep -r "helloWorld\|helloCard\|Hello/" src/templates/ settings/ --include="*.tsx" --include="*.xml" --include="*.cnd"
 ```
 Fix: once `import.xml` no longer provisions Hello World content and no template uses them, delete the entire `src/components/Hello/` directory, remove their entries from `.properties` files, and delete their icons from `settings/content-types-icons/`. Keeping dead components inflates the content picker and confuses editors.
+
+**S12 — Image node rendered with `<img src={buildNodeUrl(…)}>`**
+Check: when `docker/provisioning.yml` installs `javascript-modules-engine` 1.3 or later, an `<img>` whose `src` is `buildNodeUrl` of an image node.
+Fix: `<JImage src={image} />`: it takes the alt text from `jcr:title`, sets `width` and `height`, and builds a `srcset`. Keep `height: auto` in the CSS of the image. The hero takes `loading="eager" fetchPriority="high"`.
 
 ---
 

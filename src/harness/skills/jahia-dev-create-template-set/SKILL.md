@@ -76,25 +76,25 @@ Do not proceed until both `node --version` (22.14+) and `yarn --version` (4.9+) 
 
 ## Step 2 — Scaffold the module
 
-Run the interactive CLI and **show the user its full output**:
+Run the CLI with `--yes` and **show the user its full output**. Without `--yes`, the CLI asks its questions in an interactive terminal, and stops with `This command requires an interactive terminal` when there is none, which is the case for an agent:
 
 ```bash
-npm init @jahia/module@latest <project-name>
+npm init @jahia/module@latest -- <project-name> --template hello-world --yes
 ```
 
-The CLI will prompt interactively for:
-
-| Prompt | Guidance |
+| Argument | Guidance |
 |--------|----------|
-| Module name | kebab-case, e.g. `my-site` |
-| Output directory | accept the default (`./<module-name>`) |
-| Module type | see below |
+| `<project-name>` | the module name: lowercase letters, digits and hyphens, starting with a letter, e.g. `my-site` |
+| `--template` | always a template set, see below |
+| `--output <path>` | only when the user wants another directory than `./<project-name>`, which must not exist yet |
+
+Keep the `--`: without it, `npm init` drops the flags.
 
 **Module type — always choose a template set:**
-- `A minimal Hello World template set` ✅ — best starting point, includes working components
-- `An empty template set` — blank canvas, for experienced developers
+- `--template hello-world` ✅ — a minimal Hello World template set, best starting point, includes working components
+- `--template template-set` — an empty template set, a blank canvas for experienced developers
 
-Once the project is created, the CLI will suggest commands to start it. Run them in order — they start Docker (Jahia) and push the module.
+Once the project is created, the CLI will suggest commands to start it. Run them in order — they start Docker (Jahia) and push the module — except `yarn dev`, which an agent never runs: deploy with `yarn build && yarn jahia-deploy` instead.
 
 ---
 

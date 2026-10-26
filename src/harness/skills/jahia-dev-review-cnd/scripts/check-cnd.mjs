@@ -127,7 +127,7 @@ function checkFile(filePath, content) {
         file: filePath, line: lineNum,
         pattern: "redundantImageAlt",
         message: '"imageAlt" is redundant — the image node\'s jcr:title (mix:title) serves as alt text',
-        fix: 'Remove imageAlt. In the view, call server.render.addCacheDependency({ node: image }, renderContext), then use image.getPropertyAsString("jcr:title") for alt text',
+        fix: 'Remove imageAlt. In the view, render the image with <JImage src={image} />: its alt text defaults to the jcr:title of the image. With javascript-modules-engine 1.2 or earlier, call server.render.addCacheDependency({ node: image }, renderContext), then use image.getPropertyAsString("jcr:title")',
       });
     }
 

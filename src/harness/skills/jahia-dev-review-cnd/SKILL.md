@@ -59,7 +59,7 @@ A concrete type extending `jmix:droppableContent` directly, also when the supert
 
 ### `redundantImageAlt`
 `imageAlt (string)` alongside an image weakreference. The image node already has `jcr:title`.
-**Fix**: Remove `imageAlt`. In the view: `server.render.addCacheDependency({ node: image }, renderContext)`, then `image.getPropertyAsString("jcr:title") ?? ""`
+**Fix**: Remove `imageAlt`. In the view: `<JImage src={image} />`, whose alt text defaults to the image's `jcr:title`. On JavaScript Modules 1.2 and earlier: `server.render.addCacheDependency({ node: image }, renderContext)`, then `image.getPropertyAsString("jcr:title") ?? ""`
 
 ### `rawTitleProp`
 Property named `title`, `heroTitle`, `pageTitle`, or `sectionTitle` typed as `(string)`.

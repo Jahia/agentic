@@ -30,7 +30,7 @@ yarn jahia-deploy
 
 Interpret the output:
 - `"Operation successful"` in the response → deployment was accepted. Proceed to Step 3 — the module may still fail at runtime.
-- `{}`, or `Jahia installed nothing` (recent versions of the script also exit with code 1) → **nothing was installed**, and the previous version of the module is still running. The provisioning API answers `200` in that case. See "CND: a change is not applied" below before you look anywhere else.
+- `{}`, or `Jahia installed nothing` (since `@jahia/vite-plugin` 1.3, the script also exits with code 1) → **nothing was installed**, and the previous version of the module is still running. The provisioning API answers `200` in that case. See "CND: a change is not applied" below before you look anywhere else.
 - Any other error → fix the connection issue (is Docker running?) then retry.
 
 ---
@@ -170,6 +170,9 @@ Every `jcr:mixinTypes` value in `import.xml` is scanned by the OSGi bundle resol
 
 ### View: module loads but page is blank
 Stream the Docker logs (Step 3), redeploy with `yarn build && yarn jahia-deploy`, and load the page: a React render error is logged with the view that threw it. Never run `yarn dev` from an agent.
+
+### View: translation keys displayed instead of text
+The page shows raw keys such as `7l9zetMbU4cKpL4NxSOtL` where `settings/locales/<lang>.json` has a value. The view imports `t` from `i18next`: since JavaScript Modules 1.3, the global `t` no longer knows the module's namespace. Replace it with `const { t } = useTranslation();` from `react-i18next`, inside the component. If the view already uses `useTranslation()`, check that the key exists in the JSON file of the page language.
 
 ---
 
