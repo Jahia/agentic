@@ -1,5 +1,9 @@
 # `@jahia/agentic`
 
+## 0.10.0
+
+* Agents write for JavaScript Modules 1.3: `<JImage>` for images, `useTranslation()` for every translation, `absolute` URLs, client-only islands with children, and `npm init @jahia/module` with `--yes`.
+
 ## 0.9.1
 
 * Agents now recognize a deploy that installed nothing, the page template example renders its `<title>`, and the review scripts run on Kiro.
