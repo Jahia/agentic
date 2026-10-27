@@ -34,6 +34,9 @@ Collect these facts, and write them down:
   `CompatRouter` or `CompatRoute`.
 - The locale files under `src/main/resources/javascript/locales/` that contain `_plural` keys, and
   the `<Trans>` elements without `i18nKey`.
+- The imports of a legacy Jahia UI library, such as `@jahia/design-system-kit`. app-shell 4 no
+  longer supports them: rewrite those components with `@jahia/moonstone`.
+- The test runner. Jest needs Babel, and Vitest reuses `vite.config.ts`.
 
 Then remove from `package.json` every library the source never imports. This includes the
 libraries of the table in step 4: that table says how to declare a library the source imports, not
@@ -44,10 +47,8 @@ goes in `devDependencies`.
 ## Step 2 — Toolchain
 
 - Node 22.12 or later and Yarn 4.
-- `yarn add -D vite @jahia/vite-federation-plugin`. The plugin must read `peerDependencies` (step
-  4). To check the installed version, put `react` in `dependencies` and run `yarn vite build`: a
-  correct plugin stops with "must be declared in `peerDependencies`". A plugin that builds anyway
-  is too old: upgrade it.
+- `yarn add -D vite @jahia/vite-federation-plugin@^0.2.0`. Before 0.2.0, the plugin ignores
+  `peerDependencies` (step 4) and shares every library of `dependencies` as a singleton.
 
 ## Step 3 — `vite.config.ts`
 
@@ -86,11 +87,15 @@ Set `"type": "module"`, `"build": "vite build"` and `"watch": "vite build --watc
 and every script that runs webpack. Then put every library the source imports in exactly one
 section:
 
-| Section            | What the plugin does                                   | Put here                                                                                                                                                                                                                      |
-| ------------------ | ------------------------------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `peerDependencies` | Never bundles it, and uses the app-shell's copy.       | The imported libraries of the table below, and nothing else.                                                                                                                                                                  |
-| `dependencies`     | Bundles it, and shares it with the other Vite modules. | Every other library the code imports at runtime (not a peer, and not one of the utilities of the next row): `@jahia/moonstone`, `@apollo/client`, `graphql-tag`, `@jahia/data-helper`, `dayjs`, `moment`, `react-router-dom`… |
-| `devDependencies`  | Bundles only what the code uses, and shares nothing.   | Build tools, types, a copy of each peer, and the small stateless utilities `lodash` (and `lodash/*`), `clsx`, `classnames`, `prop-types`.                                                                                     |
+| Section            | What the plugin does                                 | Put here                                                                                                                                                                                                                      |
+| ------------------ | ---------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `peerDependencies` | Never bundles it, and uses the app-shell's copy.     | The imported libraries of the table below, and nothing else.                                                                                                                                                                  |
+| `dependencies`     | Bundles it, and shares it with the other modules.    | Every other library the code imports at runtime (not a peer, and not one of the utilities of the next row): `@jahia/moonstone`, `@apollo/client`, `graphql-tag`, `@jahia/data-helper`, `dayjs`, `moment`, `react-router-dom`… |
+| `devDependencies`  | Bundles only what the code uses, and shares nothing. | Build tools, types, a copy of each peer, and the small stateless utilities `lodash` (and `lodash/*`), `clsx`, `classnames`, `prop-types`.                                                                                     |
+
+Until the app-shell itself is built with Vite, a library in `dependencies` is deduplicated against
+the copy of the app-shell or of a webpack module, and never against the copy of another Vite
+module. The app-shell provides `@jahia/moonstone`, `@apollo/client` and `graphql-tag` for that.
 
 The libraries the app-shell provides. Replace the module's own range with this one, even when the
 module declared an older major, and copy the version into `devDependencies` so that the module
@@ -110,7 +115,8 @@ builds against the oldest version it supports:
 | `react-apollo`, `@apollo/react-components` | `"^3.1.5"`               | `"3.1.5"`                                                                   |
 
 The build fails with a message that names the library when a library of this table is in
-`dependencies`, or when `peerDependencies` holds a library the app-shell does not provide.
+`dependencies` or only in `devDependencies`, or when `peerDependencies` holds a library the
+app-shell does not provide (`@jahia/moonstone`, `prop-types`…).
 
 **`react-router-dom` v5.** Apply the router rules of step 6 first: they move every import that
 `react-router` exports (`useHistory`, `useParams`, `Route`…) to `react-router`, and remove the
@@ -130,8 +136,10 @@ remove both packages if nothing imports them any more.
 Remove the webpack and Babel toolchain: `webpack`, `webpack-cli`, `webpack-bundle-analyzer`,
 `@jahia/webpack-config`, `@cyclonedx/webpack-plugin`, `babel-loader`, the `@babel/*` and
 `babel-plugin-*` packages that Jest does not need (next sentence), every `*-loader`, `clean-webpack-plugin`, `copy-webpack-plugin`,
-`case-sensitive-paths-webpack-plugin`. If Jest still runs the tests, keep `babel-jest`, `@babel/core`
-and the presets of the Babel config (usually `@babel/preset-react`) in `devDependencies`. Add `sass-embedded` if the module has `.scss` files.
+`case-sensitive-paths-webpack-plugin`. Move Jest tests to Vitest ([migration
+guide](https://vitest.dev/guide/migration.html#jest)) so that Babel goes too. If Jest stays, keep
+`babel-jest`, `@babel/core` and the presets of the Babel config (usually `@babel/preset-react`) in
+`devDependencies`. Add `sass-embedded` if the module has `.scss` files.
 
 ## Step 5 — Files
 
@@ -182,16 +190,17 @@ and the presets of the Babel config (usually `@babel/preset-react`) in `devDepen
    - `Object.keys(window.appShell.remotes)` contains the module.
    - No "Unsatisfied version" mentions a library of the module, and no "doesn't exist in shared
      scope" appears.
-3. Run the module's tests (Jest, Cypress).
+3. Run the module's tests (Vitest or Jest, Cypress).
 
 Report the facts of step 1, the section chosen for each library, the renamed files, and what step
 7 showed.
 
 ## If the module stays on webpack under app-shell 4
 
-It keeps working, with one exception. A module built with `@jahia/webpack-config`'s default
-`getModuleFederationConfig(packageJson)` bundles no copy of its shared libraries. The app-shell
-stopped providing `@jahia/data-helper`, `react-router-dom`, `dayjs`, `rxjs`, `@apollo/react-hooks`
-and `@apollo/react-common`, so such a module gets them from Jahia's own modules. If one of them is
-missing, the console says "Shared module X doesn't exist in shared scope". Fix it by listing the
-library in the third argument of `getModuleFederationConfig`, or by migrating to Vite.
+It keeps working, with one exception: app-shell 4 no longer provides `i18next-xhr-backend`. A
+module built with `@jahia/webpack-config`'s default `getModuleFederationConfig(packageJson)`
+bundles no copy of its shared libraries, so if it imports `i18next-xhr-backend`, the console says
+"Shared module i18next-xhr-backend doesn't exist in shared scope". Fix it by listing the library in
+the third argument of `getModuleFederationConfig`, the import list, so that the module bundles its
+own copy, or by migrating to Vite. `@apollo/react-common` and `@apollo/react-hooks` are still
+provided by jahia-dashboard.

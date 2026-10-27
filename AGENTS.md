@@ -68,6 +68,7 @@ Key skills:
 | `jahia-dev-create-page-template` | Creates a page template with Areas                                                               |
 | `jahia-dev-create-template-set`  | Scaffolds a new template set                                                                     |
 | `jahia-dev-migrate-jsp`          | Migrates a JSP/Java template set to a JavaScript module                                          |
+| `jahia-dev-migrate-ui-extension` | Migrates a UI extension from webpack to Vite, for app-shell 4 and 5                              |
 | `jahia-dev-query-content`        | Designs JCR-SQL2 queries and wires `useJCRQuery`                                                 |
 | `jahia-dev-debug`                | Debugs build, deploy and runtime errors end to end                                               |
 | `jahia-dev-accessibility`        | WCAG 2.1 AA audit with axe-core + fixes                                                          |
