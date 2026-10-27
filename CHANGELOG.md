@@ -1,5 +1,9 @@
 # `@jahia/agentic`
 
+## 0.10.1
+
+* The UI extension migration names the only library app-shell 4 stops providing to webpack modules, and replaces legacy UI libraries and Jest.
+
 ## 0.10.0
 
 * Agents write for JavaScript Modules 1.3: `<JImage>` for images, `useTranslation()` for every translation, `absolute` URLs, client-only islands with children, and `npm init @jahia/module` with `--yes`.
