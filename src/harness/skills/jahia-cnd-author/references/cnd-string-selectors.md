@@ -128,10 +128,11 @@ Add the mixin it names and call again. The refusal does not mean links do not wo
 API, and it is never a reason to model the link as string properties, which
 `jahia-dev-review-cnd` flags as `rawStringLink`.
 
-On a server whose `content.create` schema has no `mixins` input, the call skips `j:linknode`
-silently and creates the node with no target. Create the node with `j:linkType`, then call
-`content.update` with `addMixins: ["jmix:internalLink"]` and `j:linknode`, then read the node
-back.
+On a server whose `content.create` schema has no `mixins` input, the call creates the node
+without setting `j:linknode`: some versions skip it silently, others list it in
+`propertiesSkipped`. Create the node with `j:linkType`, then call `content.update` with
+`addMixins: ["jmix:internalLink"]` and `j:linknode`, then read the node back with `content.get`
+to check the target.
 
 The error `Couldn't find definition for property j:linkType` is different again: the deployed
 type does not declare `j:linkType`. Fix the CND, redeploy, and check with `content.type` before

@@ -158,11 +158,11 @@ Do not work around a CND that Jahia refuses. Groovy console scripts, the JCR bro
 
 ### MCP: a link through `content.create` is refused, or has no target
 
-**Symptom:** `content.create` creates nothing and answers `Nothing was created: 1 property could not be set: j:linknode (declared by mixin jmix:internalLink — pass it in 'mixins' so the property can be set).` (or the same for `j:url`, `j:linkTitle` and `jmix:externalLink`). On a server whose `content.create` has no `mixins` input, the call skips the property silently instead: `content.get` shows the node with `j:linkType` set and no target, and the view renders the CTA without an `href`.
+**Symptom:** `content.create` creates nothing and answers `Nothing was created: 1 property could not be set: j:linknode (declared by mixin jmix:internalLink — pass it in 'mixins' so the property can be set).` (or the same for `j:url`, `j:linkTitle` and `jmix:externalLink`). On a server whose `content.create` has no `mixins` input, the call does not set the property instead (some versions skip it silently, others list it in `propertiesSkipped`): `content.get` shows the node with `j:linkType` set and no target, and the view renders the CTA without an `href`.
 
 **Cause:** the target lives on a mixin the picker adds (`jmix:internalLink`, `jmix:externalLink`), and the call does not add it.
 
-**Fix:** pass the mixin the error names in `mixins` on `content.create`, and call again. On a server without that input, add it with `content.update` (`addMixins`), then read the node back. Do not touch the CND: declaring `j:linknode` by hand is the C3 defect of `jahia-review-code`, and a string property instead of the picker is `rawStringLink`.
+**Fix:** pass the mixin the error names in `mixins` on `content.create`, and call again. On a server without that input, add it with `content.update` (`addMixins`), then read the node back with `content.get` to check the target. Do not touch the CND: declaring `j:linknode` by hand is the C3 defect of `jahia-review-code`, and a string property instead of the picker is `rawStringLink`.
 
 ### CND: `j:linknode` or `j:url` declared explicitly
 

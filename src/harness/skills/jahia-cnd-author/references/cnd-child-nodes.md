@@ -97,6 +97,7 @@ nowhere else. Two rules decide the shape:
 // The items: plain components, NOT page components, so they cannot be dropped in page areas
 [ns:textCard] > jnt:content, nsmix:component, mix:title
  - body (string, textarea) i18n
+ + * (ns:callToAction)
 ```
 
 The view renders the list as an area whose parent is the section node:
@@ -108,7 +109,7 @@ const { currentNode } = useServerContext();
 
 Jahia creates the `items` node the first time the area renders, so the CND needs no `autocreated`
 on it. When content is created through the MCP tools rather than by an editor, create the
-section, its list and its items in **one** `content.create` call, with `children` nested two
+section, its list and its items in **one** `content.create` call, with `children` nested three
 levels deep:
 
 ```json
