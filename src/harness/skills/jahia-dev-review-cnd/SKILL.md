@@ -1,6 +1,6 @@
 ---
 name: jahia-dev-review-cnd
-description: Use after writing any CND file to validate it against Jahia best practices. Runs the deterministic cnd-checker script and reports PASS / FAIL with file:line citations and fixes. Run /jahia-dev-review-cnd <path> to check a specific file or directory, or without arguments to check all CND files in the current module.
+description: Use after writing any CND file to validate it against Jahia best practices. Runs the deterministic cnd-checker script and reports PASS / FAIL with file:line citations and fixes. It changes no file unless asked to fix the issues. Run /jahia-dev-review-cnd <path> to check a specific file or directory, or without arguments to check all CND files in the current module.
 allowed-tools: Bash
 ---
 
@@ -16,9 +16,15 @@ node "${CND_SCRIPT:?check-cnd.mjs not found}" src/
 
 The script exits with code 0 for PASS and code 1 for FAIL. Run it from the module root. When the script is not found, the command fails: that is not a PASS.
 
-## Step 2 — Fix and repeat until clean
+## Step 2 — Report
 
-This is a loop. Run the checker, fix every issue reported, run it again. Repeat until the result is `PASS`.
+Report the result: `PASS`, or `FAIL` with each issue, its file and line, its rule and its fix.
+
+A review changes nothing. Unless the user or the calling skill asked you to fix the issues ("fix", "until PASS"), stop after the report: do not edit a file.
+
+## Step 3 — Fix and repeat until clean, when asked
+
+Only when asked, as Step 2 states. This is a loop. Run the checker, fix every issue reported, run it again. Repeat until the result is `PASS`.
 
 - **FAIL** — fix every issue, re-run. Do not proceed until exit code is 0.
 - **PASS** — clean. Continue.

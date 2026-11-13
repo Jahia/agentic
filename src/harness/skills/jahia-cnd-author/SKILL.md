@@ -1,7 +1,6 @@
 ---
 name: jahia-cnd-author
 description: Use when you need to write a Jahia CND content type definition and its TypeScript props interface. Receives a component spec and produces definition.cnd + types.ts + .properties labels with correct Jahia-specific syntax. Self-validates output before returning.
-context: fork
 argument-hint: "[business need]"
 ---
 
@@ -21,7 +20,7 @@ Project-wide mixins are declared in `settings/definitions.cnd`. Read this file f
 
 Understanding the needs correctly is mandatory to provide a good editing experience. The component may be contributed directly in pages, with the visual editor named Page Builder, or from content folders (content collections).
 
-If invoked as a sub-agent with a structured spec, skip to Step 2.
+If a calling skill passes a structured spec, skip to Step 2.
 
 In interactive mode, ask the user to confirm using this template:
 
@@ -76,8 +75,10 @@ Editors see these labels in the content editor — every type name and every fie
 
 Write to:
 
-- `settings/resources/<module>_en.properties`
+- `settings/resources/<module>.properties`: English, the fallback for every other language
 - `settings/resources/<module>_fr.properties` (use the English label as a placeholder if no translation is available)
+
+The keys are `ns_typeName` and `ns_typeName.fieldName`. Jahia ignores a `.label` suffix added to them, but a field named `label` takes `ns_typeName.label`.
 
 ## Step 6: validate and report
 
@@ -94,6 +95,6 @@ Before returning, verify:
 - [ ] Every `autocreated` property has a `= 'value'` default
 - [ ] `jmix:hiddenType` used for structural types (never `jmix:studioOnly`)
 - [ ] Every CND property has a matching entry in `types.ts`
-- [ ] `.properties` labels written for every type and field
+- [ ] `.properties` labels written for every type and field, in `<module>.properties` and `<module>_fr.properties` (no `<module>_en.properties`), with no `.label` suffix added to a type or field key (a field named `label` takes `ns_typeName.label`)
 
 Return **PASS** or **FAIL** with a list of specific issues.
