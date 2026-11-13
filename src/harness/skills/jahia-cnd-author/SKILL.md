@@ -1,7 +1,6 @@
 ---
 name: jahia-cnd-author
 description: Use when you need to write a Jahia CND content type definition and its TypeScript props interface. Receives a component spec and produces definition.cnd + types.ts + .properties labels with correct Jahia-specific syntax. Self-validates output before returning.
-context: fork
 argument-hint: "[business need]"
 ---
 
@@ -76,8 +75,10 @@ Editors see these labels in the content editor — every type name and every fie
 
 Write to:
 
-- `settings/resources/<module>_en.properties`
+- `settings/resources/<module>.properties`: English, the fallback for every other language
 - `settings/resources/<module>_fr.properties` (use the English label as a placeholder if no translation is available)
+
+The keys are `ns_typeName` and `ns_typeName.fieldName`, never with a `.label` suffix: Jahia ignores those.
 
 ## Step 6: validate and report
 

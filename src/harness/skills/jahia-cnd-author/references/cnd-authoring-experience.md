@@ -2,34 +2,43 @@
 
 ## .properties labels and icons
 
-Required files for every content type:
+Required files, where `<module>` is the `name` of `package.json`:
 
-- `settings/resources/<module>_en.properties`
-- `settings/resources/<module>_fr.properties`
+- `settings/resources/<module>.properties`: English. Jahia falls back to this file for every UI language
+  that has no file of its own, and for every key that a language file lacks.
+- `settings/resources/<module>_fr.properties`: French, and one `<module>_<lang>.properties` per other
+  language.
+
+Do not replace the base file with `<module>_en.properties`: without a base file, a UI language that has no
+file of its own shows the raw names, and a key missing from `_fr` shows its raw name instead of the English
+label.
 
 ```ini
-# Node type label
-ns_heroSection.label=Hero Section
+# Node type label: the type name, with ':' replaced by '_'
+ns_heroSection=Hero Section
 
-# Field labels
-ns_heroSection.subtitle.label=Subtitle
-ns_heroSection.backgroundImage.label=Background Image
+# Field labels: the type key, then the property name
+ns_heroSection.subtitle=Subtitle
+ns_heroSection.backgroundImage=Background Image
 
 # Field tooltip
 ns_heroSection.subtitle.ui.tooltip=Optional subtitle text displayed below the heading.
 
-# Choicelist item labels (for resourceBundle choicelist)
+# Choicelist item labels (for resourceBundle choicelist): the field key, then the value
 ns_heroSection.variant.primary=Primary
 ns_heroSection.variant.secondary=Secondary
 ```
+
+A key that ends in `.label` (`ns_heroSection.label`, `ns_heroSection.subtitle.label`) is ignored: editors see
+the raw name.
 
 Icon file: `settings/content-types-icons/<ns>_<typeName>.png`
 Free icons: https://www.flaticon.com/
 
 **Rules:**
 
-- Every node type must have a `.label` entry.
-- Every field must have a `.label` entry.
+- Every node type must have an entry: `ns_typeName=…`.
+- Every field must have an entry: `ns_typeName.fieldName=…`.
 - Choicelist options using `resourceBundle` must have a label per value.
 - Replace special characters (e.g. `:`) with `_` in the `.properties` key.
 
