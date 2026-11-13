@@ -95,6 +95,6 @@ Before returning, verify:
 - [ ] Every `autocreated` property has a `= 'value'` default
 - [ ] `jmix:hiddenType` used for structural types (never `jmix:studioOnly`)
 - [ ] Every CND property has a matching entry in `types.ts`
-- [ ] `.properties` labels written for every type and field, in `<module>.properties` and `<module>_fr.properties` (no `<module>_en.properties`), with no `.label` suffix
+- [ ] `.properties` labels written for every type and field, in `<module>.properties` and `<module>_fr.properties` (no `<module>_en.properties`), with no `.label` suffix added to a type or field key (a field named `label` takes `ns_typeName.label`)
 
 Return **PASS** or **FAIL** with a list of specific issues.
