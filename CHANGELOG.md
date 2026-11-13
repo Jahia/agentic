@@ -1,5 +1,13 @@
 # `@jahia/agentic`
 
+## 0.10.1
+
+* Fixed the editor labels written by the CND author, which used keys and files that Jahia ignores. The CND review now changes no file unless asked to fix, and the CND author can ask questions before it writes.
+
+* The harness now says how a link is created through the MCP tools: the picker's target lives on `jmix:internalLink` or `jmix:externalLink`, so `content.create` takes the mixin in `mixins` (or `content.update` adds it on an older server), and the error that refuses `j:linknode` names the mixin to add rather than a reason to model the link as strings. Two benchmark runs had taken that shortcut. `jahia-cnd-author`, `jahia-dev-debug` and the instructions carry the recipe.
+
+* The UI extension migration names the only library app-shell 4 stops providing to webpack modules, and replaces legacy UI libraries and Jest.
+
 ## 0.10.0
 
 * Agents write for JavaScript Modules 1.3: `<JImage>` for images, `useTranslation()` for every translation, `absolute` URLs, client-only islands with children, and `npm init @jahia/module` with `--yes`.
