@@ -72,8 +72,8 @@ Use `choicelist[linkTypeInitializer]` — it renders an internal/external/none p
  - j:linkType (string, choicelist[linkTypeInitializer]) mandatory
 
 // ❌ Wrong — do not declare companion fields
- - j:linknode (weakreference)   // injected by Jahia — remove this
- - j:url (string)               // injected by Jahia — remove this
+ - j:linknode (weakreference)   // on jmix:internalLink — remove this
+ - j:url (string)               // on jmix:externalLink — remove this
 ```
 
 TypeScript discriminated union for the view:

@@ -90,7 +90,7 @@ Before returning, verify:
 - [ ] No `- title (string) i18n mandatory` — use `mix:title` instead
 - [ ] No `imageAlt (string)` — the image node's `jcr:title` serves as alt text
 - [ ] Links use `choicelist[linkTypeInitializer]`, not a plain string
-- [ ] No declared `j:linknode` or `j:url` — Jahia injects these automatically
+- [ ] No declared `j:linknode` or `j:url` — they live on `jmix:internalLink` and `jmix:externalLink`, the mixins the picker adds
 - [ ] Every `autocreated` property has a `= 'value'` default
 - [ ] `jmix:hiddenType` used for structural types (never `jmix:studioOnly`)
 - [ ] Every CND property has a matching entry in `types.ts`

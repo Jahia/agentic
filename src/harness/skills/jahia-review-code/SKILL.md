@@ -49,7 +49,7 @@ Fix: change to `componentType: "view"`. The `src/templates/MainResource/default.
 
 **C3 — `j:linknode` or `j:url` explicitly declared in CND**
 Check: any CND type that explicitly declares `j:linknode` or `j:url` fields alongside `choicelist[linkTypeInitializer]`.
-Fix: remove those two fields from the CND. They are injected automatically by Jahia's mixins at runtime. Only declare `- j:linkType (string, choicelist[linkTypeInitializer])`. The fields remain available in `types.ts` and in the view.
+Fix: remove those two fields from the CND. They live on `jmix:internalLink` and `jmix:externalLink`, the mixins the picker adds. Only declare `- j:linkType (string, choicelist[linkTypeInitializer])`. The fields remain available in `types.ts` and in the view.
 
 **C4 — `j:linkType` used as a URL in a view**
 Check: any `.server.tsx` or `.client.tsx` file that uses `props["j:linkType"]` or `j:linkType` directly as an `href`.
