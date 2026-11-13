@@ -40,7 +40,7 @@ Model CTAs as child nodes — editors can then add multiple CTAs.
 ```
 
 Through the MCP tools, each CTA child is created with its link mixin (`mixins` on the child
-entry), otherwise its target is skipped. The recipe is in cnd-string-selectors.md.
+entry), otherwise the call creates nothing. The recipe is in cnd-string-selectors.md.
 
 ## Ordering
 
@@ -150,8 +150,8 @@ levels deep:
 }
 ```
 
-The `mixins` on the CTA child is what lets `j:linknode` be written; without it the answer lists
-the property under `propertiesSkipped` with the mixin to add.
+The `mixins` on the CTA child is what lets `j:linknode` be written; without it the call creates
+nothing, and its error names the mixin to add.
 
 **The other shape, and what the refusal means.** `+ * (ns:textCard)` straight on the section,
 with `<RenderChildren>` in the view, also works: `RenderChildren` renders an "Add content" button

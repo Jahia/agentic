@@ -156,13 +156,13 @@ docker logs <container-name> --since 5m 2>&1 | grep -E "Cannot install package.t
 
 Do not work around a CND that Jahia refuses. Groovy console scripts, the JCR browser, uninstalling the module, deleting `/modules/<module>`, or `POST /modules/api/bundles` take an hour and fix nothing. `/modules/api/bundles` also runs the breaking-change check that `yarn jahia-deploy` skips, so it refuses every major change as `Major change in definition`.
 
-### MCP: a link created through `content.create` has no target
+### MCP: a link through `content.create` is refused, or has no target
 
-**Symptom:** the answer lists `j:linknode` (or `j:url`, `j:linkTitle`) under `propertiesSkipped`, `content.get` shows the node with `j:linkType` set and no target, and the view renders the CTA without an `href`.
+**Symptom:** `content.create` creates nothing and answers `Nothing was created: 1 property could not be set: j:linknode (declared by mixin jmix:internalLink — pass it in 'mixins' so the property can be set).` (or the same for `j:url`, `j:linkTitle` and `jmix:externalLink`). On a server whose `content.create` has no `mixins` input, the call skips the property silently instead: `content.get` shows the node with `j:linkType` set and no target, and the view renders the CTA without an `href`.
 
-**Cause:** the target lives on a mixin the picker adds (`jmix:internalLink`, `jmix:externalLink`), and the node does not carry it. The skip reason names the mixin.
+**Cause:** the target lives on a mixin the picker adds (`jmix:internalLink`, `jmix:externalLink`), and the call does not add it.
 
-**Fix:** pass it in `mixins` on `content.create`, or add it with `content.update` (`addMixins`) on a server without that input. Do not touch the CND: declaring `j:linknode` by hand is the C3 defect of `jahia-review-code`, and a string property instead of the picker is `rawStringLink`.
+**Fix:** pass the mixin the error names in `mixins` on `content.create`, and call again. On a server without that input, add it with `content.update` (`addMixins`), then read the node back. Do not touch the CND: declaring `j:linknode` by hand is the C3 defect of `jahia-review-code`, and a string property instead of the picker is `rawStringLink`.
 
 ### CND: `j:linknode` or `j:url` declared explicitly
 

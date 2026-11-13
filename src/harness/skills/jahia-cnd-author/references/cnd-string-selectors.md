@@ -117,16 +117,25 @@ properties. One call creates a CTA with its target:
 An external link is the same call with `"mixins": ["jmix:externalLink"]`, `"j:linkType": "external"`,
 `"j:url"` and `"j:linkTitle"`. In a `children` entry, `mixins` sits next to `nodeType`.
 
-On a server whose `content.create` schema has no `mixins` input, create the node with
-`j:linkType`, then call `content.update` with `addMixins: ["jmix:internalLink"]` and
-`j:linknode`, then read the node back.
+**Without the mixin, the call is refused.** `content.create` is all or nothing: it creates
+nothing, and its error names the mixin to add:
 
-**Read `propertiesSkipped` in every answer.** A skipped `j:linknode` or `j:url` means the mixin
-is missing, and the answer names it. It does not mean links do not work through the API, and it
-is never a reason to model the link as string properties, which `jahia-dev-review-cnd` flags as
-`rawStringLink`. The error `Couldn't find definition for property j:linkType` is different
-again: the deployed type does not declare `j:linkType`. Fix the CND, redeploy, and check with
-`content.type` before creating content.
+```text
+Nothing was created: 1 property could not be set: j:linknode (declared by mixin jmix:internalLink — pass it in 'mixins' so the property can be set).
+```
+
+Add the mixin it names and call again. The refusal does not mean links do not work through the
+API, and it is never a reason to model the link as string properties, which
+`jahia-dev-review-cnd` flags as `rawStringLink`.
+
+On a server whose `content.create` schema has no `mixins` input, the call skips `j:linknode`
+silently and creates the node with no target. Create the node with `j:linkType`, then call
+`content.update` with `addMixins: ["jmix:internalLink"]` and `j:linknode`, then read the node
+back.
+
+The error `Couldn't find definition for property j:linkType` is different again: the deployed
+type does not declare `j:linkType`. Fix the CND, redeploy, and check with `content.type` before
+creating content.
 
 ## Weakreference picker variants
 
