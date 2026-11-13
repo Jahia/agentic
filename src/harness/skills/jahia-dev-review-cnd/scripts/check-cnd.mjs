@@ -42,7 +42,8 @@ function checkFile(filePath, content) {
     ) {
       const propName = trimmed.match(/^-\s+(\w+)/)?.[1] ?? "unknown";
       issues.push({
-        file: filePath, line: lineNum,
+        file: filePath,
+        line: lineNum,
         pattern: "rawStringLink",
         message: `"${propName}" uses (string) for a link/url — use choicelist[linkTypeInitializer]`,
         fix: "Replace with: - j:linkType (string, choicelist[linkTypeInitializer]) mandatory",
@@ -53,7 +54,8 @@ function checkFile(filePath, content) {
     if (/^-\s+(title|heroTitle|pageTitle|sectionTitle)\s+\(string[,)]/i.test(trimmed)) {
       const propName = trimmed.match(/^-\s+(\w+)/)?.[1] ?? "unknown";
       issues.push({
-        file: filePath, line: lineNum,
+        file: filePath,
+        line: lineNum,
         pattern: "rawTitleProp",
         message: `"${propName}" is a plain string — extend mix:title instead`,
         fix: "Add mix:title to the type declaration and remove this property",
@@ -63,52 +65,66 @@ function checkFile(filePath, content) {
     // weakrefNoConstraint: (weakreference) with no < constraint on same line
     if (/\(weakreference[,)]/.test(trimmed) && !/<\s*\S/.test(trimmed)) {
       issues.push({
-        file: filePath, line: lineNum,
+        file: filePath,
+        line: lineNum,
         pattern: "weakrefNoConstraint",
         message: "Unconstrained weakreference — add a type constraint",
         fix: "Add e.g. (weakreference, picker[type='image']) < jmix:image",
       });
     }
 
-    // weakrefWrongConstraint
-    if (/< ['"]jnt:file['"]/.test(trimmed)) {
+    // weakrefWrongConstraint: an image picker constrained to jnt:file, quoted or not
+    if (/picker\[type=['"]?image\b/.test(trimmed) && /<\s*['"]?jnt:file\b/.test(trimmed)) {
       issues.push({
-        file: filePath, line: lineNum,
+        file: filePath,
+        line: lineNum,
         pattern: "weakrefWrongConstraint",
-        message: "< 'jnt:file' (quoted) does not enforce image type",
+        message: "An image picker constrained to jnt:file accepts any file, not only images",
         fix: "Replace with < jmix:image for images",
       });
     }
 
     // missingI18n: user-visible string without i18n
+    // The name decides whether the text is user-visible: the selector (textarea, richtext) does not
+    const i18nPropName = trimmed.match(/^-\s+(\w+)\s+\(string(,\s*(textarea|richtext))?[,)]/)?.[1];
     if (
-      /^-\s+\w+\s+\(string(,\s*(textarea|richtext))?[,)]/.test(trimmed) &&
-      !/ i18n/.test(trimmed) &&
-      !/^-\s+j:/.test(trimmed) &&
-      /(title|text|label|description|subtitle|caption|alt|heading|summary|excerpt|body)/i.test(trimmed)
+      i18nPropName &&
+      !/\s(i18n|internationalized)\b/.test(trimmed) &&
+      /(title|text|label|description|subtitle|caption|alt|heading|summary|excerpt|body)/i.test(
+        i18nPropName,
+      )
     ) {
       issues.push({
-        file: filePath, line: lineNum,
+        file: filePath,
+        line: lineNum,
         pattern: "missingI18n",
         message: "User-visible string property missing i18n",
         fix: "Add i18n keyword after the type declaration",
       });
     }
 
-    // directDroppable: concrete type (not mixin) extending jmix:droppableContent
-    if (trimmed.startsWith("[") && /jmix:droppableContent/.test(trimmed) && !/\bmixin\b/.test(trimmed)) {
+    // childNodeOrderable: orderable is a type option. On a child node line, Jahia refuses to parse the
+    // CND at install, and the provisioning API reports it as an empty install list.
+    // The default type (= ns:ord) and a trailing comment are not options
+    if (
+      trimmed.startsWith("+") &&
+      /\)(?:\s*=\s*[\w:]+)?.*(?<![\w:])(orderable|ord|o)\b/.test(trimmed.replace(/\/\/.*$/, ""))
+    ) {
       issues.push({
-        file: filePath, line: lineNum,
-        pattern: "directDroppable",
-        message: "Extends jmix:droppableContent directly — always extend the module component mixin",
-        fix: "Replace jmix:droppableContent with nsmix:component (or your module's equivalent)",
+        file: filePath,
+        line: lineNum,
+        pattern: "childNodeOrderable",
+        message:
+          "orderable on a child node line: Jahia cannot parse the CND, and yarn jahia-deploy installs nothing",
+        fix: "Move orderable to the type line, after the supertypes: [ns:list] > jnt:content, jmix:list orderable",
       });
     }
 
     // studioOnly
     if (/jmix:studioOnly/.test(trimmed)) {
       issues.push({
-        file: filePath, line: lineNum,
+        file: filePath,
+        line: lineNum,
         pattern: "studioOnly",
         message: "jmix:studioOnly causes silent rendering issues",
         fix: "Replace with jmix:hiddenType",
@@ -118,19 +134,23 @@ function checkFile(filePath, content) {
     // redundantImageAlt: imageAlt as plain string — image node already has jcr:title
     if (/^-\s+imageAlt\s+\(string[,)]/i.test(trimmed)) {
       issues.push({
-        file: filePath, line: lineNum,
+        file: filePath,
+        line: lineNum,
         pattern: "redundantImageAlt",
-        message: '"imageAlt" is redundant — the image node\'s jcr:title (mix:title) serves as alt text',
-        fix: 'Remove imageAlt. In the view, use image.getPropertyAsString("jcr:title") for alt text',
+        message:
+          '"imageAlt" is redundant — the image node\'s jcr:title (mix:title) serves as alt text',
+        fix: 'Remove imageAlt. In the view, render the image with <JImage src={image} />: its alt text defaults to the jcr:title of the image. With javascript-modules-engine 1.2 or earlier, call server.render.addCacheDependency({ node: image }, renderContext), then use image.getPropertyAsString("jcr:title")',
       });
     }
 
     // missingRatingConstraint: rating (long) without a range constraint
-    if (/^-\s+rating\s+\(long[,)]/i.test(trimmed) && !/<\s*"?\[/.test(trimmed)) {
+    if (/^-\s+rating\s+\(long[,)]/i.test(trimmed) && !/<\s*['"]?\[/.test(trimmed)) {
       issues.push({
-        file: filePath, line: lineNum,
+        file: filePath,
+        line: lineNum,
         pattern: "missingRatingConstraint",
-        message: '"rating" (long) has no range constraint — unconstrained ratings cause data integrity issues',
+        message:
+          '"rating" (long) has no range constraint — unconstrained ratings cause data integrity issues',
         fix: 'Add: < "[1,5]"',
       });
     }
@@ -140,12 +160,33 @@ function checkFile(filePath, content) {
   const typeBlocks = content.split(/(?=^\[)/m);
   for (const block of typeBlocks) {
     if (!block.trim().startsWith("[")) continue;
-    const hasCtaLabel = /^\s*-\s+cta(Text|Label|ButtonText|ButtonLabel)\s+\(/im.test(block);
-    const hasCtaLink = /^\s*-\s+cta(Link|Url|Href|ButtonLink|ButtonUrl)\s+\(/im.test(block);
-    const hasChildNodes = /^\s*\+\s+/.test(block);
+    const typeName = block.match(/^\[(\S+)\]/m)?.[1] ?? "unknown";
+    const typeLineIdx = lines.findIndex((l) => l.includes(`[${typeName}]`));
+
+    // directDroppable: concrete type (not mixin) extending jmix:droppableContent. The supertypes
+    // and options may span several lines, up to the first property or child node
+    const header = block
+      .split("\n")
+      .filter((l) => !l.trim().startsWith("//"))
+      .join("\n")
+      .split(/^\s*[-+]/m)[0];
+    if (/jmix:droppableContent/.test(header) && !/\bmixin\b/.test(header)) {
+      issues.push({
+        file: filePath,
+        ...(typeLineIdx >= 0 ? { line: typeLineIdx + 1 } : {}),
+        pattern: "directDroppable",
+        message:
+          "Extends jmix:droppableContent directly — always extend the module component mixin",
+        fix: "Replace jmix:droppableContent with nsmix:component (or your module's equivalent)",
+      });
+    }
+
+    const hasCtaLabel =
+      /^\s*-\s+(cta(Text|Label|ButtonText|ButtonLabel)|button(Text|Label))\s+\(/im.test(block);
+    const hasCtaLink =
+      /^\s*-\s+(cta(Link|Url|Href|ButtonLink|ButtonUrl)|button(Link|Url|Href))\s+\(/im.test(block);
+    const hasChildNodes = /^\s*\+\s+/m.test(block);
     if (hasCtaLabel && hasCtaLink && !hasChildNodes) {
-      const typeName = block.match(/^\[(\S+)\]/m)?.[1] ?? "unknown";
-      const typeLineIdx = lines.findIndex((l) => l.includes(`[${typeName}]`));
       issues.push({
         file: filePath,
         ...(typeLineIdx >= 0 ? { line: typeLineIdx + 1 } : {}),
@@ -172,7 +213,11 @@ export function checkCndFiles(projectDir) {
     }
   }
 
-  return { score: Math.exp(-allIssues.length * 0.5), issues: allIssues, filesChecked: files.length };
+  return {
+    score: Math.exp(-allIssues.length * 0.5),
+    issues: allIssues,
+    filesChecked: files.length,
+  };
 }
 
 if (import.meta.main) {

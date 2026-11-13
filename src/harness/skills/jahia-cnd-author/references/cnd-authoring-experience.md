@@ -3,6 +3,7 @@
 ## .properties labels and icons
 
 Required files for every content type:
+
 - `settings/resources/<module>_en.properties`
 - `settings/resources/<module>_fr.properties`
 
@@ -26,6 +27,7 @@ Icon file: `settings/content-types-icons/<ns>_<typeName>.png`
 Free icons: https://www.flaticon.com/
 
 **Rules:**
+
 - Every node type must have a `.label` entry.
 - Every field must have a `.label` entry.
 - Choicelist options using `resourceBundle` must have a label per value.
@@ -46,7 +48,9 @@ Use `renderContext.isEditMode()` to show a flat, non-interactive layout and hint
       <p className={classes.hint}>Carousel — add or reorder slides here</p>
     </div>
   ) : (
-    <div className={classes.carousel}><RenderChildren /></div>
+    <div className={classes.carousel}>
+      <RenderChildren />
+    </div>
   );
 };
 ```
@@ -54,9 +58,11 @@ Use `renderContext.isEditMode()` to show a flat, non-interactive layout and hint
 Show inline validation hints:
 
 ```tsx
-{renderContext.isEditMode() && value % 2 !== 0 && (
-  <p className="editor-hint">Value should be even for best visual result.</p>
-)}
+{
+  renderContext.isEditMode() && value % 2 !== 0 && (
+    <p className="editor-hint">Value should be even for best visual result.</p>
+  );
+}
 ```
 
 ---

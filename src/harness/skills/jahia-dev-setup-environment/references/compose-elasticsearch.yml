@@ -12,17 +12,17 @@ services:
     build: ./elasticsearch
     mem_limit: 2g
     ports:
-      - '9200:9200'
+      - "9200:9200"
     volumes:
       - es-data:/usr/share/elasticsearch/data
     environment:
       discovery.type: single-node
       # Local development only. A deployed Elasticsearch needs TLS and authentication
-      xpack.security.enabled: 'false'
-      xpack.security.http.ssl.enabled: 'false'
-      ES_JAVA_OPTS: '-Xms1g -Xmx1g'
+      xpack.security.enabled: "false"
+      xpack.security.http.ssl.enabled: "false"
+      ES_JAVA_OPTS: "-Xms1g -Xmx1g"
     healthcheck:
-      test: ['CMD-SHELL', 'curl -sf http://localhost:9200/_cluster/health || exit 1']
+      test: ["CMD-SHELL", "curl -sf http://localhost:9200/_cluster/health || exit 1"]
       interval: 10s
       timeout: 5s
       retries: 30

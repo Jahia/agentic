@@ -2,33 +2,33 @@
 
 ## Types
 
-| Type | Editor widget | Notes |
-|---|---|---|
-| `long` | Integer number input | Counts, limits, columns |
-| `double` | Decimal number input | Coordinates, prices, ratios |
-| `boolean` | Checkbox | Feature flags, toggles |
-| `date` | Date picker | ISO 8601 stored, string in TypeScript |
-| `date, datepicker` | Date-only picker | Same storage, date-only widget |
-| `date, datetimepicker` | Date + time picker | Use when time precision is needed |
+| Type                   | Editor widget        | Notes                                 |
+| ---------------------- | -------------------- | ------------------------------------- |
+| `long`                 | Integer number input | Counts, limits, columns               |
+| `double`               | Decimal number input | Coordinates, prices, ratios           |
+| `boolean`              | Checkbox             | Feature flags, toggles                |
+| `date`                 | Date picker          | ISO 8601 stored, string in TypeScript |
+| `date, datepicker`     | Date-only picker     | Same storage, date-only widget        |
+| `date, datetimepicker` | Date + time picker   | Use when time precision is needed     |
 
 ## Types to avoid
 
-| Avoid | Use instead | Reason |
-|---|---|---|
-| `path` | `weakreference` | weakreference is the preferred reference type |
-| `reference` | `weakreference` | Not properly implemented |
-| `uri` | `string` | No added value |
-| `decimal` | `double` | Use double for decimal numbers |
-| `name` | `string` | JCR node type name; use string instead |
-| `binary` | — | Binary data; rarely needed in practice |
-| `undefined` | — | Unknown type; avoid |
+| Avoid       | Use instead     | Reason                                        |
+| ----------- | --------------- | --------------------------------------------- |
+| `path`      | `weakreference` | weakreference is the preferred reference type |
+| `reference` | `weakreference` | Not properly implemented                      |
+| `uri`       | `string`        | No added value                                |
+| `decimal`   | `double`        | Use double for decimal numbers                |
+| `name`      | `string`        | JCR node type name; use string instead        |
+| `binary`    | —               | Binary data; rarely needed in practice        |
+| `undefined` | —               | Unknown type; avoid                           |
 
 ## Default values with `autocreated`
 
 Always combine `autocreated` with `= 'value'`:
 
 ```cnd
-- columns (long) = '3' autocreated mandatory < '1', '2', '3', '4'
+- columns (long) = '3' autocreated mandatory < '[1,4]'
 - isHighlighted (boolean) = 'false' autocreated
 - country (string, choicelist[country]) = 'US' autocreated mandatory
 ```
@@ -49,6 +49,8 @@ Use `now()` (no quotes) to default a date to the current time at node creation:
 - longitude (double) mandatory < "[-180,180]"
 - rating (long) mandatory < "[1,5]"
 ```
+
+A `long`, `double` or `decimal` takes a range only. A list of values (`< '1', '2', '3'`) is not a valid numeric constraint: Jahia logs a warning and drops it, so any value is accepted. For a fixed set of values, use a `string` with a `choicelist`.
 
 **Star ratings always need a range constraint.** Never write `rating (long)` without `< "[1,5]"`:
 
@@ -84,9 +86,9 @@ Parentheses = exclusive bound, brackets = inclusive. Leave a side empty for open
 
 ## TypeScript mapping
 
-| CND type | TypeScript |
-|---|---|
-| `long` | `number` |
-| `double` | `number` |
-| `boolean` | `boolean` |
-| `date` | `string` (ISO 8601) |
+| CND type  | TypeScript          |
+| --------- | ------------------- |
+| `long`    | `number`            |
+| `double`  | `number`            |
+| `boolean` | `boolean`           |
+| `date`    | `string` (ISO 8601) |

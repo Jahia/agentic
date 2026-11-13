@@ -70,7 +70,7 @@ Use the instructions from the `jahia-dev-create-view` skill to:
 1. Create `src/components/<Category>/<Name>/default.server.tsx`
 2. Create `src/components/<Category>/<Name>/component.module.css`
 3. Import `Props` from `./types.js`
-4. Use `buildNodeUrl`, `RenderChildren`, `RenderChild` as needed
+4. Use `JImage`, `buildNodeUrl`, `RenderChildren`, `RenderChild` as needed
 5. Run `yarn build && yarn jahia-deploy` to push all changes
 
 ---
@@ -97,6 +97,7 @@ src/components/<Category>/<Name>/
 ```
 
 Optional additions:
+
 - `small.server.tsx` — named view (compact/alternate rendering)
 - `<name>.client.tsx` — client-side interactive component
 
@@ -106,14 +107,15 @@ Optional additions:
 
 If the component has child nodes, repeat Steps 2–4 for each child type, then wire the parent. Two cases:
 
-- **Children created with the parent** (CTA buttons under a hero, the fixed parts of a card): add `+ * (namespace:childType)` to the parent's `definition.cnd` and `<RenderChildren />` to its view where they appear.
-- **Children the editor adds inside the component** (the cards of a section, the cells of a grid): give the parent a hidden list child type that names the allowed item types, and render it with `<AbsoluteArea name="items" parent={currentNode} nodeType="ns:sectionItems" />`. `RenderChildren` offers no drop zone. The full pattern is in `jahia-cnd-author/references/cnd-child-nodes.md`.
+- **Children created with the parent** (CTA buttons under a hero, the fixed parts of a card): add `+ * (namespace:childType)` to the parent's `definition.cnd` and `<RenderChildren />` to its view where they appear. Render it without a condition, even when the content you create has no child: in edit mode it draws the button editors use to add the first one (see `jahia-dev-create-view`, "Never put `RenderChild` or `RenderChildren` behind a condition").
+- **Children the editor adds inside the component** (the cards of a section, the cells of a grid): give the parent a hidden list child type that names the allowed item types, and render it with `<AbsoluteArea name="items" parent={currentNode} nodeType="ns:sectionItems" />`. The full pattern is in `jahia-cnd-author/references/cnd-child-nodes.md`.
 
 After a CND change, redeploy and call `content.type` on the parent type before creating content under it. A `No child node definition` refusal means the instance still holds the previous definition (see `jahia-dev-debug`).
 
 ---
 
 ## Troubleshooting
+
 > https://academy.jahia.com/tutorials-get-started/front-end-developer/making-a-hero-section
 
 ## References
@@ -123,6 +125,7 @@ After a CND change, redeploy and call `content.type` on the parent type before c
 ---
 
 ## Validation checklist
+
 - [ ] Spec written before any code
 - [ ] Component count within scale of thumbs (1–4 templates, 5–10 types, 2–5 mixins, 1–4 views/type)
 - [ ] `definition.cnd` created with correct namespace and mixins

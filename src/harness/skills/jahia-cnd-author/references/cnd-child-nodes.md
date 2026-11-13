@@ -11,11 +11,11 @@
 
 ## When to use child nodes vs `weakreference multiple`
 
-| Use child nodes when… | Use `weakreference multiple` when… |
-|---|---|
+| Use child nodes when…                            | Use `weakreference multiple` when…               |
+| ------------------------------------------------ | ------------------------------------------------ |
 | Each item has multiple properties (label + link) | Each item is just a reference (a page, an image) |
-| Items have no life outside the parent | Items are managed elsewhere and reused |
-| You always create them together | Editors need to pick from existing content |
+| Items have no life outside the parent            | Items are managed elsewhere and reused           |
+| You always create them together                  | Editors need to pick from existing content       |
 
 ## Repeatable CTA pattern
 
@@ -51,6 +51,10 @@ Add `orderable` to the parent type when editors need to reorder children:
  + * (ns:featureItem)
 ```
 
+`orderable` belongs on the type declaration, after the supertypes. On a `+` line (`+ * (ns:featureItem) orderable`), the
+build still passes, but Jahia cannot parse the CND, and `yarn jahia-deploy` prints `{}` and
+installs nothing.
+
 ## Hidden structural nodes
 
 Child nodes that editors should never add manually (structural containers, auto-created nodes):
@@ -72,8 +76,8 @@ A section, a grid, a row: a component whose items the editor drops **inside the 
 nowhere else. Two rules decide the shape:
 
 - Editors drop content into an **Area**, so the items live in a list child that the view renders
-  with `<AbsoluteArea>`. `<RenderChildren>` on the section itself renders nodes but offers no drop
-  zone in Page Builder, and a child type created there by hand is a node no editor can add.
+  with `<AbsoluteArea>`. The area gives the items their own container, with its own type and
+  ordering, apart from the section's other children.
 - The list child is a **type of its own**, hidden from the picker, that names the item types it
   accepts. That restriction is what keeps the items "contributable on the sectioning component
   only".
@@ -99,7 +103,7 @@ The view renders the list as an area whose parent is the section node:
 
 ```tsx
 const { currentNode } = useServerContext();
-<AbsoluteArea name="items" parent={currentNode} nodeType="ns:sectionItems" />
+<AbsoluteArea name="items" parent={currentNode} nodeType="ns:sectionItems" />;
 ```
 
 Jahia creates the `items` node the first time the area renders, so the CND needs no `autocreated`
@@ -108,22 +112,53 @@ section, its list and its items in **one** `content.create` call, with `children
 levels deep:
 
 ```json
-{"parentPath": "/sites/<site>/home/main", "nodeType": "ns:section", "name": "products",
- "properties": {"jcr:title": "Our products", "layout": "3col"},
- "children": [{"name": "items", "nodeType": "ns:sectionItems", "children": [
-   {"name": "car", "nodeType": "ns:textCard", "properties": {"jcr:title": "Car", "body": "…"},
-    "children": [{"name": "cta", "nodeType": "ns:callToAction", "mixins": ["jmix:internalLink"],
-                  "properties": {"label": "Car insurance", "j:linkType": "internal", "j:linknode": "/sites/<site>/home/car-insurance"}}]},
-   {"name": "home", "nodeType": "ns:textCard", "properties": {"jcr:title": "Home", "body": "…"}}
- ]}]}
+{
+  "parentPath": "/sites/<site>/home/main",
+  "nodeType": "ns:section",
+  "name": "products",
+  "properties": { "jcr:title": "Our products", "layout": "3col" },
+  "children": [
+    {
+      "name": "items",
+      "nodeType": "ns:sectionItems",
+      "children": [
+        {
+          "name": "car",
+          "nodeType": "ns:textCard",
+          "properties": { "jcr:title": "Car", "body": "…" },
+          "children": [
+            {
+              "name": "cta",
+              "nodeType": "ns:callToAction",
+              "mixins": ["jmix:internalLink"],
+              "properties": {
+                "label": "Car insurance",
+                "j:linkType": "internal",
+                "j:linknode": "/sites/<site>/home/car-insurance"
+              }
+            }
+          ]
+        },
+        {
+          "name": "home",
+          "nodeType": "ns:textCard",
+          "properties": { "jcr:title": "Home", "body": "…" }
+        }
+      ]
+    }
+  ]
+}
 ```
 
 The `mixins` on the CTA child is what lets `j:linknode` be written; without it the answer lists
 the property under `propertiesSkipped` with the mixin to add.
 
-**What does not work, and what the refusal means.** `+ * (nsmix:sectionChild)` straight on a
-`jnt:content` section, with `<RenderChildren>` in the view, gives Page Builder nothing to drop
-into. And a `content.create` refused with `Constraint violation: No child node definition` after
+**The other shape, and what the refusal means.** `+ * (ns:textCard)` straight on the section,
+with `<RenderChildren>` in the view, also works: `RenderChildren` renders an "Add content" button
+after the children, and it is the right shape for children created with the parent (CTAs, the
+fixed parts of a card). That button, like the one `<RenderChild name="…">` renders for a missing
+named child, only exists if the view renders the component unconditionally: never wrap it in a
+`hasNode(…)` or child-count check. Do not rewrite an existing type from one shape to the other. A `content.create` refused with `Constraint violation: No child node definition` after
 you changed the CND means the instance still holds the previous definition of the parent: verify
 with `content.type` before you create anything, and see `jahia-dev-debug` for the redeploy that
 applies a CND change.
@@ -132,7 +167,7 @@ applies a CND change.
 
 ```cnd
 [ns:gridRow] > jnt:content, nsmix:component
- - columns (long) = '3' autocreated mandatory < '1', '2', '3', '4'
+ - columns (long) = '3' autocreated mandatory < '[1,4]'
  + * (jmix:droppableContent)
 ```
 

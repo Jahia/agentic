@@ -46,7 +46,7 @@ legitimately serves both directories from the bundle root.
 
 ### Where the images a JSP served at runtime actually go
 
-The rule above is about *packaging*, but a Java template set also serves images to the browser from that same root
+The rule above is about _packaging_, but a Java template set also serves images to the browser from that same root
 `images/`, and those references have to keep working. Two cases, and they resolve differently — check which one
 you have before moving a file.
 
@@ -124,17 +124,17 @@ packaged to `META-INF/import.zip` by `jahia-maven-plugin`.
 
 These come from the old module's files still sitting in the repo.
 
-| Symptom | Cause | Fix |
-|---|---|---|
-| hundreds of `TS7005`/`TS2339` in vendored JS | scaffold `tsconfig` is `"include": ["src"]` with `allowJs` + `checkJs` | scope it: `"include": ["src/types.d.ts","src/templates","src/components"]`, `"exclude": ["src/main"]` |
-| `module is not defined in ES module scope` | a legacy CommonJS `*.config.js` under the new `"type": "module"` | delete it, or rename to `.cjs` |
-| every node type declared twice | `files: ["src/**/*.cnd"]` also matches the legacy `src/main/resources/META-INF/definitions.cnd`, and the engine merges **all** `.cnd` | narrow to `src/components/**/*.cnd` and `src/templates/**/*.cnd` |
+| Symptom                                      | Cause                                                                                                                                 | Fix                                                                                                   |
+| -------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------- |
+| hundreds of `TS7005`/`TS2339` in vendored JS | scaffold `tsconfig` is `"include": ["src"]` with `allowJs` + `checkJs`                                                                | scope it: `"include": ["src/types.d.ts","src/templates","src/components"]`, `"exclude": ["src/main"]` |
+| `module is not defined in ES module scope`   | a legacy CommonJS `*.config.js` under the new `"type": "module"`                                                                      | delete it, or rename to `.cjs`                                                                        |
+| every node type declared twice               | `files: ["src/**/*.cnd"]` also matches the legacy `src/main/resources/META-INF/definitions.cnd`, and the engine merges **all** `.cnd` | narrow to `src/components/**/*.cnd` and `src/templates/**/*.cnd`                                      |
 
 ## Tooling
 
-- **`npm init @jahia/module` may not be scriptable.** Non-interactive `--yes` is recent; older
-  published versions prompt regardless and die on an unsettled top-level await. Check before
-  relying on it in an automated flow. `npm init` also swallows flags without a `--` separator.
+- **`npm init @jahia/module` needs `--yes` without a terminal.** Since 1.3, the CLI stops with
+  `This command requires an interactive terminal` unless it gets `--yes` and a module name.
+  `npm init` also swallows flags without a `--` separator.
 - **A Jahia container may not reach Nexus.** `installBundle: mvn:…` then fails with
   `java.io.IOException`; fetch the jar host-side and push it through
   `POST /modules/api/provisioning` instead.

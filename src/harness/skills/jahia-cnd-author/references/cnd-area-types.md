@@ -9,10 +9,10 @@ Define in `settings/definitions.cnd`:
 [nsmix:pageComponent] > nsmix:component mixin
 ```
 
-| Component placement | Extend |
-|---|---|
+| Component placement               | Extend                |
+| --------------------------------- | --------------------- |
 | Dropped in page areas (top-level) | `nsmix:pageComponent` |
-| Child of another component | `nsmix:component` |
+| Child of another component        | `nsmix:component`     |
 
 A component extending only `nsmix:component` cannot be dropped in areas that restrict to `nsmix:pageComponent`.
 
@@ -21,7 +21,7 @@ A component extending only `nsmix:component` cannot be dropped in areas that res
 Restricts what editors can drop into a given area:
 
 ```cnd
-[nsnt:pageArea] > jnt:content, jmix:list, jmix:studioOnly orderable
+[nsnt:pageArea] > jnt:content, jmix:list, jmix:hiddenType orderable
  + * (nsmix:pageComponent)
 ```
 
@@ -31,7 +31,7 @@ Use in a page template view:
 <Area name="main" nodeType="nsnt:pageArea" />
 ```
 
-`jmix:studioOnly` on the area type prevents it from appearing in the content picker. Use `jmix:hiddenType` for regular component types that should be hidden.
+`jmix:hiddenType` on the area type keeps it out of the content picker. Never use `jmix:studioOnly`: `check-cnd.mjs` rejects it.
 
 ## Escape hatch component
 
@@ -46,10 +46,10 @@ Editors add this to a page area, then drop any content type inside it.
 
 ## Page templates vs sectioning components
 
-| Page templates | Sectioning components |
-|---|---|
-| Fixed vertical sections per template | Editor builds sections freely |
-| Simpler for less experienced editors | More flexible, preferred for evolving integrations |
-| Use when mockups define clear distinct layouts | Use for a single free-form template |
+| Page templates                                 | Sectioning components                              |
+| ---------------------------------------------- | -------------------------------------------------- |
+| Fixed vertical sections per template           | Editor builds sections freely                      |
+| Simpler for less experienced editors           | More flexible, preferred for evolving integrations |
+| Use when mockups define clear distinct layouts | Use for a single free-form template                |
 
 Reuse area names across templates (e.g. always `main` and `sidebar`) so content is not lost when editors switch templates.

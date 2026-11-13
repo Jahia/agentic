@@ -12,9 +12,9 @@ services:
       elasticsearch:
         condition: service_healthy
     ports:
-      - '8181:8181' # HTTP
-      - '9443:9443' # HTTPS
-      - '8102:8102' # Karaf SSH shell
+      - "8181:8181" # HTTP
+      - "9443:9443" # HTTPS
+      - "8102:8102" # Karaf SSH shell
     environment:
       UNOMI_ELASTICSEARCH_ADDRESSES: elasticsearch:9200
       UNOMI_CLUSTER_PUBLIC_ADDRESS: http://localhost:8181
@@ -28,7 +28,7 @@ services:
     # The image has no healthcheck of its own, so without this block `up --wait`
     # returns before jCustomer answers
     healthcheck:
-      test: ['CMD-SHELL', 'curl -sfk -u karaf:karaf https://localhost:9443/cxs/cluster || exit 1']
+      test: ["CMD-SHELL", "curl -sfk -u karaf:karaf https://localhost:9443/cxs/cluster || exit 1"]
       interval: 10s
       timeout: 5s
       retries: 60

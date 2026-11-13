@@ -2,12 +2,12 @@
 
 ## Image tags
 
-| Image | Stable tag pattern | Notes |
-|-------|--------------------|-------|
-| `jahia/jahia-ee` | `8.2.x.x` | Enterprise Edition (most deployments) |
-| `jahia/jahia` | `8.2.x.x` | Community Edition |
-| `jahia/jcustomer` | `2.6.x` | Apache Unomi-based CDP |
-| `jahia/elasticsearch` | `7.17.x-jahia` | Patched ES image for Augmented Search |
+| Image                 | Stable tag pattern | Notes                                 |
+| --------------------- | ------------------ | ------------------------------------- |
+| `jahia/jahia-ee`      | `8.2.x.x`          | Enterprise Edition (most deployments) |
+| `jahia/jahia`         | `8.2.x.x`          | Community Edition                     |
+| `jahia/jcustomer`     | `2.6.x`            | Apache Unomi-based CDP                |
+| `jahia/elasticsearch` | `7.17.x-jahia`     | Patched ES image for Augmented Search |
 
 Always pin to an exact version in production. Avoid `latest`.
 
@@ -20,7 +20,7 @@ services:
     image: jahia/jahia-ee:8.2.4.0
     ports:
       - "8080:8080"
-      - "7770:7770"   # Karaf SSH
+      - "7770:7770" # Karaf SSH
     environment:
       JAHIA_ROOT_PASSWORD: changeme
       DB_HOST: mariadb
@@ -60,42 +60,42 @@ volumes:
 
 ### Jahia DX
 
-| Variable | Default | Purpose |
-|----------|---------|---------|
-| `JAHIA_ROOT_PASSWORD` | *(required)* | `root` user password |
-| `DB_HOST` | `mariadb` | Database hostname |
-| `DB_PORT` | `3306` | Database port |
-| `DB_NAME` | `jahia` | Database name |
-| `DB_USER` | `jahia` | Database user |
-| `DB_PASS` | *(required)* | Database password |
-| `PROCESSING_SERVER` | `true` | Enable background processing (set false on non-primary cluster nodes) |
-| `CLUSTER_ENABLED` | `false` | Enable Hazelcast clustering |
-| `CLUSTER_NODES` | | Comma-separated `host:port` list of cluster peers |
-| `MAX_RAM_PERCENTAGE` | `70` | Heap ceiling as % of container RAM |
-| `EXTRA_JAVA_OPTS` | | Append arbitrary JVM flags |
-| `JAHIA_DEPLOY_ON_STARTUP` | | Comma-separated module JAR paths to deploy at first boot |
-| `OPERATING_MODE` | `development` | `development` or `production` |
-| `MAIL_SERVER` | | SMTP URI e.g. `smtp://mail.example.com:25` |
-| `MAIL_FROM` | | Sender address for system mail |
-| `MAIL_ADMIN` | | Admin notification address |
+| Variable                  | Default       | Purpose                                                               |
+| ------------------------- | ------------- | --------------------------------------------------------------------- |
+| `JAHIA_ROOT_PASSWORD`     | _(required)_  | `root` user password                                                  |
+| `DB_HOST`                 | `mariadb`     | Database hostname                                                     |
+| `DB_PORT`                 | `3306`        | Database port                                                         |
+| `DB_NAME`                 | `jahia`       | Database name                                                         |
+| `DB_USER`                 | `jahia`       | Database user                                                         |
+| `DB_PASS`                 | _(required)_  | Database password                                                     |
+| `PROCESSING_SERVER`       | `true`        | Enable background processing (set false on non-primary cluster nodes) |
+| `CLUSTER_ENABLED`         | `false`       | Enable Hazelcast clustering                                           |
+| `CLUSTER_NODES`           |               | Comma-separated `host:port` list of cluster peers                     |
+| `MAX_RAM_PERCENTAGE`      | `70`          | Heap ceiling as % of container RAM                                    |
+| `EXTRA_JAVA_OPTS`         |               | Append arbitrary JVM flags                                            |
+| `JAHIA_DEPLOY_ON_STARTUP` |               | Comma-separated module JAR paths to deploy at first boot              |
+| `OPERATING_MODE`          | `development` | `development` or `production`                                         |
+| `MAIL_SERVER`             |               | SMTP URI e.g. `smtp://mail.example.com:25`                            |
+| `MAIL_FROM`               |               | Sender address for system mail                                        |
+| `MAIL_ADMIN`              |               | Admin notification address                                            |
 
 ### jCustomer / Unomi
 
-| Variable | Default | Purpose |
-|----------|---------|---------|
-| `UNOMI_ROOT_PASSWORD` | *(required)* | Admin password |
-| `UNOMI_ELASTICSEARCH_ADDRESSES` | `elasticsearch:9200` | ES cluster addresses |
-| `UNOMI_CLUSTER_KUBERNETES` | `false` | Enable K8s cluster discovery |
-| `UNOMI_THIRDPARTY_PROVIDER1_IPADDRESSES` | | Trusted IP ranges (for Jahia → Unomi calls) |
-| `EXTRA_JAVA_OPTS` | | Append JVM flags |
+| Variable                                 | Default              | Purpose                                     |
+| ---------------------------------------- | -------------------- | ------------------------------------------- |
+| `UNOMI_ROOT_PASSWORD`                    | _(required)_         | Admin password                              |
+| `UNOMI_ELASTICSEARCH_ADDRESSES`          | `elasticsearch:9200` | ES cluster addresses                        |
+| `UNOMI_CLUSTER_KUBERNETES`               | `false`              | Enable K8s cluster discovery                |
+| `UNOMI_THIRDPARTY_PROVIDER1_IPADDRESSES` |                      | Trusted IP ranges (for Jahia → Unomi calls) |
+| `EXTRA_JAVA_OPTS`                        |                      | Append JVM flags                            |
 
 ### Elasticsearch (jahia image)
 
-| Variable | Default | Purpose |
-|----------|---------|---------|
-| `discovery.type` | `single-node` | Use `zen` for multi-node |
-| `ES_JAVA_OPTS` | `-Xms512m -Xmx512m` | Heap; set both to the same value |
-| `xpack.security.enabled` | `false` | Enable TLS/auth |
+| Variable                 | Default             | Purpose                          |
+| ------------------------ | ------------------- | -------------------------------- |
+| `discovery.type`         | `single-node`       | Use `zen` for multi-node         |
+| `ES_JAVA_OPTS`           | `-Xms512m -Xmx512m` | Heap; set both to the same value |
+| `xpack.security.enabled` | `false`             | Enable TLS/auth                  |
 
 ## Volume layout inside the Jahia container
 

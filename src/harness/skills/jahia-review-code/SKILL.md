@@ -1,6 +1,6 @@
 ---
 name: jahia-review-code
-description: Reviews a Jahia JavaScript module for generic and Jahia-specific best practices. Scans CND definitions, TypeScript views, and page templates. Reports issues in order of importance with fix suggestions. Covers 8 critical checks, 9 warnings, and 10 suggestions.
+description: Reviews a Jahia JavaScript module for generic and Jahia-specific best practices. Scans CND definitions, TypeScript views, and page templates. Reports issues in order of importance with fix suggestions. Covers 9 critical checks, 10 warnings, and 11 suggestions.
 allowed-tools: Bash, Read
 ---
 
@@ -56,28 +56,43 @@ Check: any `.server.tsx` or `.client.tsx` file that uses `props["j:linkType"]` o
 Fix: use a `switch (props["j:linkType"])` with `buildNodeUrl(props["j:linknode"])` for internal and `props["j:url"]` for external.
 
 **C5 — Weakreference node properties read directly in a view (cache issue)**
-Check: views that access `.getPropertyAsString()`, `.getProperty(...)`, or property destructuring from a weakreference prop (other than `buildNodeUrl`).
-Fix: render the referenced node via `<Render node={refNode} view="..." />` to get proper cache invalidation.
+Check: views that access `.getPropertyAsString()`, `.getProperty(...)`, or property destructuring from a weakreference prop, when the view does not depend on that node: no `buildNodeUrl(refNode)` or `<JImage src={refNode}>` (both declare the dependency since JavaScript Modules 1.3), and no `server.render.addCacheDependency({ node: refNode }, renderContext)`. On a 1.2 engine or earlier, only `addCacheDependency` counts. The engine version is in `docker/provisioning.yml` (`javascript-modules-engine/<version>`), not in `package.json`: the engine provides the library at runtime.
+Fix: render the referenced node via `<Render node={refNode} view="..." />`, or declare the dependency before reading it. Reading the image `jcr:title` for alt text needs nothing more when the image is rendered with `<JImage>`.
 
 **C6 — Client component imports server-only APIs**
-Check: any `.client.tsx` file that imports from `@jahia/javascript-modules-library` (except `Island` which is re-exported).
+Check: any `.client.tsx` file that imports a value from `@jahia/javascript-modules-library`. An `import type { ImageProps }` statement is fine; an inline `import { type ImageProps }` is not, because `verbatimModuleSyntax` keeps the import in the client bundle.
 Fix: move server-side logic to the `.server.tsx` wrapper and pass results as serializable props to the Island.
 
 **C7 — Cache explicitly disabled (`cache.expiration="0"`)**
 Check: any `jahiaComponent` call with `properties: { "cache.expiration": "0" }`.
 Fix: never set expiration to 0. If truly fresh data is needed, use a small value like `"5"` (5 seconds) to still protect under load.
 
-**C8 — Generic area type used for every Area**
-Check: page templates where every `<Area>` uses the same generic area type (e.g. `nodeType="namespace:pageArea"` everywhere). This means editors see ALL `pageComponent` types as droppable options in every area — a hero section will appear as an option in a feature card grid.
-Fix: create **one typed area node per section** in `settings/definitions.cnd`, each with a tight child constraint:
-```cnd
-[namespace:heroArea] > jnt:content, jmix:list, jmix:hiddenType orderable
- + * (namespace:heroSection)
+**C8 — `<Area>` in a component view**
+Check: a view under `src/components/` that renders `<Area`. `<Area name="items">` resolves its name against the page, not the component, so the children that editors add inside the component (the cards of a section) are never rendered: the page shows the component without them.
 
-[namespace:featuresArea] > jnt:content, jmix:list, jmix:hiddenType orderable
- + * (namespace:featureCard)
+```bash
+grep -rnE '<Area[[:space:]/>]' src/components
 ```
-Only use a generic `pageArea` for flexible areas (e.g. footer) where any component is valid.
+
+Fix: `<AbsoluteArea name="items" parent={currentNode} nodeType="ns:sectionItems" />`, with `currentNode` from the second argument of the component (see `jahia-dev-build-component`, "Nested components"). The content stays where it is.
+
+**C9 — `<RenderChild>` or `<RenderChildren>` behind a condition**
+Check: a view that renders `RenderChild` or `RenderChildren` only when the child exists — `currentNode.hasNode("cta") && <RenderChild name="cta" />`, or a child count checked first. In edit mode these components render the button that adds a missing child; behind the guard, editors cannot add the first CTA or item from Page Builder.
+
+```bash
+grep -rnE -B4 '<RenderChild(ren)?[[:space:]/>]' src/components | grep -E 'hasNode|getNodes|\.length'
+```
+
+Fix: render the component unconditionally. If a wrapper must not appear on a live page without the child, condition the wrapper with `hasNode(…) || renderContext.isEditMode()` (see `jahia-dev-create-view`, "Never put `RenderChild` or `RenderChildren` behind a condition"). No content changes.
+
+**C10 — `t` imported from `i18next`**
+Check: a view or client component that imports `t` from `i18next`. Since JavaScript Modules 1.3, the global `t` does not know the module's namespace, and the page shows the translation keys instead of the text.
+
+```bash
+grep -rnE 'import[^;{]*\{[^}]*\bt\b[^}]*\}[[:space:]]*from[[:space:]]*.i18next.' src
+```
+
+Fix: `import { useTranslation } from "react-i18next";`, then `const { t } = useTranslation();` inside the component. No content changes.
 
 ---
 
@@ -120,6 +135,21 @@ Check: any `.server.tsx`, `.client.tsx`, or template file containing a literal `
 Fix: **All navigable URLs must come from contributed content.** Use `j:linkType`/`j:linknode`/`j:url` props for editorial links, `buildNodeUrl(node)` for JCR node links.
 🚫 **NEVER use `j:linkType: "external"` to link to an internal Jahia page** — use `"internal"` + `j:linknode`. An external URL pointing internally breaks on environment changes, language switches, live/preview workspace toggling, and vanity URL rewrites. If no target page exists yet, omit the link; do not substitute an external workaround.
 
+**W10 — Generic area type used for every Area**
+Check: page templates where every `<Area>` uses the same generic area type (e.g. `nodeType="namespace:pageArea"` everywhere). This means editors see ALL `pageComponent` types as droppable options in every area — a hero section will appear as an option in a feature card grid.
+Fix: create **one typed area node per section** in `settings/definitions.cnd`, each with a tight child constraint:
+
+```cnd
+[namespace:heroArea] > jnt:content, jmix:list, jmix:hiddenType orderable
+ + * (namespace:heroSection)
+
+[namespace:featuresArea] > jnt:content, jmix:list, jmix:hiddenType orderable
+ + * (namespace:featureCard)
+```
+
+Only use a generic `pageArea` for flexible areas (e.g. footer) where any component is valid.
+On pages that already hold content, the fix moves that content: report it, and apply it only while the pages are still empty.
+
 ---
 
 ### 🔵 SUGGESTION — Quality improvements
@@ -129,19 +159,20 @@ Check: views that use `<div>` where `<article>`, `<section>`, `<nav>`, `<header>
 Fix: use semantic HTML for better accessibility and SEO.
 
 **S2 — Images without meaningful alt text**
-Check: `<img>` tags with `alt=""` or no `alt` attribute (unless there's a comment saying it's decorative).
+Check: `<img>` tags with `alt=""` or no `alt` attribute (unless there's a comment saying it's decorative), and `<JImage>` given `alt=""` for an informative image.
 Fix: add descriptive alt text. Decorative images should have `alt=""` with a comment.
 
 **S3 — Accessibility violations (axe-core audit)**
 Check: run `/jahia-dev-accessibility` against all live pages. A clean module has zero `critical` or `serious` violations.
 Common issues in Jahia modules:
+
 - `color-contrast`: hardcoded colours with insufficient contrast ratio — check with https://webaim.org/resources/contrastchecker/
 - `image-alt`: `<img>` missing a meaningful `alt` prop sourced from CND
 - `button-name`: icon-only `<button>` or `<a>` without `aria-label`
 - `landmark-one-main`: page template missing a `<main>` wrapper
 - `page-has-heading-one`: no `<h1>` rendered on any page
 - `heading-order`: skipped heading levels between components (e.g. h1 → h3)
-- `html-has-lang`: template not setting `lang` via `useServerContext().currentLanguage`
+- `html-has-lang`: template not setting `lang` from `currentResource.getLocale().toLanguageTag()`
 - `focus-visible` suppressed: global `* { outline: none }` in CSS kills keyboard navigation
 
 Fix: identify each violating component by matching the axe target selector to a `.server.tsx` file, apply the fix, rebuild, and re-run the audit.
@@ -176,11 +207,17 @@ Fix: add a `namespace:contentStack > jnt:content, namespacemix:component + * (jm
 
 **S11 — Scaffold/boilerplate components still present**
 Check: components under `src/components/Hello/` (or any other archetype-generated boilerplate) that are no longer referenced in `settings/import.xml` and no longer used by any view or page template.
+
 ```bash
 # Check if Hello components are still referenced anywhere
 grep -r "helloWorld\|helloCard\|Hello/" src/templates/ settings/ --include="*.tsx" --include="*.xml" --include="*.cnd"
 ```
+
 Fix: once `import.xml` no longer provisions Hello World content and no template uses them, delete the entire `src/components/Hello/` directory, remove their entries from `.properties` files, and delete their icons from `settings/content-types-icons/`. Keeping dead components inflates the content picker and confuses editors.
+
+**S12 — Image node rendered with `<img src={buildNodeUrl(…)}>`**
+Check: when `docker/provisioning.yml` installs `javascript-modules-engine` 1.3 or later, an `<img>` whose `src` is `buildNodeUrl` of an image node.
+Fix: `<JImage src={image} />`: it takes the alt text from `jcr:title`, sets `width` and `height`, and builds a `srcset`. Keep `height: auto` in the CSS of the image. The hero takes `loading="eager" fetchPriority="high"`.
 
 ---
 
@@ -213,7 +250,7 @@ If no issues found in a category, print `✅ None`.
 
 ## Step 5 — Ask to fix
 
-After the report, ask: **"Would you like me to fix any of these issues?"**
+When another skill or agent invoked this review (for instance `/jahia-review`), end with the report: that caller decides what to fix. Otherwise, after the report, ask: **"Would you like me to fix any of these issues?"**
 
 If yes, fix them — use the guidance from the relevant skill (`jahia-cnd-author`, `jahia-dev-create-view`) and run `yarn build && yarn jahia-deploy` to push changes.
 

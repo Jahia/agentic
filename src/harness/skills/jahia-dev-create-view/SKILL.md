@@ -12,11 +12,11 @@ A **view** tells Jahia how to render a content type. Views are React components 
 
 ## File naming convention
 
-| Filename | Meaning |
-|---|---|
-| `default.server.tsx` | Default server-side rendered view |
-| `<name>.server.tsx` | Named view (e.g. `small.server.tsx`) |
-| `<name>.client.tsx` | Client-side rendered (interactive) view |
+| Filename             | Meaning                                 |
+| -------------------- | --------------------------------------- |
+| `default.server.tsx` | Default server-side rendered view       |
+| `<name>.server.tsx`  | Named view (e.g. `small.server.tsx`)    |
+| `<name>.client.tsx`  | Client-side rendered (interactive) view |
 
 A node type can have **multiple views**. When `name` is omitted in `jahiaComponent`, the view is the default.
 
@@ -27,13 +27,18 @@ A node type can have **multiple views**. When `name` is omitted in `jahiaCompone
 In the component folder (`src/components/<Category>/<Name>/`), create `default.server.tsx`:
 
 ```tsx
-import { jahiaComponent, buildNodeUrl, RenderChildren, RenderChild } from "@jahia/javascript-modules-library";
+import {
+  jahiaComponent,
+  buildNodeUrl,
+  RenderChildren,
+  RenderChild,
+} from "@jahia/javascript-modules-library";
 import type { Props } from "./types.js";
 import classes from "./component.module.css";
 
 jahiaComponent(
   {
-    componentType: "view",       // always "view" for a component (use "template" for page templates)
+    componentType: "view", // always "view" for a component (use "template" for page templates)
     nodeType: "namespace:typeName",
     displayName: "Human Readable Name",
     // name: "small",            // omit for default view; set for named views
@@ -53,12 +58,16 @@ jahiaComponent(
 // small.server.tsx — registered as a named view AND exported for direct reuse
 export const SmallHero = jahiaComponent(
   { componentType: "view", nodeType: "ns:heroSection", name: "small" },
-  ({ title, background }: Props) => <header style={{ backgroundImage: `url(${buildNodeUrl(background)})` }}><h1>{title}</h1></header>,
+  ({ title, background }: Props) => (
+    <header style={{ backgroundImage: `url(${buildNodeUrl(background)})` }}>
+      <h1>{title}</h1>
+    </header>
+  ),
 );
 
 // fullPage.server.tsx — reuse the component directly without going through Jahia rendering
 import { SmallHero } from "../Hero/Section/small.server.jsx";
-<SmallHero title={title} background={cover} />
+<SmallHero title={title} background={cover} />;
 ```
 
 ### When implementing a view from existing HTML
@@ -74,7 +83,8 @@ When you have a source HTML fragment to translate (e.g. from `/jahia-dev-import-
 **Self-check before finishing:** Count the attributes on 2–3 key elements in the source HTML. If the source `<div>` has 6 attributes and your TSX has 4, you dropped something — go back.
 
 **CSS class names:** Rename source HTML class names to CSS Module keys (`hero__title` → `classes.heroTitle`). If the component also imports a vendor CSS file as a static asset (see `jahia-dev-import-from`), those vendor classes stay as plain strings in the JSX — they are not processed by CSS Modules.
-```
+
+````
 
 ---
 
@@ -94,15 +104,35 @@ Build these requirements in from the start — retrofitting them later is more e
 
 ### Images
 
-Every `<img>` must have an `alt` attribute. Decorative images use `alt=""`. Informational images use a descriptive string from a CND property:
+Render an image node with `<JImage>`. It takes the alt text from the image node's `jcr:title`, sets `width` and `height` from the image's own size (no layout shift), and builds a `srcset` (except for an SVG, see below):
 
 ```tsx
-// ❌ Missing alt
+import { JImage } from "@jahia/javascript-modules-library";
+
+// ❌ No alt, no dimensions
 <img src={buildNodeUrl(props.image)} />
 
-// ✅ Alt from the image node's title (no extra CND property needed)
-<img src={buildNodeUrl(props.image)} alt={props.image?.getPropertyAsString("jcr:title") ?? ""} />
-```
+// ✅ Alt from the image node's jcr:title; alt="" when the image has no title
+{props.image && <JImage src={props.image} className={classes.image} />}
+
+// ✅ Informative image: fall back to a meaningful text when the image has no title
+{props.image && (
+  <JImage src={props.image} alt={props.image.getPropertyAsString("jcr:title") || props["jcr:title"]} />
+)}
+
+// ✅ Decorative image
+{props.image && <JImage src={props.image} alt="" />}
+````
+
+- **The hero, or any image above the fold, loads eagerly**: `<JImage src={hero} loading="eager" fetchPriority="high" />`. Every other image keeps the default, `loading="lazy"`.
+- **Keep `height: auto` in the image CSS.** `<JImage>` sets the `width` and `height` attributes; a CSS rule that sets only `width` stretches the image. Use `width: 100%; height: auto;`, or `aspect-ratio` with `object-fit: cover` for a cropped frame.
+- Other `<img>` attributes (`className`, `fetchPriority`, `decoding`…) pass through. `width={400}` asks for a fixed-size image instead of a responsive one.
+- **`sizes` and `srcSet` take arrays, not strings**: `sizes={["(width >= 1200px) 600px", "100vw"]}`, `srcSet={[800, 400]}`. Set `sizes` when the image is narrower than the viewport, so the browser picks a smaller file. The default is `["auto", "100vw"]`, or `["100vw"]` with `loading="eager"`.
+- **An SVG gets no `srcset`, and no `width` or `height`** unless you pass them: size it in CSS, or with `width={…}`.
+- `<JImage>` builds the image URL with `buildNodeUrl`, so the view already depends on the image node: a renamed image updates the alt text, with no `addCacheDependency` call.
+- On a default Jahia, every `srcset` candidate serves the original file; the resizing happens only with a DAM or an image resizer. Use `<JImage>` anyway.
+- **In an island**, pass `getImageProps(node)` as a prop and spread it on an `<img />` (see Step 5b).
+- **JavaScript Modules 1.2 and earlier** have no `<JImage>`. The version that counts is the `javascript-modules-engine` installed in Jahia, which provides `@jahia/javascript-modules-library` at runtime: read it in `docker/provisioning.yml` (`javascript-modules-engine/<version>`), or in the module list of Jahia. The library version in `package.json` only sets the types of the build: a view that uses `<JImage>` builds against a 1.2 engine, then fails to render. On a 1.2 engine, write `<img src={buildNodeUrl(image)} alt={image.getPropertyAsString("jcr:title") ?? ""} />` and declare `server.render.addCacheDependency({ node: image }, renderContext)`.
 
 The image node already has `jcr:title` (from `mix:title`). **Do not add `imageAlt (string) i18n`** to the CND — it forces editors to enter duplicate data.
 
@@ -128,10 +158,15 @@ Never suppress focus indicators globally. Use `:focus-visible` to style keyboard
 
 ```css
 /* ❌ Never do this */
-* { outline: none; }
+* {
+  outline: none;
+}
 
 /* ✅ Style keyboard focus without affecting mouse users */
-:focus-visible { outline: 2px solid #0969da; outline-offset: 2px; }
+:focus-visible {
+  outline: 2px solid #0969da;
+  outline-offset: 2px;
+}
 ```
 
 ---
@@ -183,18 +218,19 @@ This applies everywhere: `href`, `src`, `action`, `data-url`. If a link needs to
 ```tsx
 import { buildNodeUrl } from "@jahia/javascript-modules-library";
 
-<img src={buildNodeUrl(coverNode)} alt="Descriptive alt text" />
+<a href={buildNodeUrl(articleNode)}>{title}</a>
 <header style={{ backgroundImage: `url(${buildNodeUrl(background)})` }}>
 ```
 
 **Options** (second argument):
 
-| Option | Default | Use |
-|---|---|---|
-| `extension` | `.html` | Change output extension, e.g. `extension: ".pdf"` |
-| `language` | current language | Override language: `language: "fr"` |
-| `mode` | current mode | Force workspace: `"edit"`, `"preview"`, or `"live"` |
-| `parameters` | — | Append query params: `parameters: { page: "2" }` |
+| Option       | Default          | Use                                                                                |
+| ------------ | ---------------- | ---------------------------------------------------------------------------------- |
+| `extension`  | `.html`          | Change output extension, e.g. `extension: ".pdf"`                                  |
+| `language`   | current language | Override language: `language: "fr"`                                                |
+| `mode`       | current mode     | Force workspace: `"edit"`, `"preview"`, or `"live"`                                |
+| `parameters` | —                | Append query params: `parameters: { page: "2" }`                                   |
+| `absolute`   | `false`          | Prefix the URL with the server origin, or with the origin given as a string (1.3+) |
 
 ```tsx
 // Link to the blog page in the current language
@@ -202,9 +238,17 @@ import { buildNodeUrl } from "@jahia/javascript-modules-library";
 
 // Same link forced to French
 <a href={buildNodeUrl(blogNode, { language: "fr" })}>Blog (FR)</a>
+
+// Absolute URL, for a meta tag read outside the site
+<meta property="og:url" content={buildNodeUrl(mainNode, { absolute: true })} />
 ```
 
+Use `absolute` only where a full URL is required (`og:url`, `og:image`, feeds, emails). In preview and edit, Jahia removes the origin from a page URL in an `href` or `src` attribute, so an absolute URL there is only kept in an attribute like `content`. `buildModuleFileUrl` and `buildEndpointUrl` take the same option.
+
+Since JavaScript Modules 1.3, `buildNodeUrl` adds the node to the cache dependencies of the view: a link to a page that is renamed or moved is updated instead of leading to a 404. A view that links to many nodes and should not be flushed by them sets `autocollectDependency: false` on the call, or `"cache.autocollectDependencies": "false"` in its `properties`.
+
 > ⚠️ **Always guard optional nodes**: `buildNodeUrl(undefined)` throws `"Expected a node in buildNodeUrl, received undefined"`. If the prop is optional in the CND, guard it:
+>
 > ```tsx
 > // ❌ Crashes when background is not set
 > style={{ backgroundImage: `url(${buildNodeUrl(background)})` }}
@@ -213,15 +257,24 @@ import { buildNodeUrl } from "@jahia/javascript-modules-library";
 > style={background ? { backgroundImage: `url(${buildNodeUrl(background)})` } : undefined}
 > ```
 
-> ⚠️ **Caching rule**: Never render properties of a **weakreference** node directly in the same view. Doing so will produce stale output because Jahia's cache is based on the referencing node, not the referenced one. Instead, render the referenced node using `<RenderChild>` (or a dedicated sub-view), or call `addCacheDependency` explicitly. Example:
+> ⚠️ **Caching rule**: Never render properties of a **weakreference** node directly in the same view unless the view depends on that node. Otherwise the output goes stale, because Jahia's cache is based on the referencing node, not the referenced one. The view depends on the node when it passes it to `buildNodeUrl` or `<JImage>` (JavaScript Modules 1.3+), or after `server.render.addCacheDependency({ node }, renderContext)`. You can also render the referenced node with `<Render node={...} />` (or a dedicated sub-view). `<RenderChild>` does not work here: it renders a child node, and a weakreference is a property. Example:
 >
 > ```tsx
-> // ❌ Don't do this — stale on referenced node change
-> <img src={buildNodeUrl(background)} alt={background.getProperty('jcr:title').getString()} />
+> // ❌ Don't do this — the view never builds the author's URL: stale when the author changes
+> <p>{author.getPropertyAsString("jcr:title")}</p>
 >
 > // ✅ Do this — render the referenced node as its own view
-> <RenderChild name="background" />
+> <Render node={author} />
+>
+> // ✅ Or this — link to it: buildNodeUrl declares the dependency
+> <a href={buildNodeUrl(author)}>{author.getPropertyAsString("jcr:title")}</a>
+>
+> // ✅ Or this — declare the dependency, then read the node
+> server.render.addCacheDependency({ node: author }, renderContext);
+> <p>{author.getPropertyAsString("jcr:title")}</p>
 > ```
+>
+> On JavaScript Modules 1.2 and earlier, `buildNodeUrl` declares nothing: use `<Render>` or `addCacheDependency`.
 
 ### `RenderChildren` — render child nodes with optional pagination and filtering
 
@@ -254,6 +307,48 @@ import { RenderChild } from "@jahia/javascript-modules-library";
 <RenderChild name="hero" view="small" />       // named view
 ```
 
+### Never put `RenderChild` or `RenderChildren` behind a condition
+
+In edit mode, `<RenderChild name="cta" />` renders the button that creates the `cta` child when it is missing, and `<RenderChildren />` renders an "Add content" button after the children. That button is the only way an editor adds the first child from Page Builder. A guard such as `currentNode.hasNode("cta") &&` or `children.length > 0 &&` removes it: a new component, or one whose child was deleted, can never get it back from the interface.
+
+Render them unconditionally. When the wrapper around them adds spacing that a live page without the child must not show, condition the wrapper, never the render:
+
+```tsx
+jahiaComponent(
+  { componentType: "view", nodeType: "ns:hero" },
+  ({ "jcr:title": title }, { currentNode, renderContext }) => (
+    <section>
+      <h2>{title}</h2>
+      {/* ✅ the wrapper is skipped on a live page without a CTA; the edit-mode button stays */}
+      {(currentNode.hasNode("cta") || renderContext.isEditMode()) && (
+        <div className={classes.action}>
+          <RenderChild name="cta" />
+        </div>
+      )}
+      {/* ❌ {currentNode.hasNode("cta") && <RenderChild name="cta" />} — editors cannot add a CTA */}
+    </section>
+  ),
+);
+```
+
+### Children that editors add inside the component — `AbsoluteArea` on the current node
+
+The cards of a section, the cells of a grid: render the hidden list child with `AbsoluteArea` and the current node as parent. Never use `<Area>` in a view: it resolves its name against the page, so the children are not rendered.
+
+```tsx
+import { AbsoluteArea, jahiaComponent } from "@jahia/javascript-modules-library";
+
+jahiaComponent(
+  { componentType: "view", nodeType: "ns:section" },
+  ({ "jcr:title": title }, { currentNode }) => (
+    <section>
+      <h2>{title}</h2>
+      <AbsoluteArea name="items" parent={currentNode} nodeType="ns:sectionItems" />
+    </section>
+  ),
+);
+```
+
 ### `Render` — render any arbitrary JCR node or virtual node
 
 ```tsx
@@ -264,10 +359,10 @@ import { Render } from "@jahia/javascript-modules-library";
 
 // Render a virtual node — no JCR storage, no editor interaction needed
 // Use for components that take no parameters and need no per-page configuration
-<Render content={{ nodeType: "namespace:navBar" }} />
+<Render content={{ name: "navBar", nodeType: "namespace:navBar" }} />
 ```
 
-**Virtual nodes** (`content={{ nodeType }}`) render a component inline without creating a JCR node. This is the right pattern for parameterless structural components like a nav bar that is always the same on every page. Unlike `<AbsoluteArea>`, virtual nodes require zero editor interaction.
+**Virtual nodes** (`content={{ name, nodeType }}`, both required) render a component inline without creating a JCR node. This is the right pattern for parameterless structural components like a nav bar that is always the same on every page. Unlike `<AbsoluteArea>`, virtual nodes require zero editor interaction.
 
 > **Why `<Render node={...} />` solves the cache issue**: When you render a weakreference node via `<Render>`, its fragment is cached separately. If the referenced node changes, its fragment is invalidated and Jahia propagates that invalidation upward to any parent fragment that included it.
 
@@ -279,19 +374,20 @@ When a CND type uses `choicelist[linkTypeInitializer]`, the `j:linkType` propert
 import { buildNodeUrl, jahiaComponent } from "@jahia/javascript-modules-library";
 import type { Props } from "./types.js";
 
-jahiaComponent(
-  { componentType: "view", nodeType: "namespace:callToAction" },
-  (props: Props) => {
-    switch (props["j:linkType"]) {
-      case "internal":
-        return <a href={buildNodeUrl(props["j:linknode"])}>{props.label}</a>;
-      case "external":
-        return <a href={props["j:url"]} title={props["j:linkTitle"]}>{props.label}</a>;
-      default:
-        return <span>{props.label}</span>;
-    }
-  },
-);
+jahiaComponent({ componentType: "view", nodeType: "namespace:callToAction" }, (props: Props) => {
+  switch (props["j:linkType"]) {
+    case "internal":
+      return <a href={buildNodeUrl(props["j:linknode"])}>{props.label}</a>;
+    case "external":
+      return (
+        <a href={props["j:url"]} title={props["j:linkTitle"]}>
+          {props.label}
+        </a>
+      );
+    default:
+      return <span>{props.label}</span>;
+  }
+});
 ```
 
 The `Props` type must be a discriminated union (see `jahia-cnd-author` skill).
@@ -306,7 +402,7 @@ jahiaComponent(
     componentType: "view",
     nodeType: "namespace:price",
     properties: {
-      "cache.expiration": "60",   // re-render at most once per minute
+      "cache.expiration": "60", // re-render at most once per minute
     },
   },
   ({ price }: Props) => <span>{price}</span>,
@@ -319,12 +415,10 @@ jahiaComponent(
     componentType: "view",
     nodeType: "namespace:greeting",
     properties: {
-      "cache.perUser": "true",    // different cache per logged-in user
+      "cache.perUser": "true", // different cache per logged-in user
     },
   },
-  (_, { renderContext }) => (
-    <div>Welcome, {renderContext.getUser().getUsername()}</div>
-  ),
+  (_, { renderContext }) => <div>Welcome, {renderContext.getUser().getUsername()}</div>,
 );
 ```
 
@@ -336,7 +430,7 @@ jahiaComponent(
 import { buildModuleFileUrl, AddResources } from "@jahia/javascript-modules-library";
 
 // Inject a vendor CSS file into the page head
-<AddResources type="css" url={buildModuleFileUrl("css/vendor.min.css")} />
+<AddResources type="css" resources={buildModuleFileUrl("css/vendor.min.css")} />
 
 // Reference a bundled image
 <img src={buildModuleFileUrl("images/placeholder.svg")} alt="" />
@@ -355,14 +449,17 @@ import type { JCRNodeWrapper } from "org.jahia.services.content";
 jahiaComponent(
   { componentType: "view", nodeType: "namespace:navBar" },
   (_, { renderContext, mainNode }) => {
-    // Get all child pages of the site root
-    const pages = getChildNodes(renderContext.getSite(), -1, 0,
-      (node: JCRNodeWrapper) => node.isNodeType("jnt:page")
+    // Get all child pages of the home page (pages live under `home`, not under the site node)
+    const pages = getChildNodes(
+      renderContext.getSite().getNode("home"),
+      -1,
+      0,
+      (node: JCRNodeWrapper) => node.isNodeType("jnt:page"),
     );
     return (
       <nav>
         <ul>
-          {pages.map(page => (
+          {pages.map((page) => (
             <li key={page.getPath()}>
               <a
                 href={buildNodeUrl(page)}
@@ -398,14 +495,14 @@ jahiaComponent(
 );
 ```
 
-| Context field | Type | What it is |
-|---|---|---|
-| `renderContext` | `RenderContext` | Full rendering context (site, workspace, edit mode, user) |
-| `currentNode` | `JCRNodeWrapper` | The component's own JCR node |
-| `mainNode` | `JCRNodeWrapper` | The page's main resource node |
-| `currentResource` | `Resource` | The render resource |
-| `jcrSession` | `JCRSessionWrapper` | Current JCR session — do NOT hold across requests |
-| `bundleKey` | `string` | Module bundle key (e.g. `"my-module"`) |
+| Context field     | Type                | What it is                                                |
+| ----------------- | ------------------- | --------------------------------------------------------- |
+| `renderContext`   | `RenderContext`     | Full rendering context (site, workspace, edit mode, user) |
+| `currentNode`     | `JCRNodeWrapper`    | The component's own JCR node                              |
+| `mainNode`        | `JCRNodeWrapper`    | The page's main resource node                             |
+| `currentResource` | `Resource`          | The render resource                                       |
+| `jcrSession`      | `JCRSessionWrapper` | Current JCR session — do NOT hold across requests         |
+| `bundleKey`       | `string`            | Module bundle key (e.g. `"my-module"`)                    |
 
 > Use `mainNode` to navigate to the page or site from within a sub-component. Use `jcrSession` for JCR reads that can't go through props (e.g. loading a node by path in a computed listing).
 
@@ -424,6 +521,7 @@ logger.info("Hello from JS!");
 Only use `Java.type()` with classes from Jahia's documented core. Undocumented classes may change without notice. Prefer `useServerContext()` for officially supported objects.
 
 **Mixing JS and Java modules** is fully supported — content types and services from one type can be used by the other. What does NOT work:
+
 - JSP files inside a JS module
 - JSX views inside a Java module
 
@@ -435,9 +533,11 @@ Register a render filter from a JS module's init script to transform rendered ou
 
 ```js
 registry.add("render-filter", "myFilter", renderFilterRef, {
-  target: "render:50",           // phase + priority (lower = earlier)
+  target: "render:50", // phase + priority (lower = earlier)
   applyOnNodeTypes: "jnt:bigText",
-  prepare: (renderContext, resource, chain) => { /* setup before render */ },
+  prepare: (renderContext, resource, chain) => {
+    /* setup before render */
+  },
   execute: (previousOut, renderContext, resource, chain) => {
     return previousOut.replace("foo", "bar");
   },
@@ -450,7 +550,7 @@ The `target` string format is `"<phase>:<priority>"`. Filters with priority < 16
 
 ### `useGQLQuery` — server-side GraphQL
 
-Executes a GraphQL query **synchronously** using the current user's credentials. Returns the `data` portion of the response.
+Executes a GraphQL query **synchronously** using the current user's credentials. Takes one object (`query`, `variables`, `operationName`) and returns `{ data, errors }`.
 
 ```tsx
 import { useGQLQuery, jahiaComponent } from "@jahia/javascript-modules-library";
@@ -460,21 +560,30 @@ const QUERY = gql`
   query ListNodes($path: String!) {
     jcr {
       nodeByPath(path: $path) {
-        children { nodes { name displayName path } }
+        children {
+          nodes {
+            name
+            displayName
+            path
+          }
+        }
       }
     }
   }
 `;
 
-jahiaComponent(
-  { componentType: "view", nodeType: "ns:listing" },
-  (_, { renderContext }) => {
-    const siteKey = renderContext.getSite().getName();
-    const data = useGQLQuery(QUERY, { path: `/sites/${siteKey}/contents` });
-    const nodes = data?.jcr?.nodeByPath?.children?.nodes ?? [];
-    return <ul>{nodes.map((n: any) => <li key={n.path}>{n.displayName}</li>)}</ul>;
-  },
-);
+jahiaComponent({ componentType: "view", nodeType: "ns:listing" }, (_, { renderContext }) => {
+  const siteKey = renderContext.getSite().getName();
+  const { data } = useGQLQuery({ query: QUERY, variables: { path: `/sites/${siteKey}/contents` } });
+  const nodes = data?.jcr?.nodeByPath?.children?.nodes ?? [];
+  return (
+    <ul>
+      {nodes.map((n: any) => (
+        <li key={n.path}>{n.displayName}</li>
+      ))}
+    </ul>
+  );
+});
 ```
 
 Use `useGQLQuery` when you need field-level projection, joins across nodes, or complex filtering. Use `useJCRQuery` for simple node listings where you'll call Java methods on the results.
@@ -495,28 +604,31 @@ Use `useGQLQuery` when you need field-level projection, joins across nodes, or c
 >       <RenderChildren />
 >     </div>
 >   );
-> }
+> };
 > ```
 
 ### `readOnly` prop for shared/structural nodes
 
-Use `readOnly` when rendering a node that editors should not edit in-place (e.g. a shared footer, a system-level navigation area):
+Use `readOnly` when rendering a node that editors should not edit in-place (e.g. a system-level navigation area). `Render` takes it, `RenderChild` does not:
 
 ```tsx
-<RenderChild name="footer" readOnly={true} />
+<Render node={currentNode.getNode("footer")} readOnly />
 ```
 
-For `AbsoluteArea`, use `readOnly="children"` to allow editing only from the owning page:
+For `AbsoluteArea`, `readOnly="children"` makes the area editable only on the page whose node is its `parent`, and read-only everywhere else. On JavaScript Modules 1.2 and earlier, such an area cannot be edited on that page either:
 
 ```tsx
+// Editable from every page — the default, and the right choice for a site-wide nav or footer
+<AbsoluteArea name="footer" parent={renderContext.getSite()} />
+
+// Editable from the home page only, read-only on every other page
+<AbsoluteArea name="footer" parent={renderContext.getSite().getNode("home")} readOnly="children" />
+
 // Fully read-only — editors cannot edit the footer from any page
 <AbsoluteArea name="footer" parent={renderContext.getSite()} readOnly={true} />
-
-// Read-only everywhere EXCEPT the designated "footer management" page
-<AbsoluteArea name="footer" parent={renderContext.getSite()} readOnly="children" />
 ```
 
-`readOnly="children"` is the recommended pattern: the footer is manageable from one page, but other page templates just include it without showing edit handles.
+Never combine `parent={renderContext.getSite()}` with `readOnly="children"`: the owner is then the site node, which is never the page being edited, so the area is read-only on every page and editors cannot reach its content.
 
 ---
 
@@ -578,13 +690,13 @@ When only the title of a card is a link, make the entire card clickable using th
 ```css
 /* In component.module.css */
 .card {
-  position: relative;  /* ← required for stretch to work */
+  position: relative; /* ← required for stretch to work */
 }
 
 .cardLink::after {
   content: "";
   position: absolute;
-  inset: 0;  /* stretches to cover the entire card */
+  inset: 0; /* stretches to cover the entire card */
 }
 ```
 
@@ -602,7 +714,7 @@ jahiaComponent(
     componentType: "view",
     nodeType: "namespace:typeName",
     displayName: "Small View",
-    name: "small",      // ← this registers a named view
+    name: "small", // ← this registers a named view
   },
   ({ title }: Props) => <span className={classes.small}>{title}</span>,
 );
@@ -618,11 +730,11 @@ Jahia uses the **Island Architecture**: server components render static HTML; in
 
 ### When to use client vs server rendering
 
-| Use `.server.tsx` for… | Use `.client.tsx` for… |
-|---|---|
-| Static HTML, CMS content, navigation | Buttons, toggles, counters, forms |
-| Reading JCR/GQL data | `useState`, `useEffect`, browser events |
-| SEO-important content | Animations, browser-only libraries |
+| Use `.server.tsx` for…               | Use `.client.tsx` for…                  |
+| ------------------------------------ | --------------------------------------- |
+| Static HTML, CMS content, navigation | Buttons, toggles, counters, forms       |
+| Reading JCR/GQL data                 | `useState`, `useEffect`, browser events |
+| SEO-important content                | Animations, browser-only libraries      |
 
 ### Step 1 — Create the client component
 
@@ -634,7 +746,7 @@ import { useState } from "react";
 import classes from "./component.module.css";
 
 interface Props {
-  label: string;         // only serializable types allowed as Island props
+  label: string; // only serializable types allowed as Island props
   initialCount?: number;
 }
 
@@ -642,9 +754,15 @@ export default function Counter({ label, initialCount = 0 }: Props) {
   const [count, setCount] = useState(initialCount);
   return (
     <div className={classes.counter}>
-      <button type="button" onClick={() => setCount(c => c - 1)}>−</button>
-      <span>{label}: {count}</span>
-      <button type="button" onClick={() => setCount(c => c + 1)}>+</button>
+      <button type="button" onClick={() => setCount((c) => c - 1)}>
+        −
+      </button>
+      <span>
+        {label}: {count}
+      </span>
+      <button type="button" onClick={() => setCount((c) => c + 1)}>
+        +
+      </button>
     </div>
   );
 }
@@ -654,12 +772,26 @@ export default function Counter({ label, initialCount = 0 }: Props) {
 
 > ⚠️ **Props must be serializable**: only strings, numbers, booleans, plain objects, and arrays. You cannot pass `JCRNodeWrapper`, `renderContext`, or Java objects to a client component.
 
+To show an image node in an island, compute its `<img>` attributes on the server with `getImageProps` and pass the plain object; the island spreads it on an `<img />`. `ImageProps` is a type-only import, so the client file may import it:
+
+```tsx
+// Gallery.client.tsx
+import type { ImageProps } from "@jahia/javascript-modules-library";
+
+export default function Gallery({ images }: { images: ImageProps[] }) {
+  return images.map((image) => <img key={image.src} {...image} />);
+}
+
+// default.server.tsx
+<Island component={Gallery} props={{ images: images.map((node) => getImageProps(node)) }} />;
+```
+
 ### Step 2 — Wrap it with `<Island>` in the server view
 
 ```tsx
 // src/components/Counter/default.server.tsx
 import { jahiaComponent, Island } from "@jahia/javascript-modules-library";
-import Counter from "./Counter.client.jsx";     // .jsx at import time
+import Counter from "./Counter.client.jsx"; // .jsx at import time
 import type { Props } from "./types.js";
 
 jahiaComponent(
@@ -680,13 +812,23 @@ If the component cannot run on the server (e.g. uses `window`, `document`, or a 
 
 ```tsx
 <Island component={MapWidget} props={{ lat, lng }} clientOnly>
-  <p>Loading map…</p>   {/* shown until the component hydrates */}
+  <p>Loading map…</p> {/* MapWidget does not render children: shown until it loads */}
 </Island>
 ```
 
+Children of a client-only island are shown until the component loads, then passed to it as `children` (JavaScript Modules 1.3+). A component that does not render `children` thus gets a loading placeholder. When the children must only appear inside the component, such as the content of a modal, use `clientOnly="hide-children-while-loading"`:
+
+```tsx
+<Island clientOnly="hide-children-while-loading" component={Modal}>
+  <RenderChildren /> {/* hidden until <Modal /> has loaded, then shown inside it */}
+</Island>
+```
+
+On 1.2 and earlier, a client-only island never receives its children, and logs a hydration error in the browser console.
+
 ### Step 3b — Passing children to an island (accordion pattern)
 
-In default mode (without `clientOnly`), children passed to `<Island>` are rendered on the server and inserted as static children of the island component. Use this for accordion or collapsible containers where the shell is interactive but the content is static:
+Children passed to `<Island>` are rendered on the server and inserted as static children of the island component. Use this for accordion or collapsible containers where the shell is interactive but the content is static:
 
 ```tsx
 // Accordion.client.tsx
@@ -697,12 +839,10 @@ export default function Accordion({ children }: { children: ReactNode }) {
   const [isOpen, setIsOpen] = useState(false);
   return (
     <div>
-      <button type="button" onClick={() => setIsOpen(o => !o)}>
+      <button type="button" onClick={() => setIsOpen((o) => !o)}>
         {isOpen ? "Close" : "Open"}
       </button>
-      <div style={{ display: isOpen ? "block" : "none" }}>
-        {children}
-      </div>
+      <div style={{ display: isOpen ? "block" : "none" }}>{children}</div>
     </div>
   );
 }
@@ -715,11 +855,11 @@ export default function Accordion({ children }: { children: ReactNode }) {
 </Island>
 ```
 
-> ⚠️ The `{children}` insertion point must always be present in the client component. If you want to hide children, use CSS — a JS condition will cause them to be omitted from the page entirely.
+> ⚠️ The `{children}` insertion point must always be present in a server-rendered island. If you want to hide children, use CSS — a JS condition will cause them to be omitted from the page entirely. A `clientOnly` island may render its children conditionally: they are kept while hidden.
 
 > ⚠️ Children are wrapped in a `<jsm-children>` custom element. Avoid using the CSS `>` child combinator to target island children. Also do not target `jsm-island` or `jsm-children` in CSS — they are implementation details and may change.
 
-In `clientOnly` mode, children act as a **loading placeholder** shown until the island hydrates (see Step 3 above).
+In `clientOnly` mode, children are shown until the island loads (see Step 3 above).
 
 ### Step 4 — Dynamic import for heavy/browser-only libraries
 
@@ -738,7 +878,11 @@ export default function Confetti() {
     });
   }, []);
 
-  return <button type="button" onClick={() => fire?.()} disabled={!fire}>🎉</button>;
+  return (
+    <button type="button" onClick={() => fire?.()} disabled={!fire}>
+      🎉
+    </button>
+  );
 }
 ```
 
@@ -761,6 +905,7 @@ Any string that appears in the rendered HTML and is not a JCR property value mus
 Do not hardcode button text, section headings, alt text templates, error messages, or form labels.
 
 **File location:**
+
 ```
 settings/locales/en.json   ← required
 settings/locales/fr.json   ← required minimum
@@ -773,7 +918,7 @@ These files are auto-discovered by `@jahia/vite-plugin` — no registration need
 ```tsx
 import { useTranslation } from "react-i18next";
 
-// Works in both .server.tsx and .client.tsx
+// Works in both .server.tsx and .client.tsx — call it inside the component
 const { t } = useTranslation();
 
 // Simple
@@ -787,18 +932,20 @@ const { t } = useTranslation();
 
 ```json
 {
-    "hero": {
-        "cta": {
-            "label": "Discover more"
-        }
-    },
-    "alt": {
-        "hero": "Hero image for {{title}}"
+  "hero": {
+    "cta": {
+      "label": "Discover more"
     }
+  },
+  "alt": {
+    "hero": "Hero image for {{title}}"
+  }
 }
 ```
 
 **Best practices:**
+
+- Always get `t` from `useTranslation()`, never `import { t } from "i18next"`. Since JavaScript Modules 1.3, only `useTranslation()` knows the module's namespace: the global `t` looks the key up in the engine's namespace and renders the key itself. A view that uses `t` must therefore have a body (`=> { const { t } = useTranslation(); return (…); }`), not an expression.
 - Use random/opaque keys (e.g. `"r3k2"`) or scoped semantic keys (e.g. `"hero.cta.label"`) — never bare English words as keys (`"read-more"`) which creates ambiguity across contexts and forces renaming.
 - Never concatenate: always use interpolation (`{{author}}`) for dynamic data.
 - For HTML inside translations, use the `<Trans>` component instead of `t()`:
@@ -806,7 +953,7 @@ const { t } = useTranslation();
 ```tsx
 import { Trans } from "react-i18next";
 // key value: "Written by <a>{{author}}</a>"
-<Trans i18nKey="article.byline" values={{ author }} components={{ a: <a href={authorUrl} /> }} />
+<Trans i18nKey="article.byline" values={{ author }} components={{ a: <a href={authorUrl} /> }} />;
 ```
 
 **IDE integration:** `npm init @jahia/module@latest` automatically configures the [i18n ally](https://github.com/lokalise/i18n-ally#readme) VS Code extension. When installed it shows translation values inline in the code, lets you edit them without opening JSON files, and provides an `Extract text into i18n messages` command that replaces a hardcoded string with a `t("...")` call. Install the recommended extensions in `.vscode/extensions.json` to get it.
@@ -822,26 +969,25 @@ Use the following utilities from `@jahia/javascript-modules-library` to build a 
 ```tsx
 import { getSiteLocales, buildNodeUrl, jahiaComponent } from "@jahia/javascript-modules-library";
 
-jahiaComponent(
-  { componentType: "view", nodeType: "ns:languageSwitcher" },
-  (_, { renderContext, currentNode }) => {
-    const locales = getSiteLocales(renderContext.getSite());
-    const invalidLanguages: string[] = currentNode.getPropertyAsString("j:invalidLanguages")?.split(" ") ?? [];
+jahiaComponent({ componentType: "view", nodeType: "ns:languageSwitcher" }, (_, { currentNode }) => {
+  // Record of language code ("en", "fr_FR") to java.util.Locale
+  const locales = getSiteLocales();
+  const invalidLanguages: string[] =
+    currentNode.getPropertyAsString("j:invalidLanguages")?.split(" ") ?? [];
 
-    return (
-      <ul>
-        {locales
-          .filter(locale => !invalidLanguages.includes(locale))
-          .filter(locale => currentNode.hasI18N(renderContext.getSite().getLocale(locale)))
-          .map(locale => (
-            <li key={locale}>
-              <a href={buildNodeUrl(currentNode, { language: locale })}>{locale.toUpperCase()}</a>
-            </li>
-          ))}
-      </ul>
-    );
-  },
-);
+  return (
+    <ul>
+      {Object.entries(locales)
+        .filter(([language]) => !invalidLanguages.includes(language))
+        .filter(([, locale]) => currentNode.hasI18N(locale))
+        .map(([language]) => (
+          <li key={language}>
+            <a href={buildNodeUrl(currentNode, { language })}>{language.toUpperCase()}</a>
+          </li>
+        ))}
+    </ul>
+  );
+});
 ```
 
 `j:invalidLanguages` is a system property Jahia sets on nodes that haven't been translated to a given language. Filtering it out prevents dead links to untranslated pages. `node.hasI18N(locale)` provides an additional check — it returns false for nodes that have no translated properties at all for the given locale, catching cases `j:invalidLanguages` may not cover.
@@ -860,10 +1006,11 @@ yarn build && yarn jahia-deploy
 ---
 
 ## Validation checklist
+
 - [ ] `jahiaComponent` registered with correct `nodeType` (matches CND)
 - [ ] `Props` imported from `./types.js`
-- [ ] `buildNodeUrl` used for any image or node URL
-- [ ] Weakreference-backed content rendered via sub-view (`RenderChild`), not inline property access
+- [ ] Image nodes rendered with `<JImage>` (the hero with `loading="eager" fetchPriority="high"`); `buildNodeUrl` used for any other node URL
+- [ ] Properties of a weakreference node read only when the view depends on it: `<Render node={...} />`, `buildNodeUrl`/`<JImage>` on that node, or `server.render.addCacheDependency({ node }, renderContext)`
 - [ ] Interactive UI (carousels, tabs) flattened in edit mode with editor hints
 - [ ] Structural/shared nodes rendered with `readOnly` prop
 - [ ] Semantic HTML used (`<article>`, `<section>`, `<nav>`, `<header>`, `<footer>`)
@@ -878,17 +1025,18 @@ yarn build && yarn jahia-deploy
 - [ ] Component renders without errors in Page Builder
 
 ## Troubleshooting
+
 > https://academy.jahia.com/tutorials-get-started/front-end-developer/making-a-hero-section
 
 ### JSX vs HTML attribute differences
 
-| Feature | HTML | JSX |
-|---|---|---|
-| CSS class | `class="..."` | `className="..."` |
-| Inline style | `style="color:red"` | `style={{ color: 'red' }}` |
-| Event handler | `onclick="fn()"` | `onClick={fn}` |
-| Comments | `<!-- -->` | `{/* */}` |
-| Boolean attributes | `disabled` | `disabled={true}` or just `disabled` |
+| Feature            | HTML                | JSX                                  |
+| ------------------ | ------------------- | ------------------------------------ |
+| CSS class          | `class="..."`       | `className="..."`                    |
+| Inline style       | `style="color:red"` | `style={{ color: 'red' }}`           |
+| Event handler      | `onclick="fn()"`    | `onClick={fn}`                       |
+| Comments           | `<!-- -->`          | `{/* */}`                            |
+| Boolean attributes | `disabled`          | `disabled={true}` or just `disabled` |
 
 ## References
 

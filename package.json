@@ -1,6 +1,6 @@
 {
   "name": "@jahia/agentic",
-  "version": "0.6.0",
+  "version": "0.10.0",
   "description": "A CLI to bootstrap an agentic harness for Jahia",
   "license": "MIT",
   "repository": {
@@ -14,25 +14,26 @@
   "type": "module",
   "scripts": {
     "benchmark": "node src/benchmark/index.ts",
+    "benchmark:java": "node src/benchmark/java/index.ts",
     "build": "node src/build/index.ts",
     "build:website": "node src/benchmark/build-website.ts",
     "format": "oxfmt",
     "lint": "tsc --noEmit && oxlint"
   },
   "devDependencies": {
-    "@axe-core/playwright": "^4.11.3",
-    "@chachalog/types": "^0.5.1",
-    "@clack/prompts": "^1.4.0",
-    "@types/node": "^25.9.1",
-    "lighthouse": "^13.3.0",
-    "oxfmt": "^0.51.0",
-    "oxlint": "^1.66.0",
-    "playwright": "^1.60.0",
+    "@axe-core/playwright": "^4.14.0",
+    "@chachalog/types": "^0.5.6",
+    "@clack/prompts": "^1.8.1",
+    "@types/node": "^26.6.5",
+    "lighthouse": "^13.5.0",
+    "oxfmt": "^0.74.0",
+    "oxlint": "^1.89.0",
+    "playwright": "^1.64.1",
     "remark": "^15.0.1",
     "remark-gfm": "^4.0.1",
     "remark-github": "^12.0.0",
     "remark-html": "^16.0.1",
-    "rolldown": "^1.0.1",
-    "typescript": "^6.0.3"
+    "rolldown": "^1.2.15",
+    "typescript": "^7.0.2"
   }
 }

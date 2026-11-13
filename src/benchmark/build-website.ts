@@ -325,6 +325,7 @@ function runCard(run: BenchmarkRun): string {
           scoreBadge("A11y", home.accessibilityScore),
           scoreBadge("SEO", home.seoScore),
           scoreBadge("Img", home.imageScore ?? null),
+          scoreBadge("Content", home.contentScore ?? null),
           scoreBadge("CND", run.cndQualityScore ?? null),
         ].join("")
       : scoreBadge("CND", run.cndQualityScore ?? null);
@@ -332,7 +333,8 @@ function runCard(run: BenchmarkRun): string {
   const totalTokens = run.tokens.input + run.tokens.output;
   const cost = run.costUSD ?? estimateCost(run.tokens);
   const branch = run.branch || "main";
-  const branchBadge = branch !== "main" ? `<span class="branch-badge">${escHtml(branch)}</span>` : "";
+  const branchBadge =
+    branch !== "main" ? `<span class="branch-badge">${escHtml(branch)}</span>` : "";
 
   return `<a class="card" href="run/${run.id}/">
   <div class="card-screenshot">${screenshotHtml}</div>
@@ -357,11 +359,14 @@ function detailPage(run: BenchmarkRun): string {
     : "";
 
   const branch = run.branch || "main";
-  const branchItem = branch !== "main" ? `
+  const branchItem =
+    branch !== "main"
+      ? `
   <div class="run-meta-item">
     <span class="run-meta-label">Branch</span>
     <span class="run-meta-value"><span class="branch-badge">${escHtml(branch)}</span></span>
-  </div>` : "";
+  </div>`
+      : "";
 
   const cndMetaItem =
     run.cndQualityScore != null
@@ -446,6 +451,7 @@ function detailPage(run: BenchmarkRun): string {
     ? scoreBadge("A11y", firstPage.accessibilityScore) +
       scoreBadge("SEO", firstPage.seoScore) +
       scoreBadge("Img", firstPage.imageScore ?? null) +
+      scoreBadge("Content", firstPage.contentScore ?? null) +
       scoreBadge("CND", run.cndQualityScore ?? null)
     : scoreBadge("CND", run.cndQualityScore ?? null);
 
@@ -478,7 +484,8 @@ function detailPage(run: BenchmarkRun): string {
   </div>
 </main>
 <script>
-const pageData = ${JSON.stringify(run.pages.map((p) => ({ url: p.url, a11y: p.accessibilityScore, seo: p.seoScore })))};
+const pageData = ${JSON.stringify(run.pages.map((p) => ({ url: p.url, a11y: p.accessibilityScore, seo: p.seoScore, img: p.imageScore ?? null, content: p.contentScore ?? null })))};
+const cndScore = ${JSON.stringify(run.cndQualityScore ?? null)};
 function scoreColor(s) {
   if (s === null) return '#6e7681';
   const pct = s * 100;
@@ -494,7 +501,9 @@ function showTab(idx) {
   document.querySelectorAll('.tab-panel').forEach((p, i) => p.classList.toggle('active', i === idx));
   const d = pageData[idx];
   document.getElementById('url-bar').textContent = d?.url ?? '';
-  document.getElementById('score-badges').innerHTML = d ? badge('A11y', d.a11y) + badge('SEO', d.seo) : '';
+  document.getElementById('score-badges').innerHTML = d
+    ? badge('A11y', d.a11y) + badge('SEO', d.seo) + badge('Img', d.img) + badge('Content', d.content) + badge('CND', cndScore)
+    : '';
 }
 </script>`;
 

@@ -20,21 +20,21 @@
 
 ## File Map
 
-| Action | Path | Purpose |
-|--------|------|---------|
-| Create | `src/harness/agents/jahia-cnd-author/jahia-cnd-author.agent.md` | Sub-agent that writes CND files in isolated context |
-| Create | `src/harness/agents/jahia-cnd-author/references/cnd-string-selectors.md` | All string/choicelist/link property types |
-| Create | `src/harness/agents/jahia-cnd-author/references/cnd-child-nodes.md` | Child node syntax and patterns |
-| Create | `src/harness/agents/jahia-cnd-author/references/cnd-numbers-dates.md` | Numeric, date, boolean types + constraints |
-| Create | `src/harness/agents/jahia-cnd-author/references/cnd-jahia-mixins.md` | Jahia-provided native mixins catalog |
-| Create | `src/harness/skills/jahia-dev-review-cnd/SKILL.md` | Deterministic CND antipattern checker skill |
-| Modify | `src/harness/skills/jahia-dev-define-content-type/SKILL.md` | Shorten to orchestrator; delegate to `@jahia-cnd-author` |
-| Create | `src/harness/skills/jahia-dev-define-content-type/references/modeling-decisions.md` | Extracted modeling guidance (moved from SKILL.md) |
-| Modify | `src/harness/instructions/jahia.instructions.md` | Add `jahia-dev-review-cnd` to skill map |
-| Create | `src/benchmark/cnd-checker.ts` | Static CND antipattern analysis for benchmark scoring |
-| Modify | `src/benchmark/types.ts` | Add `cndQualityScore` and `cndIssues` to `BenchmarkRun` |
-| Modify | `src/benchmark/index.ts` | Call checker after agent run, store results |
-| Modify | `src/benchmark/build-website.ts` | Display CND quality badge on run cards |
+| Action | Path                                                                                | Purpose                                                  |
+| ------ | ----------------------------------------------------------------------------------- | -------------------------------------------------------- |
+| Create | `src/harness/agents/jahia-cnd-author/jahia-cnd-author.agent.md`                     | Sub-agent that writes CND files in isolated context      |
+| Create | `src/harness/agents/jahia-cnd-author/references/cnd-string-selectors.md`            | All string/choicelist/link property types                |
+| Create | `src/harness/agents/jahia-cnd-author/references/cnd-child-nodes.md`                 | Child node syntax and patterns                           |
+| Create | `src/harness/agents/jahia-cnd-author/references/cnd-numbers-dates.md`               | Numeric, date, boolean types + constraints               |
+| Create | `src/harness/agents/jahia-cnd-author/references/cnd-jahia-mixins.md`                | Jahia-provided native mixins catalog                     |
+| Create | `src/harness/skills/jahia-dev-review-cnd/SKILL.md`                                  | Deterministic CND antipattern checker skill              |
+| Modify | `src/harness/skills/jahia-dev-define-content-type/SKILL.md`                         | Shorten to orchestrator; delegate to `@jahia-cnd-author` |
+| Create | `src/harness/skills/jahia-dev-define-content-type/references/modeling-decisions.md` | Extracted modeling guidance (moved from SKILL.md)        |
+| Modify | `src/harness/instructions/jahia.instructions.md`                                    | Add `jahia-dev-review-cnd` to skill map                  |
+| Create | `src/benchmark/cnd-checker.ts`                                                      | Static CND antipattern analysis for benchmark scoring    |
+| Modify | `src/benchmark/types.ts`                                                            | Add `cndQualityScore` and `cndIssues` to `BenchmarkRun`  |
+| Modify | `src/benchmark/index.ts`                                                            | Call checker after agent run, store results              |
+| Modify | `src/benchmark/build-website.ts`                                                    | Display CND quality badge on run cards                   |
 
 ---
 
@@ -43,28 +43,30 @@
 Creates four focused reference files that the `jahia-cnd-author` agent loads on demand. Each covers exactly one syntactic domain. No narrative — just tables, examples, and rules.
 
 **Files:**
+
 - Create: `src/harness/agents/jahia-cnd-author/references/cnd-string-selectors.md`
 - Create: `src/harness/agents/jahia-cnd-author/references/cnd-child-nodes.md`
 - Create: `src/harness/agents/jahia-cnd-author/references/cnd-numbers-dates.md`
 - Create: `src/harness/agents/jahia-cnd-author/references/cnd-jahia-mixins.md`
 
 **Interfaces:**
+
 - Produces: four `.md` files under `src/harness/agents/jahia-cnd-author/references/`
 - Consumed by: `jahia-cnd-author.agent.md` (Task 2)
 
 - [ ] **Step 1: Create `cnd-string-selectors.md`**
 
-```markdown
+````markdown
 # CND String & Selector Properties
 
 ## String type variants
 
-| Type declaration | Editor widget | When to use |
-|---|---|---|
-| `(string)` | Single-line text input | Short labels, IDs, slugs |
-| `(string, textarea)` | Multi-line text area | Paragraphs, descriptions |
+| Type declaration     | Editor widget              | When to use                  |
+| -------------------- | -------------------------- | ---------------------------- |
+| `(string)`           | Single-line text input     | Short labels, IDs, slugs     |
+| `(string, textarea)` | Multi-line text area       | Paragraphs, descriptions     |
 | `(string, richtext)` | Rich text editor (TinyMCE) | Body content, formatted text |
-| `(string) multiple` | Tag input / list | Lists of plain strings |
+| `(string) multiple`  | Tag input / list           | Lists of plain strings       |
 
 ## Fixed-choice dropdowns
 
@@ -75,6 +77,7 @@ Use `(string, choicelist)` + `< 'val1', 'val2'` for a dropdown with a hard-coded
 - difficulty (string, choicelist) i18n < 'beginner', 'intermediate', 'advanced'
 - variant (string, choicelist) < 'primary', 'secondary', 'ghost'
 ```
+````
 
 ## `mix:title` instead of a title string property
 
@@ -124,13 +127,13 @@ In the view, switch on `props["j:linkType"]`.
 
 ## Other `choicelist[...]` initializers
 
-| Initializer | What it renders |
-|---|---|
-| `choicelist[country]` | Country selector (ISO codes, localized labels) |
-| `choicelist[resourceBundle]` | Labels from `.properties` file keys |
-| `choicelist[nodes=/path;type=jnt:content]` | Nodes under a JCR path |
-| `choicelist[componentTypes=jnt:page]` | Registered views of a node type |
-| `choicelist[menus]` | Site menus |
+| Initializer                                | What it renders                                |
+| ------------------------------------------ | ---------------------------------------------- |
+| `choicelist[country]`                      | Country selector (ISO codes, localized labels) |
+| `choicelist[resourceBundle]`               | Labels from `.properties` file keys            |
+| `choicelist[nodes=/path;type=jnt:content]` | Nodes under a JCR path                         |
+| `choicelist[componentTypes=jnt:page]`      | Registered views of a node type                |
+| `choicelist[menus]`                        | Site menus                                     |
 
 ## Regex constraints on strings
 
@@ -142,14 +145,15 @@ In the view, switch on `props["j:linkType"]`.
 
 ## Common attributes
 
-| Attribute | Meaning |
-|---|---|
-| `i18n` | Translatable per language — **default to always on user-facing fields** |
-| `mandatory` | Required |
-| `multiple` | List of values |
-| `primary` | Highlighted field in editor (one per type) |
-| `autocreated` | Auto-created on node creation — always combine with `= 'defaultValue'` |
-```
+| Attribute     | Meaning                                                                 |
+| ------------- | ----------------------------------------------------------------------- |
+| `i18n`        | Translatable per language — **default to always on user-facing fields** |
+| `mandatory`   | Required                                                                |
+| `multiple`    | List of values                                                          |
+| `primary`     | Highlighted field in editor (one per type)                              |
+| `autocreated` | Auto-created on node creation — always combine with `= 'defaultValue'`  |
+
+````
 
 - [ ] **Step 2: Create `cnd-child-nodes.md`**
 
@@ -163,15 +167,15 @@ In the view, switch on `props["j:linkType"]`.
 + childName (ns:type) multiple   // named child — list
 + * (ns:type)                    // any-name child of a specific type
 + * (jmix:droppableContent)      // open container — any droppable component
-```
+````
 
 ## When to use child nodes vs `weakreference multiple`
 
-| Use child nodes when… | Use `weakreference multiple` when… |
-|---|---|
+| Use child nodes when…                            | Use `weakreference multiple` when…               |
+| ------------------------------------------------ | ------------------------------------------------ |
 | Each item has multiple properties (label + link) | Each item is just a reference (a page, an image) |
-| Items have no life outside the parent | Items are managed elsewhere and reused |
-| You always create them together | Editors need to pick from existing content |
+| Items have no life outside the parent            | Items are managed elsewhere and reused           |
+| You always create them together                  | Editors need to pick from existing content       |
 
 ## Repeatable CTA pattern
 
@@ -228,7 +232,8 @@ Child nodes that editors should never add manually (structural containers, auto-
 ```
 
 `+ * (jmix:droppableContent)` accepts any component the editor can drop.
-```
+
+````
 
 - [ ] **Step 3: Create `cnd-numbers-dates.md`**
 
@@ -253,7 +258,7 @@ Always combine `autocreated` with `= 'value'`:
 - columns (long) = '3' autocreated mandatory < '1', '2', '3', '4'
 - isHighlighted (boolean) = 'false' autocreated
 - country (string, choicelist[country]) = 'US' autocreated mandatory
-```
+````
 
 ## Range constraints
 
@@ -278,13 +283,14 @@ Parentheses = exclusive bound, brackets = inclusive. Leave a side empty for open
 
 ## TypeScript mapping
 
-| CND type | TypeScript |
-|---|---|
-| `long` | `number` |
-| `double` | `number` |
-| `boolean` | `boolean` |
-| `date` | `string` (ISO 8601) |
-```
+| CND type  | TypeScript          |
+| --------- | ------------------- |
+| `long`    | `number`            |
+| `double`  | `number`            |
+| `boolean` | `boolean`           |
+| `date`    | `string` (ISO 8601) |
+
+````
 
 - [ ] **Step 4: Create `cnd-jahia-mixins.md`**
 
@@ -311,7 +317,7 @@ Adds `jcr:title` (string). Jahia's UI, breadcrumbs, SEO, and sitemap generation 
 
 ```cnd
 [ns:article] > jnt:content, nsmix:component, mix:title
-```
+````
 
 Access in view: `props["jcr:title"]`
 
@@ -368,10 +374,10 @@ Provides `j:linkType`, `j:linknode`, `j:url`, `j:linkTitle`. Extend this mixin a
 
 ## picker[] selector
 
-| Selector | Use |
-|---|---|
+| Selector               | Use               |
+| ---------------------- | ----------------- |
 | `picker[type='image']` | Image assets only |
-| `picker[type='file']` | Any file asset |
+| `picker[type='file']`  | Any file asset    |
 
 ```cnd
 - backgroundImage (weakreference, picker[type='image']) < jmix:image
@@ -387,21 +393,22 @@ If the module uses custom area types (see `jahia-dev-create-page-template`):
 [nsmix:pageComponent] > nsmix:component mixin
 ```
 
-| Component will be… | Extend |
-|---|---|
-| Dropped in page areas | `nsmix:pageComponent` |
-| Child of another component | `nsmix:component` |
-| Listed programmatically | `nsmix:component` |
+| Component will be…         | Extend                |
+| -------------------------- | --------------------- |
+| Dropped in page areas      | `nsmix:pageComponent` |
+| Child of another component | `nsmix:component`     |
+| Listed programmatically    | `nsmix:component`     |
 
 A component extending only `nsmix:component` **cannot** be dropped in areas that use `nsmix:pageComponent`.
-```
+
+````
 
 - [ ] **Step 5: Verify files exist**
 
 ```bash
 ls src/harness/agents/jahia-cnd-author/references/
 # Expected: cnd-string-selectors.md  cnd-child-nodes.md  cnd-numbers-dates.md  cnd-jahia-mixins.md
-```
+````
 
 - [ ] **Step 6: Commit**
 
@@ -417,9 +424,11 @@ git commit -m "feat: add CND reference files for jahia-cnd-author agent"
 The agent that owns CND authoring. Runs in an isolated context window with no MCP tools. Receives a structured spec, loads the reference files it needs, writes the CND + types.ts, then self-validates.
 
 **Files:**
+
 - Create: `src/harness/agents/jahia-cnd-author/jahia-cnd-author.agent.md`
 
 **Interfaces:**
+
 - Consumes: structured spec from root skill (component name, fields, usage, namespace prefix, module path)
 - Produces: `definition.cnd` + `types.ts` written to disk, then `/jahia-dev-review-cnd` result
 
@@ -441,16 +450,18 @@ You are a Jahia CND specialist. Your sole job is to write correct `definition.cn
 ## Your inputs
 
 You will receive a structured spec:
-
 ```
+
 Component: <name>
 Namespace prefix: <ns>
 Module path: <path to module root>
 Fields:
-  - <field name>: <type description> [mandatory] [i18n] [multiple]
-Usage: <where this component appears>
-Children: <repeatable sub-items if any>
-```
+
+- <field name>: <type description> [mandatory] [i18n] [multiple]
+  Usage: <where this component appears>
+  Children: <repeatable sub-items if any>
+
+````
 
 ## Step 1 — Load reference files
 
@@ -465,7 +476,7 @@ Before writing any CND, load the reference files for the property types you need
 
 ```bash
 grep -h "^<" <module-path>/settings/definitions.cnd | head -1
-```
+````
 
 This shows the namespace declaration (e.g. `<forsure = 'http://www.forsure.com/...'>` → prefix is `forsure`).
 
@@ -483,6 +494,7 @@ Types file location: `<module-path>/src/components/<Category>/<Name>/types.ts`
 ## Step 3 — Write the CND
 
 Rules you MUST follow:
+
 1. **Links**: use `j:linkType (string, choicelist[linkTypeInitializer]) mandatory` — never `(string)` for a link/url/href
 2. **Titles**: extend `mix:title` — never `- title (string) i18n mandatory`
 3. **Repeatable CTAs**: model as child nodes `+ * (ns:ctaType)` — never `ctaText + ctaLink` on the parent
@@ -516,18 +528,20 @@ If the review reports only warnings: fix them if the fix is obvious, otherwise n
 ## Step 6 — Report
 
 Output a summary:
+
 - Files written: paths
 - Type name(s) defined
 - Review result (PASS / PASS with warnings / issues fixed)
 - Any warnings not fixed and why
-```
+
+````
 
 - [ ] **Step 2: Verify the agent file path**
 
 ```bash
 ls src/harness/agents/jahia-cnd-author/
 # Expected: jahia-cnd-author.agent.md  references/
-```
+````
 
 - [ ] **Step 3: Commit**
 
@@ -543,15 +557,17 @@ git commit -m "feat: add jahia-cnd-author sub-agent for isolated CND authoring"
 A deterministic CND quality checker. Scans CND files for known antipatterns, reports findings with specific fixes. Used by the `jahia-cnd-author` agent for self-correction and available as a standalone skill.
 
 **Files:**
+
 - Create: `src/harness/skills/jahia-dev-review-cnd/SKILL.md`
 
 **Interfaces:**
+
 - Consumes: path to a `definition.cnd` file (or the current module root to find all CND files)
 - Produces: PASS / FAIL report with file:line, pattern name, message, and fix
 
 - [ ] **Step 1: Write the skill**
 
-```markdown
+````markdown
 ---
 name: jahia-dev-review-cnd
 description: Use after writing any CND file to validate it against Jahia best practices. Checks for known antipatterns and reports file:line citations with specific fixes. Run /jahia-dev-review-cnd <path-to-definition.cnd> to check a specific file, or without arguments to check all CND files in the current module.
@@ -570,10 +586,12 @@ Otherwise, find all definition.cnd files in the module:
 ```bash
 find . -name "definition.cnd" -not -path "*/node_modules/*" -not -path "*/.git/*"
 ```
+````
 
 ## Step 2 — Check each file against the antipattern list
 
 Read each file and apply every check below. For each issue found, record:
+
 - `file`: relative file path
 - `line`: line number
 - `pattern`: antipattern name (from the list below)
@@ -593,6 +611,7 @@ Read each file and apply every check below. For each issue found, record:
 ```
 
 **Fix**: Replace with the link picker pattern:
+
 ```cnd
 - j:linkType (string, choicelist[linkTypeInitializer]) mandatory
 // Do NOT add j:linknode or j:url — Jahia injects them
@@ -605,6 +624,7 @@ Read each file and apply every check below. For each issue found, record:
 **Trigger**: A type that declares both a CTA label property (`ctaText`, `ctaLabel`, `buttonText`, `buttonLabel`) AND a CTA link property (`ctaLink`, `ctaUrl`, `ctaHref`, `buttonLink`) as flat properties, with no child node definition (`+ ...`) on the type.
 
 **Fix**: Remove both properties from the parent. Add a child node definition and a separate CTA child type:
+
 ```cnd
 + * (ns:cta)
 
@@ -624,6 +644,7 @@ Read each file and apply every check below. For each issue found, record:
 ```
 
 **Fix**: Extend the module's component mixin instead:
+
 ```cnd
 [ns:hero] > jnt:content, nsmix:component
 ```
@@ -643,6 +664,7 @@ Read each file and apply every check below. For each issue found, record:
 **Trigger**: A `(weakreference)` property with no `< ` type constraint.
 
 **Fix**: Add the appropriate constraint:
+
 - For images: `(weakreference, picker[type='image']) < jmix:image`
 - For files: `(weakreference, picker[type='file']) < jnt:file`
 - For pages: `(weakreference) < jnt:page`
@@ -658,6 +680,7 @@ Read each file and apply every check below. For each issue found, record:
 ```
 
 **Fix**: Use unquoted type constraint for images:
+
 ```cnd
 - image (weakreference, picker[type='image']) < jmix:image
 ```
@@ -669,6 +692,7 @@ Read each file and apply every check below. For each issue found, record:
 **Trigger**: A `(string)`, `(string, textarea)`, or `(string, richtext)` property whose name contains `title`, `text`, `label`, `description`, `subtitle`, `caption`, `alt`, `heading`, `summary`, `excerpt`, or `body` — but does not have `i18n` declared.
 
 **Fix**: Add `i18n` after the type declaration:
+
 ```cnd
 - heroSubtitle (string, richtext) i18n   ← correct
 ```
@@ -704,14 +728,15 @@ Result: PASS | PASS (with warnings) | FAIL
 - **FAIL** = any errors. Do not proceed until errors are fixed.
 - **PASS (with warnings)** = no errors, some warnings. Fix obvious ones; note the rest.
 - **PASS** = no issues found.
-```
+
+````
 
 - [ ] **Step 2: Verify file**
 
 ```bash
 ls src/harness/skills/jahia-dev-review-cnd/
 # Expected: SKILL.md
-```
+````
 
 - [ ] **Step 3: Commit**
 
@@ -727,10 +752,12 @@ git commit -m "feat: add jahia-dev-review-cnd skill for CND self-validation"
 Shorten the skill to an orchestrator. Remove all CND syntax content (it moves to the agent's references). Add delegation to `@jahia-cnd-author`. Move modeling guidance to a references file.
 
 **Files:**
+
 - Modify: `src/harness/skills/jahia-dev-define-content-type/SKILL.md`
 - Create: `src/harness/skills/jahia-dev-define-content-type/references/modeling-decisions.md`
 
 **Interfaces:**
+
 - Consumes: user request (natural language description of a component)
 - Produces: structured spec → delegates to `@jahia-cnd-author`
 
@@ -738,25 +765,25 @@ Shorten the skill to an orchestrator. Remove all CND syntax content (it moves to
 
 Extract the modeling guidance from the current SKILL.md (sections "Semantic vs generic types", "Children vs weakreference", "Mixins are the primary reuse mechanism", "Two-tier mixin system"):
 
-```markdown
+````markdown
 # CND Modeling Decisions
 
 ## Semantic vs generic types
 
-| Use **semantic types** for… | Use **generic types** for… |
-|---|---|
+| Use **semantic types** for…                       | Use **generic types** for…                |
+| ------------------------------------------------- | ----------------------------------------- |
 | Business entities: articles, team members, events | Visual composition: banners, feature rows |
-| Items that appear in listings | One-off sections, layout containers |
-| Anything reused across pages | Unique per-page UI blocks |
+| Items that appear in listings                     | One-off sections, layout containers       |
+| Anything reused across pages                      | Unique per-page UI blocks                 |
 
 ## Children vs weakreference
 
-| Use **child nodes** when… | Use **weakreference** when… |
-|---|---|
-| Parent is the visual container (e.g. CTA buttons inside a hero) | Linking to content managed elsewhere |
-| Children have no life outside the parent | Many-to-many relationships |
-| You always create the children together | Content editors need to reuse the referenced item |
-| Each item has multiple properties (label + link) | Each item is just a reference (a page, an image) |
+| Use **child nodes** when…                                       | Use **weakreference** when…                       |
+| --------------------------------------------------------------- | ------------------------------------------------- |
+| Parent is the visual container (e.g. CTA buttons inside a hero) | Linking to content managed elsewhere              |
+| Children have no life outside the parent                        | Many-to-many relationships                        |
+| You always create the children together                         | Content editors need to reuse the referenced item |
+| Each item has multiple properties (label + link)                | Each item is just a reference (a page, an image)  |
 
 ## Mixins are the primary reuse mechanism
 
@@ -764,12 +791,12 @@ Whenever a set of properties appears on more than one type, extract them into a 
 
 Common reusable mixin patterns:
 
-| Mixin | Properties it adds | When to use |
-|---|---|---|
-| `nsmix:cta` | `ctaLabel`, `j:linkType` | Any type with a button or link |
-| `nsmix:badge` | `badgeText`, `badgeColor` | Cards, teasers, labelled content |
-| `nsmix:seo` | `metaTitle`, `metaDescription` | Any `jmix:mainResource` type |
-| `nsmix:media` | `image` (weakreference), `imageAltText` | Any type with a visual asset |
+| Mixin         | Properties it adds                      | When to use                      |
+| ------------- | --------------------------------------- | -------------------------------- |
+| `nsmix:cta`   | `ctaLabel`, `j:linkType`                | Any type with a button or link   |
+| `nsmix:badge` | `badgeText`, `badgeColor`               | Cards, teasers, labelled content |
+| `nsmix:seo`   | `metaTitle`, `metaDescription`          | Any `jmix:mainResource` type     |
+| `nsmix:media` | `image` (weakreference), `imageAltText` | Any type with a visual asset     |
 
 Example reusable CTA mixin:
 
@@ -779,6 +806,7 @@ Example reusable CTA mixin:
  - j:linkType (string, choicelist[linkTypeInitializer]) = 'none' autocreated mandatory
  // j:linknode and j:url are injected automatically
 ```
+````
 
 Any component that needs a CTA extends `nsmix:cta` — no property duplication.
 
@@ -791,7 +819,8 @@ Do NOT add to: navigation-only types, visual composition components, containers.
 
 - **Component-level** (preferred): `src/components/<Category>/<Name>/definition.cnd`
 - **Module-level**: `settings/definitions.cnd` (for mixins and shared base types only)
-```
+
+````
 
 - [ ] **Step 2: Rewrite `SKILL.md` as a thin orchestrator**
 
@@ -835,7 +864,7 @@ grep -h "^<" settings/definitions.cnd | head -1
 
 # Check for two-tier mixin (pageComponent)
 grep "pageComponent" settings/definitions.cnd
-```
+````
 
 ---
 
@@ -863,6 +892,7 @@ Wait for the agent to report back before proceeding.
 ## Step 3 — Continue with deployment
 
 After `@jahia-cnd-author` reports PASS, proceed with:
+
 - Add UI translations (`/jahia-dev-build-component` handles this if invoked from there)
 - `yarn build && yarn jahia-deploy`
 - Verify the type appears in Jahia's content editor
@@ -877,14 +907,15 @@ After `@jahia-cnd-author` reports PASS, proceed with:
 - [ ] Icon created at `settings/content-types-icons/<ns>_<typeName>.png`
 - [ ] `yarn build && yarn jahia-deploy` succeeded
 - [ ] Type appears in Jahia content editor with correct label and icon
-```
+
+````
 
 - [ ] **Step 3: Verify line count stays under 500**
 
 ```bash
 wc -l src/harness/skills/jahia-dev-define-content-type/SKILL.md
 # Expected: < 80 lines
-```
+````
 
 - [ ] **Step 4: Commit**
 
@@ -900,9 +931,11 @@ git commit -m "refactor: slim down jahia-dev-define-content-type, delegate CND a
 Add `jahia-dev-review-cnd` to the skill map in `jahia.instructions.md`.
 
 **Files:**
+
 - Modify: `src/harness/instructions/jahia.instructions.md`
 
 **Interfaces:**
+
 - Consumes: existing skill map table
 - Produces: `jahia-dev-review-cnd` visible to agents that read the instructions
 
@@ -928,12 +961,14 @@ git commit -m "feat: add jahia-dev-review-cnd to skill map in global instruction
 Adds static CND analysis to the benchmark. Scores CND quality using the same antipatterns as the review skill. Results stored in `BenchmarkRun` and displayed in the website generator.
 
 **Files:**
+
 - Create: `src/benchmark/cnd-checker.ts`
 - Modify: `src/benchmark/types.ts`
 - Modify: `src/benchmark/index.ts`
 - Modify: `src/benchmark/build-website.ts`
 
 **Interfaces:**
+
 - `checkCndFiles(projectDir: string): CndCheckResult` — called from `index.ts`
 - `CndCheckResult` stored in `BenchmarkRun.cndQualityScore` + `BenchmarkRun.cndIssues`
 
@@ -1041,7 +1076,9 @@ function checkFile(filePath: string, content: string): CndIssue[] {
       /^-\s+\w+\s+\(string(,\s*(textarea|richtext))?[,)]/.test(trimmed) &&
       !/ i18n/.test(trimmed) &&
       !/^-\s+j:/.test(trimmed) &&
-      /(title|text|label|description|subtitle|caption|alt|heading|summary|excerpt|body)/i.test(trimmed)
+      /(title|text|label|description|subtitle|caption|alt|heading|summary|excerpt|body)/i.test(
+        trimmed,
+      )
     ) {
       issues.push({
         severity: "warning",
@@ -1054,13 +1091,18 @@ function checkFile(filePath: string, content: string): CndIssue[] {
     }
 
     // directDroppable: concrete type (not mixin) extending jmix:droppableContent
-    if (/^\[/.test(trimmed) && /jmix:droppableContent/.test(trimmed) && !/\bmixin\b/.test(trimmed)) {
+    if (
+      /^\[/.test(trimmed) &&
+      /jmix:droppableContent/.test(trimmed) &&
+      !/\bmixin\b/.test(trimmed)
+    ) {
       issues.push({
         severity: "error",
         file: filePath,
         line: lineNum,
         pattern: "directDroppable",
-        message: "Extends jmix:droppableContent directly — always extend the module component mixin",
+        message:
+          "Extends jmix:droppableContent directly — always extend the module component mixin",
         fix: "Replace jmix:droppableContent with nsmix:component (or your module's equivalent)",
       });
     }
@@ -1115,10 +1157,7 @@ export function checkCndFiles(projectDir: string): CndCheckResult {
     }
   }
 
-  const penalty = allIssues.reduce(
-    (t, { severity }) => t + (severity === "error" ? 0.5 : 0.2),
-    0,
-  );
+  const penalty = allIssues.reduce((t, { severity }) => t + (severity === "error" ? 0.5 : 0.2), 0);
   const score = Math.exp(-penalty);
 
   return { score, issues: allIssues, filesChecked: files.length };
@@ -1281,6 +1320,7 @@ git commit -m "chore: add CND quality plan document"
 ## Self-review
 
 **Spec coverage:**
+
 - ✅ CND skill split into reference files — Task 1 (4 reference files by domain)
 - ✅ CND evaluator as self-review skill — Task 3 (`jahia-dev-review-cnd`)
 - ✅ Sub-agent for CND production — Task 2 (`jahia-cnd-author` agent, APM `.agent.md`)
@@ -1290,9 +1330,11 @@ git commit -m "chore: add CND quality plan document"
 - ✅ SKILL.md refactored as thin orchestrator — Task 4
 
 **Placeholder check:**
+
 - Task 6 Step 3 says "read the file to find exact line numbers" — this is intentional because `index.ts` is 400+ lines and the exact insertion point must be found at execution time, not hardcoded in the plan. The plan provides the surrounding context string to grep for.
 
 **Type consistency:**
+
 - `CndIssue` defined in `types.ts` (Task 6 Step 2) and imported in `cnd-checker.ts` — wait, actually `CndCheckResult` in `cnd-checker.ts` uses its own local `CndIssue` definition. To avoid duplication, `cnd-checker.ts` should import `CndIssue` from `types.ts`.
 
 **Fix:** In Task 6 Step 1, `cnd-checker.ts` should import `CndIssue` from `./types.ts`:

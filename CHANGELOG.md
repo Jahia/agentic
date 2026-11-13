@@ -1,5 +1,57 @@
 # `@jahia/agentic`
 
+## 0.10.0
+
+* Agents write for JavaScript Modules 1.3: `<JImage>` for images, `useTranslation()` for every translation, `absolute` URLs, client-only islands with children, and `npm init @jahia/module` with `--yes`.
+
+## 0.9.1
+
+* Agents now recognize a deploy that installed nothing, the page template example renders its `<title>`, and the review scripts run on Kiro.
+
+* Agents upload the images that the content needs with the `media.upload.url` tool of the Jahia MCP server.
+
+* Agents no longer hide `<RenderChild>` behind a condition, which removed the editor's add button.
+
+* `/jahia-review` stops once the site review passes and no critical code issue remains, and the site review fails when a page lost content.
+
+* The code review flags `<Area>` in a component view, which hides the children that editors add inside the component.
+
+## 0.9.0
+
+### New Features
+
+* New `jahia-dev-change-cnd` skill: changing a content type that is already deployed.
+
+* New `jahia-capture` skill: agents offer to turn a task they repeat into a skill or an instruction of the project.
+
+### Bug Fixes
+
+* The skills now match the javascript-modules library and Jahia core, and `check-cnd.mjs` no longer reports valid definitions.
+
+## 0.8.1
+
+* The harness can now start a stack that spans several repositories: a site and the modules it runs on, cloned, built from source with one command and provisioned into an empty Jahia. `jahia-dev-setup-environment` carries the procedure in `references/multi-repo-stack.md`, and both environment skills now check that the pages of the site render, because a module can be `ACTIVE` while every page that uses it fails. The skills also cover three failures of modules older than the instance. Under Maven 3.9 or later, `jahia-maven-plugin` computes wrong imports: a JSP module loses its taglib imports, and the optional imports of an embedded library become mandatory, so the reference `mise.toml` now pins Maven 3.8. A pinned `jahia-maven-plugin` 6.7 cannot run. A signature that no longer covers the version uninstalls the module. The provisioning reference of `jahia-dev-ops` now uses the operations Jahia accepts, and the startup command of `jahia-dev-run-module` keeps the `file:` scheme.
+
+## 0.8.0
+
+* New `jahia-dev-migrate-ui-extension` skill to help migrate from webpack to Vite. (#17)
+
+* Added the Java skills back: `jahia-dev-java` writes a Java module with an Action (a `.do` endpoint) from the POM to deployment, and `jahia-java-osgi`, `jahia-java-jcr`, `jahia-java-security` and `jahia-review-java` cover OSGi components, JCR access, access control and review. A new Java benchmark scenario checks that an agent can write and deploy such a module.
+
+## 0.7.0
+
+### New Features
+
+* Added the `jahia-dev-run-module` skill: running a Jahia module that already exists, on a local Jahia, when nobody documented how. It reads the repository to tell a Java module from a JavaScript module and to find the Jahia version, the dependencies and the JDK it needs, deploys one module or a monorepo in dependency order, and verifies every bundle reached `ACTIVE` before it reports success. It carries the recovery steps for a broken local environment, and the five differences that explain a build that passes locally and fails in the continuous integration. It also pushes the project towards an environment that lives in the repository: a Docker Compose file, a provisioning manifest and a `mise.toml`, offered back to the developer instead of a `docker run` command in one shell history. `jahia-dev-start-local` now states its scope, which is a project you just scaffolded, and points at the new skill for anything else.
+
+* Added the `jahia-dev-setup-environment` skill: writing the development environment of a Jahia project into its repository, so that every developer and the continuous integration start the same Jahia with one command. It reads what the project already has, pins the toolchain in a `mise.toml`, writes the Compose file and the provisioning manifest, and adds Elasticsearch, Augmented Search, jExperience and jCustomer as blocks to merge, each with the check that proves it works. The reference files were run end to end against Jahia 8.2.3.2, jCustomer 3.0.0 and jExperience 4.2.1. `jahia-dev-run-module` now hands the writing of an environment to it.
+
+  `jahia-dev-jexperience` no longer writes its own jCustomer stack, which pinned jCustomer 2.6 and Elasticsearch 7.17, a stack jExperience 4.2 refuses. It takes the stack from `jahia-dev-setup-environment` and keeps what is its own: Kibana on the same Elasticsearch, the events, the dashboards and their packaging. It also states that the published dashboards modules accept jExperience 3.x only, and how to read the store for the release that accepts 4.x.
+
+### Bug Fixes
+
+* The harness now carries three lessons from the benchmark run of 2026-09-30, which spent 22 minutes rediscovering them. A sectioning component whose items editors drop inside it is modelled with a hidden list child type and rendered with `AbsoluteArea`, not with `+ *` on the component and `RenderChildren`, and `jahia-cnd-author`, `jahia-dev-build-component` and `jahia-dev-debug` say so, with the refusal that names the wrong model. A namespace is declared once, in `settings/definitions.cnd`, because the engine merges every CND file into one and a second declaration breaks the module. And content is created as subtrees, with the `children` of `content.create`, not one call per node.
+
 ## 0.6.0
 
 * Added the `jahia-dev-migrate-jsp` skill: migrating an existing JSP/Java template set to a Jahia JavaScript module. It audits what is portable before any code is written, carries a tag-by-tag translation table, and names the parts that must stay in a companion Java bundle (skins, `moduleMap`-based list views, JQOM queries, choicelist initializers, render filters).

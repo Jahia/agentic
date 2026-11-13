@@ -39,10 +39,10 @@ The DOM shell ports; the content slot cannot. Affects `jmix:skinnable` and `jmix
 `cache.perUser`, `cache.mainResource`, `cache.requestParameters`, `cache.latch` all carry over verbatim. Two keys
 do not, and both appear in the reference module's `jmix_animate/html/animate.animate.properties`:
 
-| Key | What happens in JSM |
-|---|---|
-| `type = skin` | declarable, and it reaches the view's `Properties` intact, but no skin ever renders from JS — the `${wrappedContent}` slot is the missing half. Carrying the key over does not make a skin; it makes a broken one |
-| `addMixin = jmix:animate` | **do not carry it.** `addMixin` is not a rendering hint — the edit engine reads it off the selected value and *adds that mixin to the content node*. A view registration is the wrong place for a key with content side effects |
+| Key                       | What happens in JSM                                                                                                                                                                                                             |
+| ------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `type = skin`             | declarable, and it reaches the view's `Properties` intact, but no skin ever renders from JS — the `${wrappedContent}` slot is the missing half. Carrying the key over does not make a skin; it makes a broken one               |
+| `addMixin = jmix:animate` | **do not carry it.** `addMixin` is not a rendering hint — the edit engine reads it off the selected value and _adds that mixin to the content node_. A view registration is the wrong place for a key with content side effects |
 
 The engine copies `properties` straight into the `View`'s `java.util.Properties`, which is the same object core's
 render filters read, so the `cache.*` family, `skip.aggregation` and `requirePermissions` behave identically. The
@@ -76,7 +76,7 @@ then emits `${relatedlinks}` a dozen lines later inside markup that only appears
 
 `<Render>` and `<Area>` return React elements, and there is **no prop** that captures instead of emitting. The
 underlying helpers do return strings — `server.render.render(…)` and `server.render.renderArea(…)` are both
-`String`-valued — so the *condition* is computable. What has no supported form is putting the captured string back
+`String`-valued — so the _condition_ is computable. What has no supported form is putting the captured string back
 into the tree: the library wraps raw HTML in an internal `<jsm-raw-html>` element that the engine strips, and the
 engine's own source states it is not for userland code. Re-emitting through your own
 `<div dangerouslySetInnerHTML>` adds an element the JSP never emitted, which is a layout change in exactly the
@@ -117,13 +117,13 @@ None of these can be provided by a JS module. They keep working if the companion
 providing them — and note the CND keeps referring to them by name, so removing the Java bundle
 breaks the content model, not just the rendering.
 
-| Hook | Note |
-|---|---|
+| Hook                                                       | Note                                                                                           |
+| ---------------------------------------------------------- | ---------------------------------------------------------------------------------------------- |
 | `ModuleChoiceListInitializer` / `ModuleChoiceListRenderer` | named from the CND (`choicelist[myInitializer]`); the CND ports verbatim only if these survive |
-| render filters (`AbstractFilter`) | only reachable through the untyped, undocumented `server.registry.add("render-filter", …)` |
-| Drools rules calling module services | see `gotchas.md` — carrying the `.drl` without the service stops the bundle |
-| actions, servlets, listeners, workflow handlers | no JS equivalent |
-| custom JSP taglibs (`.tld`) | no analogue — but an EL function usually becomes a plain JS function, which is simpler |
+| render filters (`AbstractFilter`)                          | only reachable through the untyped, undocumented `server.registry.add("render-filter", …)`     |
+| Drools rules calling module services                       | see `gotchas.md` — carrying the `.drl` without the service stops the bundle                    |
+| actions, servlets, listeners, workflow handlers            | no JS equivalent                                                                               |
+| custom JSP taglibs (`.tld`)                                | no analogue — but an EL function usually becomes a plain JS function, which is simpler         |
 
 ## Groovy views
 
@@ -136,7 +136,7 @@ the audit so they are not mistaken for "already done".
 Every registered `template` appears in the page-template picker; there is no `hidden.` convention
 and no `visible=false`. A JSP `template.hidden.x.jsp` used purely as an include target should become
 a **view** (or a plain component — but read the cache note in `tag-mapping.md` first). A genuinely
-hidden *page template* cannot be hidden.
+hidden _page template_ cannot be hidden.
 
 The same applies to `j:hiddenTemplate="true"` on a `jnt:contentTemplate` in `src/main/import/repository.xml`.
 Everything else about a `jnt:contentTemplate` **does** port, into a single `jahiaComponent` registration — that

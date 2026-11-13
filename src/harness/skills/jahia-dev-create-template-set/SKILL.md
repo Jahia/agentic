@@ -9,15 +9,15 @@ This skill only covers **JavaScript Modules** — React-based template sets for 
 
 ### JS modules vs Java modules vs Next.js
 
-| | Java Modules | JS Modules | Next.js (Headless) |
-|---|---|---|---|
-| Availability | All versions | 8.2+ | Depends on setup |
-| Separate runtime | No | No | Yes |
-| GraphQL required | No | No | Yes |
-| CMS navigation/cache/auth | Yes | Yes | No |
-| Packaging | Maven/jar | NPM/tgz | NPM/tgz |
-| Templating | JSP | JSX | JSX |
-| Module descriptor | pom.xml | package.json | Separate module |
+|                           | Java Modules | JS Modules   | Next.js (Headless) |
+| ------------------------- | ------------ | ------------ | ------------------ |
+| Availability              | All versions | 8.2+         | Depends on setup   |
+| Separate runtime          | No           | No           | Yes                |
+| GraphQL required          | No           | No           | Yes                |
+| CMS navigation/cache/auth | Yes          | Yes          | No                 |
+| Packaging                 | Maven/jar    | NPM/tgz      | NPM/tgz            |
+| Templating                | JSP          | JSX          | JSX                |
+| Module descriptor         | pom.xml      | package.json | Separate module    |
 
 Jahia recommends JS or Java modules for most projects. Next.js should only be chosen when integrating with an existing Next.js codebase.
 
@@ -29,15 +29,16 @@ Jahia JS modules run inside **GraalJS** (part of GraalVM) — a fully ECMAScript
 
 **tgz → OSGi transformation:** On install, Jahia converts the NPM tgz into an OSGi bundle. Key `package.json` → `MANIFEST.MF` mappings:
 
-| package.json field | MANIFEST.MF clause |
-|---|---|
-| `jahia.module-dependencies` | `Jahia-Depends` |
-| `jahia.server` | `Jahia-NPM-InitScript` |
-| `jahia.required-version` | `Jahia-Required-Version` |
-| `jahia.module-type` | `Jahia-Module-Type` |
-| `jahia.static-resources` | `Jahia-Static-Resources` |
+| package.json field          | MANIFEST.MF clause       |
+| --------------------------- | ------------------------ |
+| `jahia.module-dependencies` | `Jahia-Depends`          |
+| `jahia.server`              | `Jahia-NPM-InitScript`   |
+| `jahia.required-version`    | `Jahia-Required-Version` |
+| `jahia.module-type`         | `Jahia-Module-Type`      |
+| `jahia.static-resources`    | `Jahia-Static-Resources` |
 
 **Request flow:**
+
 1. Browser request → Jahia servlet
 2. `TemplateNodeFilter` resolves the template identifier
 3. `ViewsRegistrar` resolves the JS script for the template
@@ -76,25 +77,26 @@ Do not proceed until both `node --version` (22.14+) and `yarn --version` (4.9+) 
 
 ## Step 2 — Scaffold the module
 
-Run the interactive CLI and **show the user its full output**:
+Run the CLI with `--yes` and **show the user its full output**. Without `--yes`, the CLI asks its questions in an interactive terminal, and stops with `This command requires an interactive terminal` when there is none, which is the case for an agent:
 
 ```bash
-npm init @jahia/module@latest <project-name>
+npm init @jahia/module@latest -- <project-name> --template hello-world --yes
 ```
 
-The CLI will prompt interactively for:
+| Argument          | Guidance                                                                                       |
+| ----------------- | ---------------------------------------------------------------------------------------------- |
+| `<project-name>`  | the module name: lowercase letters, digits and hyphens, starting with a letter, e.g. `my-site` |
+| `--template`      | always a template set, see below                                                               |
+| `--output <path>` | only when the user wants another directory than `./<project-name>`, which must not exist yet   |
 
-| Prompt | Guidance |
-|--------|----------|
-| Module name | kebab-case, e.g. `my-site` |
-| Output directory | accept the default (`./<module-name>`) |
-| Module type | see below |
+Keep the `--`: without it, `npm init` drops the flags.
 
 **Module type — always choose a template set:**
-- `A minimal Hello World template set` ✅ — best starting point, includes working components
-- `An empty template set` — blank canvas, for experienced developers
 
-Once the project is created, the CLI will suggest commands to start it. Run them in order — they start Docker (Jahia) and push the module.
+- `--template hello-world` ✅ — a minimal Hello World template set, best starting point, includes working components
+- `--template template-set` — an empty template set, a blank canvas for experienced developers
+
+Once the project is created, the CLI will suggest commands to start it. Run them in order — they start Docker (Jahia) and push the module — except `yarn dev`, which an agent never runs: deploy with `yarn build && yarn jahia-deploy` instead.
 
 ---
 
@@ -186,6 +188,7 @@ The site key must appear in the response. If it does not, check that `templateSe
 ---
 
 ## References
+
 - https://github.com/Jahia/javascript-modules (monorepo — includes the `create-module` archetype)
 
 ## Troubleshooting
@@ -197,6 +200,7 @@ If anything goes wrong during setup or scaffolding, refer to the official Jahia 
 ---
 
 ## Validation checklist
+
 - [ ] `node --version` reports 22.14+
 - [ ] `yarn --version` reports 4.9+ (via Corepack)
 - [ ] Module directory created with expected structure

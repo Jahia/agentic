@@ -36,11 +36,11 @@ services:
       elasticsearch:
         condition: service_healthy
     ports:
-      - '5601:5601'
+      - "5601:5601"
     environment:
       ELASTICSEARCH_HOSTS: http://elasticsearch:9200
     healthcheck:
-      test: ['CMD-SHELL', 'curl -sf http://localhost:5601/api/status || exit 1']
+      test: ["CMD-SHELL", "curl -sf http://localhost:5601/api/status || exit 1"]
       interval: 10s
       timeout: 5s
       retries: 30
@@ -69,19 +69,19 @@ Once a version exists that accepts the installed jExperience, append to the mani
 
 ```yaml
 # Configure the Kibana proxy BEFORE installing the provider, so it starts already pointed at Kibana
-- editConfiguration: 'org.jahia.modules.kibana_dashboards_provider'
+- editConfiguration: "org.jahia.modules.kibana_dashboards_provider"
   properties:
-    kibana_dashboards_provider.kibanaURL: 'http://kibana:5601'
-    kibana_dashboards_provider.KibanaProxy.enable: 'true'
+    kibana_dashboards_provider.kibanaURL: "http://kibana:5601"
+    kibana_dashboards_provider.KibanaProxy.enable: "true"
 
 - installOrUpgradeModule:
-    - 'mvn:org.jahia.modules/kibana-dashboards-provider/<version>'
-    - 'mvn:org.jahia.modules/jexperience-dashboards/<version>'
+    - "mvn:org.jahia.modules/kibana-dashboards-provider/<version>"
+    - "mvn:org.jahia.modules/jexperience-dashboards/<version>"
   autoStart: true
 
 # The dashboards tab shows on the sites the module is enabled on, and on no others
-- enable: 'jexperience-dashboards'
-  site: '<siteKey>'
+- enable: "jexperience-dashboards"
+  site: "<siteKey>"
 ```
 
 Then verify both bundles answer `ACTIVE`, and that the site node lists `jexperience-dashboards` in
@@ -107,10 +107,10 @@ jExperience injects `window.wem` (Web Experience Manager) into every page. It is
 
 Every event has two parts:
 
-| Part | What it is | Helper |
-|------|------------|--------|
-| **source** | Where the event happened (usually the current page) | `wem.buildSourcePage()` |
-| **target** | What happened (the action) | `wem.buildTarget(id, type, properties)` |
+| Part       | What it is                                          | Helper                                  |
+| ---------- | --------------------------------------------------- | --------------------------------------- |
+| **source** | Where the event happened (usually the current page) | `wem.buildSourcePage()`                 |
+| **target** | What happened (the action)                          | `wem.buildTarget(id, type, properties)` |
 
 ### Full example — feedback widget
 
@@ -140,8 +140,12 @@ export default function Widget({ question }: { question: string }) {
   return (
     <aside>
       {question}
-      <button type="button" onClick={handler(true)}>Yes</button>
-      <button type="button" onClick={handler(false)}>No</button>
+      <button type="button" onClick={handler(true)}>
+        Yes
+      </button>
+      <button type="button" onClick={handler(false)}>
+        No
+      </button>
     </aside>
   );
 }
@@ -152,7 +156,9 @@ export default function Widget({ question }: { question: string }) {
 import { jahiaComponent, Island } from "@jahia/javascript-modules-library";
 import Widget from "./Widget.client.jsx";
 
-interface Props { question: string; }
+interface Props {
+  question: string;
+}
 
 jahiaComponent(
   { nodeType: "hydrogen:feedbackWidget", componentType: "view" },
@@ -166,12 +172,12 @@ jahiaComponent(
 
 ### `window.wem` API reference
 
-| Method | Signature | Returns |
-|--------|-----------|---------|
-| `buildSourcePage` | `()` | Source object for the current page |
-| `buildTarget` | `(id: string, type: string, properties?: object)` | Target object |
-| `buildEvent` | `(eventType: string, target, source)` | Event object |
-| `collectEvents` | `({ events: Event[] })` | Sends events to jCustomer |
+| Method            | Signature                                         | Returns                            |
+| ----------------- | ------------------------------------------------- | ---------------------------------- |
+| `buildSourcePage` | `()`                                              | Source object for the current page |
+| `buildTarget`     | `(id: string, type: string, properties?: object)` | Target object                      |
+| `buildEvent`      | `(eventType: string, target, source)`             | Event object                       |
+| `collectEvents`   | `({ events: Event[] })`                           | Sends events to jCustomer          |
 
 `buildTarget` properties are free-form — pass any serializable data you want to analyse downstream (e.g. `{ happy: true }`, `{ productId: "p-123" }`).
 
@@ -200,6 +206,7 @@ dataLayer.push({ event: "feedback", happy });
 ### Create a saved search
 
 In **Discover**, add column filters for:
+
 - `eventType` = `click`
 - `itemType` = `event`
 - `target.itemId` = `feedback`
@@ -235,6 +242,7 @@ Dashboards exported from Kibana are automatically imported when the module is de
 ---
 
 ## Validation checklist
+
 - [ ] The stack from `jahia-dev-setup-environment` passes its own checks, and the `kibana` service is healthy
 - [ ] jExperience enabled on the target site; jExperience Dashboards too, when a release accepts the installed jExperience
 - [ ] jExperience tab visible in jContent
@@ -245,6 +253,7 @@ Dashboards exported from Kibana are automatically imported when the module is de
 - [ ] Dashboard `.ndjson` saved to `settings/kibana-dashboard/dashboards/` for packaging
 
 ## References
+
 - Apache Unomi tracker: https://github.com/apache/unomi-tracker
 - KQL query syntax: https://www.elastic.co/guide/en/kibana/current/kuery-query.html
 - jExperience guide: https://github.com/Jahia/javascript-modules/blob/main/docs/2-guides/1-building-a-feedback-form/README.md

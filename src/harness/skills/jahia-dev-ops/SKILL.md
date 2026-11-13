@@ -16,11 +16,11 @@ Detailed reference sheets are in `references/`.
 
 ## Reference files
 
-| File | Content |
-|------|---------|
-| `references/docker.md` | Docker Compose stacks, environment variables, volume layout, networking, common run-commands |
-| `references/monitoring.md` | Health endpoints, log locations, JVM/GC tuning, Karaf console, alert patterns |
-| `references/provisioning.md` | Jahia Provisioning API (YAML scripts), module lifecycle, site import/export, JCR operations |
+| File                         | Content                                                                                      |
+| ---------------------------- | -------------------------------------------------------------------------------------------- |
+| `references/docker.md`       | Docker Compose stacks, environment variables, volume layout, networking, common run-commands |
+| `references/monitoring.md`   | Health endpoints, log locations, JVM/GC tuning, Karaf console, alert patterns                |
+| `references/provisioning.md` | Jahia Provisioning API (YAML scripts), module lifecycle, site import/export, JCR operations  |
 
 ## Quick orientation
 
@@ -43,6 +43,7 @@ Detailed reference sheets are in `references/`.
 ### Support escalation checklist
 
 When filing a Jahia Support ticket always attach:
+
 - `docker-compose.yml` (redact passwords)
 - `jahia.log` (last 500 lines minimum)
 - Output of `/healthcheck?includeDetails=true`

@@ -2,23 +2,23 @@
 
 ## Health endpoints
 
-| Endpoint | Auth | Returns |
-|----------|------|---------|
-| `GET /healthcheck` | None | `{"status":"GREEN"}` or non-200 |
-| `GET /healthcheck?includeDetails=true` | Basic (root) | Full JSON with per-probe status |
-| `GET /modules/healthcheck` | Basic (root) | Module-level detail |
-| `GET /live` | None | Kubernetes liveness (200 = alive) |
-| `GET /ready` | None | Kubernetes readiness (200 = ready to serve) |
+| Endpoint                               | Auth         | Returns                                     |
+| -------------------------------------- | ------------ | ------------------------------------------- |
+| `GET /healthcheck`                     | None         | `{"status":"GREEN"}` or non-200             |
+| `GET /healthcheck?includeDetails=true` | Basic (root) | Full JSON with per-probe status             |
+| `GET /modules/healthcheck`             | Basic (root) | Module-level detail                         |
+| `GET /live`                            | None         | Kubernetes liveness (200 = alive)           |
+| `GET /ready`                           | None         | Kubernetes readiness (200 = ready to serve) |
 
 ### Interpreting `/healthcheck?includeDetails=true`
 
 ```json
 {
-  "status": "GREEN",      // GREEN | YELLOW | RED
+  "status": "GREEN", // GREEN | YELLOW | RED
   "probes": {
-    "DatabaseProbe":    { "status": "GREEN" },
-    "ServerLoadProbe":  { "status": "YELLOW", "message": "Load: 3.4" },
-    "JCRProbe":         { "status": "GREEN" }
+    "DatabaseProbe": { "status": "GREEN" },
+    "ServerLoadProbe": { "status": "YELLOW", "message": "Load: 3.4" },
+    "JCRProbe": { "status": "GREEN" }
   }
 }
 ```
@@ -29,13 +29,13 @@ degraded but still functional. Common probe names: `DatabaseProbe`,
 
 ## Log files
 
-| File | Content |
-|------|---------|
-| `/var/log/jahia/jahia.log` | Main application log (INFO+) |
-| `/var/log/jahia/errors.log` | ERROR-only mirror of jahia.log |
-| `/var/log/jahia/access.log` | HTTP access log (Combined format) |
-| `/var/log/jahia/jahia_audit.log` | Security/audit events |
-| `/var/log/jahia/gc.log*` | GC log (if `-Xlog:gc*` enabled) |
+| File                             | Content                           |
+| -------------------------------- | --------------------------------- |
+| `/var/log/jahia/jahia.log`       | Main application log (INFO+)      |
+| `/var/log/jahia/errors.log`      | ERROR-only mirror of jahia.log    |
+| `/var/log/jahia/access.log`      | HTTP access log (Combined format) |
+| `/var/log/jahia/jahia_audit.log` | Security/audit events             |
+| `/var/log/jahia/gc.log*`         | GC log (if `-Xlog:gc*` enabled)   |
 
 ### Key log patterns to watch
 
@@ -185,11 +185,11 @@ curl http://localhost:9200/_cluster/pending_tasks
 
 ## Alerting thresholds (suggested)
 
-| Metric | Warning | Critical |
-|--------|---------|---------|
-| Heap usage | 75 % | 90 % |
-| Jahia healthcheck status | YELLOW | RED |
-| DB connection pool | 80 % utilised | 95 % utilised |
-| Error log rate | > 10/min | > 50/min |
-| ES cluster health | YELLOW | RED |
-| GC pause (G1GC stop-the-world) | > 500 ms | > 2 s |
+| Metric                         | Warning       | Critical      |
+| ------------------------------ | ------------- | ------------- |
+| Heap usage                     | 75 %          | 90 %          |
+| Jahia healthcheck status       | YELLOW        | RED           |
+| DB connection pool             | 80 % utilised | 95 % utilised |
+| Error log rate                 | > 10/min      | > 50/min      |
+| ES cluster health              | YELLOW        | RED           |
+| GC pause (G1GC stop-the-world) | > 500 ms      | > 2 s         |

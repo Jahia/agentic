@@ -6,6 +6,7 @@ description: Takes screenshots of a reference URL and the local Jahia render for
 # Skill: jahia-dev-screenshot
 
 Takes screenshots for two purposes:
+
 1. **Reference** — capture an existing site as a visual spec before building
 2. **Result** — capture the local Jahia render after building to compare
 
@@ -29,6 +30,7 @@ which google-chrome || which chromium || which chromium-browser 2>/dev/null
 Use the first one that works. If none is available, ask the user:
 
 > No screenshot tool found. Which would you like to install?
+>
 > - `npm install -g playwright` then `npx playwright install chromium`
 > - `npm install puppeteer` (downloads Chromium automatically)
 > - I'll take the screenshots manually and paste them in
@@ -42,11 +44,13 @@ If the user chooses manual, skip to Step 4 and ask them to paste the screenshots
 Ask the user for the reference URL if not already provided.
 
 Create the output directory:
+
 ```bash
 mkdir -p /tmp/jahia-screenshots
 ```
 
 ### With Playwright:
+
 ```bash
 npx playwright screenshot \
   --browser chromium \
@@ -56,6 +60,7 @@ npx playwright screenshot \
 ```
 
 ### With Puppeteer (Node.js one-liner):
+
 ```bash
 node -e "
 const puppeteer = require('puppeteer');
@@ -77,6 +82,7 @@ view /tmp/jahia-screenshots/reference.png
 ```
 
 Describe the key design elements you observe:
+
 - Layout structure (hero, grid, sidebar, etc.)
 - Color palette (dominant, accent, background)
 - Typography (heading sizes, font weight)
@@ -91,12 +97,14 @@ Share this description with the user before proceeding to build.
 Once the view is built and deployed (`yarn build` + `yarn jahia-deploy`), capture the Jahia render.
 
 Ask the user for the Jahia page URL, or construct it:
+
 - Default: `http://localhost:8080/cms/render/default/en/sites/<siteName>/home.html`
 - Or ask: "What is the URL of the page where the component is placed?"
 
 Jahia requires authentication. Use the `--auth` header or log in first:
 
 ### With Playwright:
+
 ```bash
 npx playwright screenshot \
   --browser chromium \
@@ -106,6 +114,7 @@ npx playwright screenshot \
 ```
 
 > Note: if the page requires login, authenticate first:
+>
 > ```bash
 > node -e "
 > const puppeteer = require('puppeteer');
@@ -166,6 +175,7 @@ If yes, update the view's `.tsx` and `.module.css` files using `/jahia-dev-creat
 ## Integration points
 
 This skill is called from:
+
 - `/jahia-dev-build-component` — Step 0 (optional reference) and Step 4 (result check)
 - `/jahia-dev-create-view` — Step 0 (optional reference) and after deploy
 
