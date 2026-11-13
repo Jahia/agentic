@@ -29,8 +29,9 @@ ns_heroSection.variant.primary=Primary
 ns_heroSection.variant.secondary=Secondary
 ```
 
-A key that ends in `.label` (`ns_heroSection.label`, `ns_heroSection.subtitle.label`) is ignored: editors see
-the raw name.
+Jahia never reads a `.label` suffix added to these keys (`ns_heroSection.label` for the type,
+`ns_heroSection.subtitle.label` for a field): editors see the raw name. A field named `label` adds no suffix:
+the `label` field of `ns:cta` takes `ns_cta.label`.
 
 Icon file: `settings/content-types-icons/<ns>_<typeName>.png`
 Free icons: https://www.flaticon.com/

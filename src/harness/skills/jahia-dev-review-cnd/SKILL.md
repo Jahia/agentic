@@ -24,7 +24,7 @@ A review changes nothing. Unless the user or the calling skill asked you to fix 
 
 ## Step 3 — Fix and repeat until clean, when asked
 
-This is a loop. Run the checker, fix every issue reported, run it again. Repeat until the result is `PASS`.
+Only when asked, as Step 2 states. This is a loop. Run the checker, fix every issue reported, run it again. Repeat until the result is `PASS`.
 
 - **FAIL** — fix every issue, re-run. Do not proceed until exit code is 0.
 - **PASS** — clean. Continue.

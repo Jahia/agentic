@@ -47,7 +47,7 @@ Has children: <yes: ChildType / no>
 
 **Do not write CND manually.** Jahia-specific patterns (`choicelist[linkTypeInitializer]`, `mix:title`, child nodes for CTAs) are not in LLM training data — writing from memory produces broken output.
 
-Invoke `@jahia-cnd-author` as a sub-agent with the complete spec:
+Invoke `@jahia-cnd-author` with the complete spec. It runs in this conversation:
 
 ```
 Component: <PascalCase name>
@@ -59,7 +59,7 @@ Children: <repeatable sub-items, e.g. "CTA buttons with label + link">
 Usage: <where this component appears, e.g. "dropped in page areas">
 ```
 
-Wait for **PASS** before continuing. If it returns **FAIL**, send the issues back to `@jahia-cnd-author` to fix.
+Continue only once its Step 6 reports **PASS**. On **FAIL**, fix the issues it lists with `@jahia-cnd-author`, then validate again.
 
 ---
 
