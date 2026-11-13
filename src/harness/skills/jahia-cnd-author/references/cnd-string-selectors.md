@@ -63,7 +63,7 @@ Access in the view as `props["jcr:title"]`.
 **NEVER use `(string)` for a link, URL, href, or path.**
 Use `choicelist[linkTypeInitializer]` — it renders an internal/external/none picker in the editor.
 
-**Declare ONLY `j:linkType` in the CND. Do NOT add `j:linknode` or `j:url` — Jahia injects them automatically.**
+**Declare ONLY `j:linkType` in the CND. Do NOT add `j:linknode` or `j:url` — they live on `jmix:internalLink` and `jmix:externalLink`, the mixins the picker adds.**
 
 ```cnd
 // ✅ Correct — bare minimum
@@ -117,16 +117,16 @@ properties. One call creates a CTA with its target:
 An external link is the same call with `"mixins": ["jmix:externalLink"]`, `"j:linkType": "external"`,
 `"j:url"` and `"j:linkTitle"`. In a `children` entry, `mixins` sits next to `nodeType`.
 
-On a server whose `content.create` schema has no `mixins` input (any mcp-servlet before 0.5.0),
-create the node with `j:linkType`, then call `content.update` with `addMixins: ["jmix:internalLink"]`
-and `j:linknode`, then read the node back.
+On a server whose `content.create` schema has no `mixins` input, create the node with
+`j:linkType`, then call `content.update` with `addMixins: ["jmix:internalLink"]` and
+`j:linknode`, then read the node back.
 
 **Read `propertiesSkipped` in every answer.** A skipped `j:linknode` or `j:url` means the mixin
 is missing, and the answer names it. It does not mean links do not work through the API, and it
-is never a reason to model the link as string properties: `rawStringLink` in the review is the
-score that pays for that shortcut. The error `Couldn't find definition for property j:linkType`
-is different again: the deployed type does not declare `j:linkType`. Fix the CND, redeploy, and
-check with `content.type` before creating content.
+is never a reason to model the link as string properties, which `jahia-dev-review-cnd` flags as
+`rawStringLink`. The error `Couldn't find definition for property j:linkType` is different
+again: the deployed type does not declare `j:linkType`. Fix the CND, redeploy, and check with
+`content.type` before creating content.
 
 ## Weakreference picker variants
 

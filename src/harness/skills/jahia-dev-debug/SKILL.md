@@ -162,11 +162,11 @@ Do not work around a CND that Jahia refuses. Groovy console scripts, the JCR bro
 
 **Cause:** the target lives on a mixin the picker adds (`jmix:internalLink`, `jmix:externalLink`), and the node does not carry it. The skip reason names the mixin.
 
-**Fix:** pass it in `mixins` on `content.create`, or add it with `content.update` (`addMixins`) on a server without that input. Do not touch the CND: declaring `j:linknode` by hand is the C3 defect, and a string property instead of the picker is `rawStringLink`.
+**Fix:** pass it in `mixins` on `content.create`, or add it with `content.update` (`addMixins`) on a server without that input. Do not touch the CND: declaring `j:linknode` by hand is the C3 defect of `jahia-review-code`, and a string property instead of the picker is `rawStringLink`.
 
 ### CND: `j:linknode` or `j:url` declared explicitly
 
-These fields are injected by Jahia's `linkTypeInitializer` mixin. Remove them from the CND.
+These fields are declared by `jmix:internalLink` and `jmix:externalLink`, the mixins the `linkTypeInitializer` picker adds. Remove them from the CND.
 
 ### CND: unknown mixin or type
 
