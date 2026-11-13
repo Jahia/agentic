@@ -63,7 +63,7 @@ Access in the view as `props["jcr:title"]`.
 **NEVER use `(string)` for a link, URL, href, or path.**
 Use `choicelist[linkTypeInitializer]` — it renders an internal/external/none picker in the editor.
 
-**Declare ONLY `j:linkType` in the CND. Do NOT add `j:linknode` or `j:url` — Jahia injects them automatically.**
+**Declare ONLY `j:linkType` in the CND. Do NOT add `j:linknode` or `j:url` — they live on `jmix:internalLink` and `jmix:externalLink`, the mixins the picker adds.**
 
 ```cnd
 // ✅ Correct — bare minimum
@@ -72,8 +72,8 @@ Use `choicelist[linkTypeInitializer]` — it renders an internal/external/none p
  - j:linkType (string, choicelist[linkTypeInitializer]) mandatory
 
 // ❌ Wrong — do not declare companion fields
- - j:linknode (weakreference)   // injected by Jahia — remove this
- - j:url (string)               // injected by Jahia — remove this
+ - j:linknode (weakreference)   // on jmix:internalLink — remove this
+ - j:url (string)               // on jmix:externalLink — remove this
 ```
 
 TypeScript discriminated union for the view:
@@ -87,6 +87,56 @@ export type Props =
 ```
 
 In the view, switch on `props["j:linkType"]`.
+
+### Creating a link through the MCP tools
+
+The picker's choice stores its target on a **mixin** the Content Editor adds for the chosen
+value: `internal` puts `j:linknode` on `jmix:internalLink`, `external` puts `j:url` and
+`j:linkTitle` on `jmix:externalLink`. The type itself declares `j:linkType` only, which is why
+the CND above declares nothing else. A tool call that writes those companions must add the
+mixin, or the server has no definition to write them into.
+
+`content.create` takes `mixins`, at the top level and on each child, and adds them before the
+properties. One call creates a CTA with its target:
+
+```json
+{
+  "parentPath": "/sites/<site>/home/main/hero",
+  "nodeType": "ns:callToAction",
+  "name": "quote",
+  "locale": "en",
+  "mixins": ["jmix:internalLink"],
+  "properties": {
+    "label": "Get a quote",
+    "j:linkType": "internal",
+    "j:linknode": "/sites/<site>/home/quote"
+  }
+}
+```
+
+An external link is the same call with `"mixins": ["jmix:externalLink"]`, `"j:linkType": "external"`,
+`"j:url"` and `"j:linkTitle"`. In a `children` entry, `mixins` sits next to `nodeType`.
+
+**Without the mixin, the call is refused.** `content.create` is all or nothing: it creates
+nothing, and its error names the mixin to add:
+
+```text
+Nothing was created: 1 property could not be set: j:linknode (declared by mixin jmix:internalLink — pass it in 'mixins' so the property can be set).
+```
+
+Add the mixin it names and call again. The refusal does not mean links do not work through the
+API, and it is never a reason to model the link as string properties, which
+`jahia-dev-review-cnd` flags as `rawStringLink`.
+
+On a server whose `content.create` schema has no `mixins` input, the call creates the node
+without setting `j:linknode`: some versions skip it silently, others list it in
+`propertiesSkipped`. Create the node with `j:linkType`, then call `content.update` with
+`addMixins: ["jmix:internalLink"]` and `j:linknode`, then read the node back with `content.get`
+to check the target.
+
+The error `Couldn't find definition for property j:linkType` is different again: the deployed
+type does not declare `j:linkType`. Fix the CND, redeploy, and check with `content.type` before
+creating content.
 
 ## Weakreference picker variants
 

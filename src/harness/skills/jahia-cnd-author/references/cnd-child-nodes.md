@@ -39,6 +39,9 @@ Model CTAs as child nodes — editors can then add multiple CTAs.
  - ctaLink (string) i18n       // also wrong type for links
 ```
 
+Through the MCP tools, each CTA child is created with its link mixin (`mixins` on the child
+entry), otherwise the call creates nothing. The recipe is in cnd-string-selectors.md.
+
 ## Ordering
 
 Add `orderable` to the parent type when editors need to reorder children:
@@ -94,6 +97,7 @@ nowhere else. Two rules decide the shape:
 // The items: plain components, NOT page components, so they cannot be dropped in page areas
 [ns:textCard] > jnt:content, nsmix:component, mix:title
  - body (string, textarea) i18n
+ + * (ns:callToAction)
 ```
 
 The view renders the list as an area whose parent is the section node:
@@ -105,7 +109,7 @@ const { currentNode } = useServerContext();
 
 Jahia creates the `items` node the first time the area renders, so the CND needs no `autocreated`
 on it. When content is created through the MCP tools rather than by an editor, create the
-section, its list and its items in **one** `content.create` call, with `children` nested two
+section, its list and its items in **one** `content.create` call, with `children` nested three
 levels deep:
 
 ```json
@@ -122,7 +126,19 @@ levels deep:
         {
           "name": "car",
           "nodeType": "ns:textCard",
-          "properties": { "jcr:title": "Car", "body": "…" }
+          "properties": { "jcr:title": "Car", "body": "…" },
+          "children": [
+            {
+              "name": "cta",
+              "nodeType": "ns:callToAction",
+              "mixins": ["jmix:internalLink"],
+              "properties": {
+                "label": "Car insurance",
+                "j:linkType": "internal",
+                "j:linknode": "/sites/<site>/home/car-insurance"
+              }
+            }
+          ]
         },
         {
           "name": "home",
@@ -134,6 +150,9 @@ levels deep:
   ]
 }
 ```
+
+The `mixins` on the CTA child is what lets `j:linknode` be written; without it the call creates
+nothing, and its error names the mixin to add.
 
 **The other shape, and what the refusal means.** `+ * (ns:textCard)` straight on the section,
 with `<RenderChildren>` in the view, also works: `RenderChildren` renders an "Add content" button

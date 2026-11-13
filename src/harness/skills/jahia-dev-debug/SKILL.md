@@ -156,9 +156,17 @@ docker logs <container-name> --since 5m 2>&1 | grep -E "Cannot install package.t
 
 Do not work around a CND that Jahia refuses. Groovy console scripts, the JCR browser, uninstalling the module, deleting `/modules/<module>`, or `POST /modules/api/bundles` take an hour and fix nothing. `/modules/api/bundles` also runs the breaking-change check that `yarn jahia-deploy` skips, so it refuses every major change as `Major change in definition`.
 
+### MCP: a link through `content.create` is refused, or has no target
+
+**Symptom:** `content.create` creates nothing and answers `Nothing was created: 1 property could not be set: j:linknode (declared by mixin jmix:internalLink — pass it in 'mixins' so the property can be set).` (or the same for `j:url`, `j:linkTitle` and `jmix:externalLink`). On a server whose `content.create` has no `mixins` input, the call does not set the property instead (some versions skip it silently, others list it in `propertiesSkipped`): `content.get` shows the node with `j:linkType` set and no target, and the view renders the CTA without an `href`.
+
+**Cause:** the target lives on a mixin the picker adds (`jmix:internalLink`, `jmix:externalLink`), and the call does not add it.
+
+**Fix:** pass the mixin the error names in `mixins` on `content.create`, and call again. On a server without that input, add it with `content.update` (`addMixins`), then read the node back with `content.get` to check the target. Do not touch the CND: declaring `j:linknode` by hand is the C3 defect of `jahia-review-code`, and a string property instead of the picker is `rawStringLink`.
+
 ### CND: `j:linknode` or `j:url` declared explicitly
 
-These fields are injected by Jahia's `linkTypeInitializer` mixin. Remove them from the CND.
+These fields are declared by `jmix:internalLink` and `jmix:externalLink`, the mixins the `linkTypeInitializer` picker adds. Remove them from the CND.
 
 ### CND: unknown mixin or type
 

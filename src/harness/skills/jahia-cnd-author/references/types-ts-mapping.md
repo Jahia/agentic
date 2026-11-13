@@ -81,5 +81,5 @@ export type Props = CardBase &
 
 - All properties are optional unless `mandatory` in CND (and even mandatory fields may be absent at runtime — always guard)
 - `weakreference` is always `JCRNodeWrapper | undefined` regardless of `mandatory`
-- Never add `j:linknode` or `j:url` to the CND — they appear in types.ts via the discriminated union because Jahia injects them
+- Never add `j:linknode` or `j:url` to the CND — they appear in types.ts via the discriminated union because they live on `jmix:internalLink` and `jmix:externalLink`, the mixins the picker adds
 - `i18n` does not affect the TypeScript type
