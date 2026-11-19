@@ -90,6 +90,7 @@ import org.jahia.modules.graphql.provider.dxm.DataFetchingException;
 import org.jahia.modules.graphql.provider.dxm.node.GqlJcrNode;
 import org.jahia.modules.graphql.provider.dxm.node.NodeQueryExtensions;
 import org.jahia.modules.graphql.provider.dxm.node.SpecializedTypesHandler;
+import org.jahia.services.content.JCRNodeWrapper;
 import org.jahia.services.content.JCRSessionFactory;
 import org.jahia.services.content.JCRSessionWrapper;
 import org.jahia.services.content.decorator.JCRSiteNode;
@@ -124,8 +125,13 @@ public final class MyModuleQueryExtension {
         NodeQueryExtensions.Workspace ws = workspace != null ? workspace : NodeQueryExtensions.Workspace.LIVE;
         try {
             JCRSessionWrapper session = JCRSessionFactory.getInstance().getCurrentUserSession(ws.getValue());
+            // An unknown key throws PathNotFoundException, a RepositoryException
             JCRSiteNode site = JahiaSitesService.getInstance().getSiteByKey(siteKey, session);
-            return SpecializedTypesHandler.getNode(site.getHome());
+            JCRNodeWrapper home = site.getHome();
+            if (home == null) {
+                throw new DataFetchingException("The site has no home page");
+            }
+            return SpecializedTypesHandler.getNode(home);
         } catch (RepositoryException e) {
             throw new DataFetchingException(e);
         }
@@ -299,7 +305,9 @@ my_module_public:
 - Jahia checks each field first with no node: every field needs a grant with `node: none`.
 - Jahia checks again, with the node, a field that returns a node and each field selected on that
   node: they also need a grant that matches the node. Without both grants, the field answers
-  `Permission denied`.
+  `Permission denied`. The `node: none` grant alone opens nothing: the node grant decides which
+  nodes the field may return, here the home pages of live.
+- `api` takes one name or a comma-separated list.
 - A field selected on a node is named after the concrete type of the node: `graphql.GenericJCRNode.path`
   for a page or a content, `graphql.JCRSite.name` for a site. Grant the fields the client selects,
   and no more: a field left out of the grant, such as `name` here, stays refused.

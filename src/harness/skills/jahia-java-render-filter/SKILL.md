@@ -53,7 +53,7 @@ public class SiteTitleMetaFilter extends AbstractFilter {
             throws Exception {
         JCRSiteNode site = renderContext.getSite();
         int headEnd = StringUtils.indexOfIgnoreCase(previousOut, HEAD_END);
-        if (site == null || headEnd < 0 || previousOut.contains(MARKER)) {
+        if (site == null || StringUtils.isBlank(site.getTitle()) || headEnd < 0 || previousOut.contains(MARKER)) {
             return previousOut;                       // idempotent: the same HTML can pass twice
         }
         String meta = MARKER + " content=\"" + StringEscapeUtils.escapeXml11(site.getTitle()) + "\">\n";
@@ -111,12 +111,14 @@ filter (section 4).
 Jahia sorts filters by priority. `prepare` runs from the lowest priority up, and `execute` runs from
 the highest down. The HTML cache of live mode is the filter at priority **16**:
 
-| Priority | When it runs                                                 | Use it for                                                                                  |
-| -------- | ------------------------------------------------------------ | ------------------------------------------------------------------------------------------- |
-| < -2     | On every request, after the edit-mode and asset filters      | The last word on the final page HTML, such as a nonce on every `<script>`.                  |
-| 1 to 15  | On every request, cached or not                              | Anything per request or per user, a response header, a value that changes between requests. |
-| 17 to 98 | **Only when the fragment is not in the cache**, in live mode | A change that depends only on the content, and that may be cached with the fragment.        |
-| ≥ 99     | Never, or not reliably                                       | Nothing.                                                                                    |
+| Priority     | When it runs                                                                                                   | Use it for                                                                                  |
+| ------------ | -------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------- |
+| -3 and below | On every request. Its `execute` runs after those of the edit-mode, externalization and asset filters (-2 to 0) | The last word on the final page HTML, such as a nonce on every `<script>`.                  |
+| -2 to 0      | Taken by core filters                                                                                          | Nothing: keep out of this range.                                                            |
+| 1 to 15      | On every request, cached or not                                                                                | Anything per request or per user, a response header, a value that changes between requests. |
+| 16           | The HTML cache itself                                                                                          | Nothing.                                                                                    |
+| 17 to 98     | **Only when the fragment is not in the cache**, in live mode                                                   | A change that depends only on the content, and that may be cached with the fragment.        |
+| 99 and above | Never, or not reliably                                                                                         | Nothing.                                                                                    |
 
 What a filter above 16 must know:
 
@@ -171,8 +173,12 @@ For a request attribute that the views must see during the render, do not write 
 `chain.pushAttribute(request, name, value)`: Jahia restores the previous value at the end of the
 chain.
 
-When `prepare` returns a non-null value, the `execute` of the same filter still runs, with that value
-as `previousOut`. The filters of a higher priority run neither `prepare` nor `execute`.
+When `prepare` returns a non-null value, the chain stops at that filter:
+
+- the filters of a higher priority run neither `prepare` nor `execute`. Below 16, the HTML cache is
+  one of them, so it neither reads nor stores that output;
+- the `execute` of the same filter runs, with that value as `previousOut`, then the `execute` of
+  each filter of a lower priority.
 
 A filter that redirects in `prepare`, for a login or an access check, returns `""`. With `null`,
 Jahia renders the whole page anyway, into a response that is already sent, and throws the work away.

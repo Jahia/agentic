@@ -119,25 +119,46 @@ public void activate() {
 
 When the action then writes a node other than the node of the URL, check that node too.
 
-A site check in a service or a GraphQL field, with the session of the caller:
+A site check and a server check in a service or a GraphQL field, with the session of the caller.
+Each one answers `false` on any failure, so a caller cannot fail open:
 
 ```java
-import javax.jcr.AccessDeniedException;
+package org.example.mymodule;
 
-JCRSiteNode site = node.getResolveSite();
-if (site == null || !site.hasPermission("myModuleReportsView")) {
-    throw new AccessDeniedException("myModuleReportsView");
+import org.jahia.services.content.JCRNodeWrapper;
+import org.jahia.services.content.JCRSessionFactory;
+import org.jahia.services.content.decorator.JCRSiteNode;
+
+import javax.jcr.RepositoryException;
+
+public final class MyModulePermissions {
+
+    private MyModulePermissions() {
+    }
+
+    /** True when the current user holds myModuleReportsView on the site of the node. */
+    public static boolean canViewReports(JCRNodeWrapper node) {
+        try {
+            JCRSiteNode site = node.getResolveSite();
+            return site != null && site.hasPermission("myModuleReportsView");
+        } catch (RepositoryException e) {
+            return false;
+        }
+    }
+
+    /** True when the current user holds myModuleAdmin on the root node. */
+    public static boolean isModuleAdmin() {
+        try {
+            return JCRSessionFactory.getInstance().getCurrentUserSession().getNode("/").hasPermission("myModuleAdmin");
+        } catch (RepositoryException e) {
+            return false;
+        }
+    }
 }
 ```
 
-A server check:
-
-```java
-JCRSessionWrapper session = JCRSessionFactory.getInstance().getCurrentUserSession();
-if (!session.getNode("/").hasPermission("myModuleAdmin")) {
-    throw new AccessDeniedException("myModuleAdmin");
-}
-```
+The caller refuses when the answer is `false`: a GraphQL field throws
+`new DataFetchingException("Permission denied")`, an Action answers 403.
 
 - Refuse on any exception. A `catch` that lets the request through opens the operation to everyone.
 - Check a node the caller cannot own, such as the site or the parent container. A user holds the

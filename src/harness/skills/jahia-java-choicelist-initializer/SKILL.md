@@ -42,6 +42,8 @@ import org.jahia.services.content.nodetypes.initializers.ChoiceListValue;
 import org.jahia.services.content.nodetypes.initializers.ModuleChoiceListInitializer;
 import org.jahia.utils.i18n.Messages;
 import org.osgi.service.component.annotations.Component;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -53,6 +55,8 @@ import java.util.Map;
 public class EventTopicsInitializer implements ModuleChoiceListInitializer {
 
     public static final String KEY = "myModuleEventTopics";
+
+    private static final Logger LOG = LoggerFactory.getLogger(EventTopicsInitializer.class);
 
     private static final List<String> TOPICS = List.of("conference", "webinar", "workshop");
 
@@ -69,12 +73,22 @@ public class EventTopicsInitializer implements ModuleChoiceListInitializer {
     @Override
     public List<ChoiceListValue> getChoiceListValues(ExtendedPropertyDefinition epd, String param,
             List<ChoiceListValue> values, Locale locale, Map<String, Object> context) {
-        JahiaTemplatesPackage module = epd != null ? epd.getDeclaringNodeType().getTemplatePackage() : null;
         List<ChoiceListValue> result = new ArrayList<>(TOPICS.size());
+        JahiaTemplatesPackage module = null;
+        try {
+            module = epd != null ? epd.getDeclaringNodeType().getTemplatePackage() : null;
+        } catch (RuntimeException e) {
+            LOG.warn("No module for the labels of {}: the values keep their codes", KEY, e);
+        }
         for (String topic : TOPICS) {
-            String label = module != null && locale != null
-                    ? Messages.get(module, epd.getResourceBundleKey() + "." + topic, locale, topic)
-                    : topic;
+            String label = topic;
+            if (module != null && locale != null) {
+                try {
+                    label = Messages.get(module, epd.getResourceBundleKey() + "." + topic, locale, topic);
+                } catch (RuntimeException e) {
+                    LOG.warn("No label for {} in {}", topic, locale, e);   // an exception would stop the form
+                }
+            }
             result.add(new ChoiceListValue(label, topic));
         }
         return result;
