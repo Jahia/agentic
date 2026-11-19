@@ -94,7 +94,7 @@ for (let attempt = 0; attempt < 60; attempt++) {
 
 //#MARK: provision
 
-console.log("Provisioning mcp-servlet...");
+console.log("Provisioning mcp-server...");
 const provisionYaml = JSON.stringify(
   [
     {
@@ -106,7 +106,7 @@ const provisionYaml = JSON.stringify(
         "https://devtools.jahia.com/nexus/content/groups/public/@snapshots@noreleases@id=JahiaSnapshot@update=always",
     },
     {
-      installBundle: ["mvn:org.jahia.modules/mcp-servlet"],
+      installBundle: ["mvn:org.jahia.modules/mcp-server/LATEST"],
       autoStart: true,
       uninstallPreviousVersion: true,
     },
@@ -126,7 +126,7 @@ const provisioningResponse = await fetch(`${JAHIA_URL}/modules/api/provisioning`
 console.log("Provisioning response status:", provisioningResponse.status);
 console.log("Provisioning response:", await provisioningResponse.text());
 
-// Wait for mcp-servlet to register (the MCP endpoint becomes available)
+// Wait for mcp-server to register (the MCP endpoint becomes available)
 console.log("Waiting for MCP endpoint...");
 for (let attempt = 0; attempt < 30; attempt++) {
   try {
@@ -144,15 +144,15 @@ for (let attempt = 0; attempt < 30; attempt++) {
     }
     if (status === 200) {
       console.log("MCP endpoint is ready.");
-      // Extract mcp-servlet version from Jahia docker logs
+      // Extract mcp-server version from Jahia docker logs
       try {
         const logs = execSync(
-          "docker compose logs jahia --no-color 2>/dev/null | grep 'Finished starting DX OSGi bundle mcp-servlet' | tail -1",
+          "docker compose logs jahia --no-color 2>/dev/null | grep 'Finished starting DX OSGi bundle mcp-server' | tail -1",
           { cwd: root, encoding: "utf-8", timeout: 10000 },
         );
-        const versionMatch = logs.match(/mcp-servlet v([\d.]+\S*)/);
+        const versionMatch = logs.match(/mcp-server v([\d.]+\S*)/);
         if (versionMatch) {
-          console.log(`mcp-servlet installed version: ${versionMatch[1]}`);
+          console.log(`mcp-server installed version: ${versionMatch[1]}`);
         }
       } catch {
         // Best-effort — version logging should never block the benchmark
