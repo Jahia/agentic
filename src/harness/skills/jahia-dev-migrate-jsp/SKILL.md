@@ -298,8 +298,12 @@ Anything in tier 3 stays in a **companion Java bundle**. This is supported and n
 documents a JS module and a Java module on the same site as the upgrade path. Do not fake it in JS.
 
 Always Java: `ModuleChoiceListInitializer` (named from the CND, so the CND keeps working only if
-the initializer still exists), render filters (`AbstractFilter`), Drools rules that call module
-services, actions, servlets and workflow handlers.
+the initializer still exists), render filters (`AbstractFilter`), node validators
+(`JCRNodeValidatorDefinition`), GraphQL extensions, Drools rules that call module services, actions,
+servlets and workflow handlers. When the companion bundle needs a change to one of them, load its
+skill: `jahia-java-choicelist-initializer`, `jahia-java-render-filter`, `jahia-java-validator`,
+`jahia-java-graphql`, `jahia-java-permissions` for a `permissions.xml`, and `jahia-dev-java` for an
+action.
 
 **The companion bundle is the original Java module, stripped.** You do not write a new project:
 
@@ -310,7 +314,9 @@ services, actions, servlets and workflow handlers.
    fragments, Groovy views you chose not to port. Deleting any of them silently drops working
    behaviour, and the failure shows up as a blank region on a page, not as an error.
 3. **Delete its `definitions.cnd` and its `src/main/import`.** Only one module may declare the CND;
-   the JSM module now does. Two bundles declaring the same types conflict.
+   the JSM module now does. Two bundles declaring the same types conflict. Keep
+   `src/main/import/permissions.xml` and `roles.xml` when the Java code still checks those
+   permissions: a JS module cannot declare them (`jahia-java-permissions`).
 4. Rename it (e.g. `<name>-hooks`) if the JSM module took the original module name, and drop
    `Jahia-Module-Type: templatesSet` — it is a plain module now, not a template set.
 5. Deploy both, and enable both on the site.
