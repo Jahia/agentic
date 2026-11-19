@@ -3291,5 +3291,73 @@
       }
     ],
     "cndQualityScore": 1
+  },
+  {
+    "id": "run-2026-11-19T15-09-15",
+    "date": "2026-11-19T15:09:46.269Z",
+    "durationSeconds": 1335,
+    "costUSD": 6.379903950000001,
+    "tokens": {
+      "input": 2358,
+      "output": 82925,
+      "cached": 12702614
+    },
+    "githubRunUrl": "https://github.com/Jahia/agentic/actions/runs/44546957114",
+    "branch": "main",
+    "pages": [
+      {
+        "url": "http://localhost:8080/sites/forsure/home.html",
+        "title": "Home | ForSure Insurance",
+        "screenshot": "screenshot-0.png",
+        "accessibilityScore": 1,
+        "seoScore": 1,
+        "imageCount": 3,
+        "brokenImageCount": 0,
+        "imageScore": 1,
+        "sectionCount": 3,
+        "itemCount": 11,
+        "contentScore": 1
+      },
+      {
+        "url": "http://localhost:8080/sites/forsure/home/car-insurance.html",
+        "title": "Car Insurance | ForSure Insurance",
+        "screenshot": "screenshot-1.png",
+        "accessibilityScore": 1,
+        "seoScore": 1,
+        "imageCount": 4,
+        "brokenImageCount": 0,
+        "imageScore": 1,
+        "sectionCount": 3,
+        "itemCount": 11,
+        "contentScore": 1
+      },
+      {
+        "url": "http://localhost:8080/sites/forsure/home/health-insurance.html",
+        "title": "Health Insurance | ForSure Insurance",
+        "screenshot": "screenshot-2.png",
+        "accessibilityScore": 1,
+        "seoScore": 1,
+        "imageCount": 3,
+        "brokenImageCount": 0,
+        "imageScore": 1,
+        "sectionCount": 3,
+        "itemCount": 11,
+        "contentScore": 1
+      },
+      {
+        "url": "http://localhost:8080/sites/forsure/home/home-insurance.html",
+        "title": "Home Insurance | ForSure Insurance",
+        "screenshot": "screenshot-3.png",
+        "accessibilityScore": 1,
+        "seoScore": 1,
+        "imageCount": 4,
+        "brokenImageCount": 0,
+        "imageScore": 1,
+        "sectionCount": 3,
+        "itemCount": 11,
+        "contentScore": 1
+      }
+    ],
+    "cndQualityScore": 1
   }
 ]
