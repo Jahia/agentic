@@ -54,7 +54,7 @@ public class SiteTitleMetaFilter extends AbstractFilter {
         JCRSiteNode site = renderContext.getSite();
         int headEnd = StringUtils.indexOfIgnoreCase(previousOut, HEAD_END);
         if (site == null || StringUtils.isBlank(site.getTitle()) || headEnd < 0 || previousOut.contains(MARKER)) {
-            return previousOut;                       // idempotent: the same HTML can pass twice
+            return previousOut;                       // nothing to add, or already added: the same HTML can pass twice
         }
         String meta = MARKER + " content=\"" + StringEscapeUtils.escapeXml11(site.getTitle()) + "\">\n";
         return new StringBuilder(previousOut).insert(headEnd, meta).toString();
