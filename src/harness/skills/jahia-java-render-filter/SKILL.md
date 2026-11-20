@@ -203,9 +203,6 @@ site title, a page property) is not trusted: it reaches guests.
   before you insert it.
 - Use the Jericho parser (`net.htmlparser.jericho`, exported by Jahia) for a structural change. A
   regular expression is acceptable only for a fixed insertion, such as before `</head>`.
-- A filter is not a security control for the whole site. A header such as a Content Security Policy
-  added by a filter covers only the renders it matches. Pages that other servlets serve, such as
-  administration screens, do not get it.
 - A filter used as an access guard covers only what its conditions match. A guard limited to one
   view (`setApplyOnTemplates("default")`) does not protect the other views of the same type: each
   view must check too.
