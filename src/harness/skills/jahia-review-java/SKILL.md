@@ -26,7 +26,9 @@ Ask once if the mode is unclear.
 
 Do not write anything for this pass.
 
-- List the packages and what each holds: actions, servlets, services, GraphQL, filters, listeners.
+- List the packages and what each holds: actions, servlets, services, GraphQL, filters,
+  choicelist initializers, validators, listeners.
+- Read `src/main/import/permissions.xml` and `roles.xml` when they exist.
 - Read `pom.xml`, `README.md`, `AGENTS.md` and `docs/` when they exist.
 - Read every `.cnd` file and every file under `META-INF/configurations/`.
 - Note `Export-Package` and the public interfaces.
@@ -40,7 +42,18 @@ choice is written down. Look in particular for:
 - an Action with `setRequireAuthenticatedUser(false)` that writes content;
 - an action that changes content and is whitelisted in `org.jahia.modules.jahiacsrfguard-*.cfg`;
 - a system session on a node that the request chooses;
-- a GraphQL mutation without `@GraphQLRequiresPermission`;
+- a GraphQL mutation without `@GraphQLRequiresPermission`, or with a site permission in it, which
+  Jahia checks on `/` (`jahia-java-graphql`);
+- an API security scope that grants all of `graphql`, or opens a mutation to every caller;
+- a permission named in code that no `permissions.xml` declares, a check on a node the caller
+  chooses or owns, a parent in `permissions.xml` that grants more roles than intended
+  (`jahia-java-permissions`);
+- a render filter that writes per-user or per-request data above the HTML cache (priority above 16),
+  or writes a value into the HTML without the encoder of its context (`jahia-java-render-filter`);
+- a choicelist initializer that lists nodes with a system session, or builds a query from `param`
+  or from the context (`jahia-java-choicelist-initializer`);
+- a validator taken as the only guard of a value that must never be stored or rendered unsafe:
+  publication and some writes skip it (`jahia-java-validator`);
 - an outbound HTTP call without timeouts, or to a host from the request.
 
 ## Pass 2 — Code health
@@ -53,6 +66,16 @@ choice is written down. Look in particular for:
   with concatenated values, cleared locks.
 - **Actions** (`jahia-dev-java`): an `ActionResult` returned where the client expects JSON, an
   exception that escapes `doExecute`, a parameter used without validation.
+- **Render filters** (`jahia-java-render-filter`): no explicit priority, conditions set outside
+  `@Activate`, `setApplyOnEditMode(false)`, a template type written as a glob, no `page`
+  configuration, a rewrite that is not idempotent, a resource taken in `prepare` and not released in
+  `finalize`, a blocking call above the HTML cache.
+- **Choicelist initializers** (`jahia-java-choicelist-initializer`): a key that is not a constant
+  prefixed by the module, a key or a value removed while content stores it, an exception that
+  escapes, an unbounded query, labels outside ASCII written without `\uXXXX`.
+- **Validators** (`jahia-java-validator`): a CND constraint would do, a getter that throws, an error
+  that names no property, a message key missing from a language file, a new rule over content that
+  breaks it.
 - **Errors:** an exception swallowed, a security check that fails open, a failure of a side effect
   (an email, a cache) that stops the main operation.
 - **Design:** business logic in an Action or a servlet, one class with five jobs, an abstraction

@@ -13,13 +13,18 @@ adds only what the module needs.
 
 Load the other Java skills when the work reaches their subject:
 
-| Subject                                                             | Skill                  |
-| ------------------------------------------------------------------- | ---------------------- |
-| `@Component`, `@Reference`, `@Activate`, OSGi configuration         | `jahia-java-osgi`      |
-| Reading or writing JCR content from Java                            | `jahia-java-jcr`       |
-| Who may call the endpoint: guests, permissions, CSRF guard, GraphQL | `jahia-java-security`  |
-| Build, deploy, bundle state, a module that does not start           | `jahia-dev-run-module` |
-| Review of a finished module                                         | `jahia-review-java`    |
+| Subject                                                             | Skill                               |
+| ------------------------------------------------------------------- | ----------------------------------- |
+| `@Component`, `@Reference`, `@Activate`, OSGi configuration         | `jahia-java-osgi`                   |
+| Reading or writing JCR content from Java                            | `jahia-java-jcr`                    |
+| Who may call the endpoint: guests, permissions, CSRF guard, GraphQL | `jahia-java-security`               |
+| A permission of the module: `permissions.xml`, roles, the check     | `jahia-java-permissions`            |
+| A render filter that changes the HTML or the response               | `jahia-java-render-filter`          |
+| The values of a dropdown, named by `choicelist[…]` in the CND       | `jahia-java-choicelist-initializer` |
+| A rule checked when content is saved                                | `jahia-java-validator`              |
+| A query, a mutation or a field added to the GraphQL API             | `jahia-java-graphql`                |
+| Build, deploy, bundle state, a module that does not start           | `jahia-dev-run-module`              |
+| Review of a finished module                                         | `jahia-review-java`                 |
 
 ## 1. Decide if the work needs Java
 
@@ -29,7 +34,8 @@ outside a render:
 - an endpoint that a page calls from the browser (an Action, this skill);
 - a call to an external API with a secret, a cache or a timeout;
 - an OSGi service that other modules use;
-- a render filter, a choicelist initializer, a JCR event listener or a GraphQL extension.
+- a render filter, a choicelist initializer, a node validator, a JCR event listener or a GraphQL
+  extension.
 
 A JavaScript module and a Java module can work together. The JavaScript module renders the page,
 and a client component (`.client.tsx`) calls the Java action with `fetch`.

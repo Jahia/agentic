@@ -81,6 +81,10 @@ administrative field with `@GraphQLRequiresPermission("permissionName")`
 (`org.jahia.modules.graphql.provider.dxm.security`). A mutation without it, that writes with a
 system session, is open to every caller that the security filter lets through.
 
+The annotation checks the permission on the root node `/`, so it fits a server permission. A site
+permission is checked in the code, on the site. `jahia-java-graphql` writes the extension and its
+scope. `jahia-java-permissions` declares a permission of the module and places each check.
+
 ## System sessions
 
 A system session ignores permissions (`jahia-java-jcr`). When code uses one:

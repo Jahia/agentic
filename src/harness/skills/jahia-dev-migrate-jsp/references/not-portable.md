@@ -117,13 +117,16 @@ None of these can be provided by a JS module. They keep working if the companion
 providing them — and note the CND keeps referring to them by name, so removing the Java bundle
 breaks the content model, not just the rendering.
 
-| Hook                                                       | Note                                                                                           |
-| ---------------------------------------------------------- | ---------------------------------------------------------------------------------------------- |
-| `ModuleChoiceListInitializer` / `ModuleChoiceListRenderer` | named from the CND (`choicelist[myInitializer]`); the CND ports verbatim only if these survive |
-| render filters (`AbstractFilter`)                          | only reachable through the untyped, undocumented `server.registry.add("render-filter", …)`     |
-| Drools rules calling module services                       | see `gotchas.md` — carrying the `.drl` without the service stops the bundle                    |
-| actions, servlets, listeners, workflow handlers            | no JS equivalent                                                                               |
-| custom JSP taglibs (`.tld`)                                | no analogue — but an EL function usually becomes a plain JS function, which is simpler         |
+| Hook                                                       | Note                                                                                                                                |
+| ---------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------- |
+| `ModuleChoiceListInitializer` / `ModuleChoiceListRenderer` | named from the CND (`choicelist[myInitializer]`); the CND ports verbatim only if these survive. `jahia-java-choicelist-initializer` |
+| render filters (`AbstractFilter`)                          | only reachable through the untyped, undocumented `server.registry.add("render-filter", …)`. `jahia-java-render-filter`              |
+| node validators (`JCRNodeValidatorDefinition`)             | run on every save of the type, whatever module renders it. `jahia-java-validator`                                                   |
+| GraphQL extensions (`DXGraphQLExtensionsProvider`)         | a JS view calls them with `useGQLQuery`. `jahia-java-graphql`                                                                       |
+| `src/main/import/permissions.xml`, `roles.xml`             | a JS module has no `src/main/import`: keep them in the Java bundle. `jahia-java-permissions`                                        |
+| Drools rules calling module services                       | see `gotchas.md` — carrying the `.drl` without the service stops the bundle                                                         |
+| actions, servlets, listeners, workflow handlers            | no JS equivalent                                                                                                                    |
+| custom JSP taglibs (`.tld`)                                | no analogue — but an EL function usually becomes a plain JS function, which is simpler                                              |
 
 ## Groovy views
 

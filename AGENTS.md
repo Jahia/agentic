@@ -59,26 +59,31 @@ Each folder is a skill. The folder name becomes the slash command (e.g. `jahia-d
 
 Key skills:
 
-| Skill                            | Purpose                                                                                          |
-| -------------------------------- | ------------------------------------------------------------------------------------------------ |
-| `jahia-cnd-author`               | Authors a CND content type definition + TypeScript props                                         |
-| `jahia-dev-change-cnd`           | Changes a CND already in production without a refused deployment, and migrates its content       |
-| `jahia-dev-build-component`      | Builds a complete component (CND + view + CSS)                                                   |
-| `jahia-dev-create-view`          | Implements a React view (`.server.tsx` + CSS Module)                                             |
-| `jahia-dev-create-page-template` | Creates a page template with Areas                                                               |
-| `jahia-dev-create-template-set`  | Scaffolds a new template set                                                                     |
-| `jahia-dev-migrate-jsp`          | Migrates a JSP/Java template set to a JavaScript module                                          |
-| `jahia-dev-migrate-ui-extension` | Migrates a UI extension from webpack to Vite, for app-shell 4 and 5                              |
-| `jahia-dev-query-content`        | Designs JCR-SQL2 queries and wires `useJCRQuery`                                                 |
-| `jahia-dev-debug`                | Debugs build, deploy and runtime errors end to end                                               |
-| `jahia-dev-accessibility`        | WCAG 2.1 AA audit with axe-core + fixes                                                          |
-| `jahia-review`                   | Full quality review — code + live site, in parallel                                              |
-| `jahia-dev-java`                 | Writes a Java module: pom.xml, an Action (`.do` endpoint), configuration, tests, deployment      |
-| `jahia-java-osgi`                | OSGi Declarative Services and configuration in a Java module                                     |
-| `jahia-java-jcr`                 | JCR sessions, queries and writes from Java                                                       |
-| `jahia-java-security`            | Who may call an Action, a servlet or a GraphQL field, and how Jahia checks it                    |
-| `jahia-review-java`              | Prioritised review of a Java module                                                              |
-| `jahia-capture`                  | Turns a task done twice in a session into a skill or an instruction stored in the user's project |
+| Skill                               | Purpose                                                                                            |
+| ----------------------------------- | -------------------------------------------------------------------------------------------------- |
+| `jahia-cnd-author`                  | Authors a CND content type definition + TypeScript props                                           |
+| `jahia-dev-change-cnd`              | Changes a CND already in production without a refused deployment, and migrates its content         |
+| `jahia-dev-build-component`         | Builds a complete component (CND + view + CSS)                                                     |
+| `jahia-dev-create-view`             | Implements a React view (`.server.tsx` + CSS Module)                                               |
+| `jahia-dev-create-page-template`    | Creates a page template with Areas                                                                 |
+| `jahia-dev-create-template-set`     | Scaffolds a new template set                                                                       |
+| `jahia-dev-migrate-jsp`             | Migrates a JSP/Java template set to a JavaScript module                                            |
+| `jahia-dev-migrate-ui-extension`    | Migrates a UI extension from webpack to Vite, for app-shell 4 and 5                                |
+| `jahia-dev-query-content`           | Designs JCR-SQL2 queries and wires `useJCRQuery`                                                   |
+| `jahia-dev-debug`                   | Debugs build, deploy and runtime errors end to end                                                 |
+| `jahia-dev-accessibility`           | WCAG 2.1 AA audit with axe-core + fixes                                                            |
+| `jahia-review`                      | Full quality review — code + live site, in parallel                                                |
+| `jahia-dev-java`                    | Writes a Java module: pom.xml, an Action (`.do` endpoint), configuration, tests, deployment        |
+| `jahia-java-osgi`                   | OSGi Declarative Services and configuration in a Java module                                       |
+| `jahia-java-jcr`                    | JCR sessions, queries and writes from Java                                                         |
+| `jahia-java-security`               | Who may call an Action, a servlet or a GraphQL field, and how Jahia checks it                      |
+| `jahia-java-permissions`            | Declares a module permission in `permissions.xml`, grants it to roles, checks it on the right node |
+| `jahia-java-render-filter`          | A render filter: conditions, priority and the HTML cache, `finalize`, encoding                     |
+| `jahia-java-choicelist-initializer` | The Java values of a `choicelist[…]` dropdown, labels per locale, keys in production               |
+| `jahia-java-validator`              | A node validator run on save: Bean Validation, translated messages, the save paths that skip it    |
+| `jahia-java-graphql`                | Extends the GraphQL schema: queries, mutations, `JCRNode` fields, permission and scopes            |
+| `jahia-review-java`                 | Prioritised review of a Java module                                                                |
+| `jahia-capture`                     | Turns a task done twice in a session into a skill or an instruction stored in the user's project   |
 
 ---
 
