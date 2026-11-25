@@ -152,6 +152,9 @@ guide](https://vitest.dev/guide/migration.html#jest)) so that Babel goes too. If
 - `pom.xml`: set `app-shell=4.0` in `<jahia-depends>` (add it, or raise the existing entry). A
   bare version is a minimum. Without it the module starts on app-shell 3, which cannot load a Vite
   remote.
+- `pom.xml`: raise the `<version>` of the `jahia-modules` parent to `8.2.2.0` if it is lower, and
+  keep it if it is higher. app-shell 4 requires Jahia 8.2.2.0, so the module no longer runs on an
+  older Jahia, and the parent version becomes its `Jahia-Required-Version`.
 - `.gitignore`: add `.__*`.
 
 ## Step 6 — Prepare for app-shell 5
