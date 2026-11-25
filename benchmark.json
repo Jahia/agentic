@@ -3359,5 +3359,73 @@
       }
     ],
     "cndQualityScore": 1
+  },
+  {
+    "id": "run-2026-11-25T15-26-50",
+    "date": "2026-11-25T15:27:22.750Z",
+    "durationSeconds": 985,
+    "costUSD": 5.76185805,
+    "tokens": {
+      "input": 175,
+      "output": 83194,
+      "cached": 11237766
+    },
+    "githubRunUrl": "https://github.com/Jahia/agentic/actions/runs/45641470395",
+    "branch": "main",
+    "pages": [
+      {
+        "url": "http://localhost:8080/sites/forsure/home.html",
+        "title": "Home | For Sure Insurance",
+        "screenshot": "screenshot-0.png",
+        "accessibilityScore": 1,
+        "seoScore": 1,
+        "imageCount": 2,
+        "brokenImageCount": 0,
+        "imageScore": 1,
+        "sectionCount": 4,
+        "itemCount": 10,
+        "contentScore": 1
+      },
+      {
+        "url": "http://localhost:8080/sites/forsure/home/car-insurance.html",
+        "title": "Car Insurance | For Sure Insurance",
+        "screenshot": "screenshot-1.png",
+        "accessibilityScore": 1,
+        "seoScore": 1,
+        "imageCount": 2,
+        "brokenImageCount": 0,
+        "imageScore": 1,
+        "sectionCount": 4,
+        "itemCount": 9,
+        "contentScore": 1
+      },
+      {
+        "url": "http://localhost:8080/sites/forsure/home/health-insurance.html",
+        "title": "Health Insurance | For Sure Insurance",
+        "screenshot": "screenshot-2.png",
+        "accessibilityScore": 1,
+        "seoScore": 1,
+        "imageCount": 2,
+        "brokenImageCount": 0,
+        "imageScore": 1,
+        "sectionCount": 4,
+        "itemCount": 10,
+        "contentScore": 1
+      },
+      {
+        "url": "http://localhost:8080/sites/forsure/home/home-insurance.html",
+        "title": "Home Insurance | For Sure Insurance",
+        "screenshot": "screenshot-3.png",
+        "accessibilityScore": 1,
+        "seoScore": 1,
+        "imageCount": 2,
+        "brokenImageCount": 0,
+        "imageScore": 1,
+        "sectionCount": 4,
+        "itemCount": 9,
+        "contentScore": 1
+      }
+    ],
+    "cndQualityScore": 1
   }
 ]
