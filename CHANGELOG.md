@@ -1,5 +1,9 @@
 # `@jahia/agentic`
 
+## 0.10.2
+
+* The UI extension migration raises the module's parent to Jahia 8.2.2.0, the oldest version that runs app-shell 4.
+
 ## 0.10.1
 
 * Fixed the editor labels written by the CND author, which used keys and files that Jahia ignores. The CND review now changes no file unless asked to fix, and the CND author can ask questions before it writes.
