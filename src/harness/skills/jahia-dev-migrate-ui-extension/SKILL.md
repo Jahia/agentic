@@ -118,9 +118,9 @@ The build fails with a message that names the library when a library of this tab
 `dependencies` or only in `devDependencies`, or when `peerDependencies` holds a library the
 app-shell does not provide (`@jahia/moonstone`, `prop-types`…).
 
-**`react-router-dom` v5.** Apply the router rules of step 6 first: they move every import that
-`react-router` exports (`useHistory`, `useParams`, `Route`…) to `react-router`, and remove the
-module's own router (`BrowserRouter`). Then:
+**`react-router-dom` v5.** Choose the router path of step 6 first. The full path removes
+`react-router` and `react-router-dom`. On the light path, which moves every import that
+`react-router` exports (`useHistory`, `useParams`, `Route`…) to `react-router`:
 
 - If the code still imports `Link` or `NavLink` from `react-router-dom`, keep it in
   `dependencies`, and put `react-router` in `peerDependencies` even if nothing imports it.
@@ -151,7 +151,7 @@ guide](https://vitest.dev/guide/migration.html#jest)) so that Babel goes too. If
 - `pom.xml`: if the build runs `yarn ${yarn.arguments}`, set `<yarn.arguments>build</yarn.arguments>`.
 - `pom.xml`: set `app-shell=4.0` in `<jahia-depends>` (add it, or raise the existing entry). A
   bare version is a minimum. Without it the module starts on app-shell 3, which cannot load a Vite
-  remote.
+  remote. The full router path of step 6 also adds `jahia-ui-root=1.13`.
 - `pom.xml`: raise the `<version>` of the `jahia-modules` parent to `8.2.2.0` if it is lower, and
   keep it if it is higher. app-shell 4 requires Jahia 8.2.2.0, so the module no longer runs on an
   older Jahia, and the parent version becomes its `Jahia-Required-Version`.
@@ -163,23 +163,9 @@ guide](https://vitest.dev/guide/migration.html#jest)) so that Babel goes too. If
   `key_one` / `key_other`. For each `key_plural` in a locale file, keep `key` and `key_plural`, and
   add `key_one` (the value of `key`) and `key_other` (the value of `key_plural`).
 - **`<Trans>`.** Give every `<Trans>` an explicit `i18nKey`.
-- **react-router.**
-  - Never render a router in your module: no `CompatRouter`, `BrowserRouter` or `Router`. Jahia
-    renders the router. A module that renders its own breaks the day Jahia renders
-    `CompatRouter`, or inside another module that has one. When you remove it, keep the `Route` /
-    `Switch` it wrapped, with absolute paths (`/brand/:id`): they match against the full URL.
-  - Until Jahia announces that it renders `CompatRouter` for UI extensions, use the v5 APIs.
-    Import from `react-router` everything it exports (`useHistory`, `useLocation`, `useParams`,
-    `useRouteMatch`, `Route`, `Switch`, `Redirect`, `withRouter`), and from `react-router-dom`
-    only `Link` and `NavLink`. The v6 APIs of `react-router-dom-v5-compat` (`useNavigate`,
-    `Routes`, `element=`) throw until then: convert such code back to v5 (`useNavigate()(to)` →
-    `useHistory().push(to)`, `<Routes>` → `<Switch>`, `element={<X/>}` → `render={() => <X/>}`,
-    `<Navigate>` → `<Redirect>`).
-  - After that announcement, convert with steps 1 to 5 of
-    [react-router discussion 8753](https://github.com/remix-run/react-router/discussions/8753),
-    skipping its "Setting up" step. Give the top-level `Routes` of the module absolute paths
-    (`/jcontent/:siteKey/*`), because they match the full URL. The module is ready for app-shell 5
-    when it imports only `react-router-dom-v5-compat` and has no `CompatRoute` left.
+- **react-router.** Choose a path with the developer, full or light, and apply it as
+  [`references/react-router.md`](references/react-router.md) states. Only the full path is ready
+  for app-shell 5.
 
 ## Step 7 — Prove it
 
